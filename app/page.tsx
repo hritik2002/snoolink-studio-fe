@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/appSidebar";
 import ImageSearch from "@/components/imageSearch";
@@ -11,13 +11,12 @@ import { Loader2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 
-export default function Home() {
+function HomeContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [activeView, setActiveView] = useState<
     "search" | "collections" | "profile"
   >("search");
-  const { loading } = useAuth();
 
   useEffect(() => {
     const view = searchParams.get("view");
@@ -27,14 +26,6 @@ export default function Home() {
       setActiveView("search");
     }
   }, [searchParams]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
-        <Loader2 className="h-8 w-8 animate-spin text-white/60" />
-      </div>
-    );
-  }
 
   return (
     <SidebarProvider>
@@ -54,5 +45,29 @@ export default function Home() {
         </div>
       </SidebarInset>
     </SidebarProvider>
+  );
+}
+
+export default function Home() {
+  const { loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
+        <Loader2 className="h-8 w-8 animate-spin text-white/60" />
+      </div>
+    );
+  }
+
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
+          <Loader2 className="h-8 w-8 animate-spin text-white/60" />
+        </div>
+      }
+    >
+      <HomeContent />
+    </Suspense>
   );
 }
