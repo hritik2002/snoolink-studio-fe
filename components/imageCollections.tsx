@@ -41,15 +41,12 @@ export default function ImageCollections() {
   }, [fetchCollections]);
 
   const handleMultipleImageUpload = useCallback(async (files: FileList) => {
-    console.log("Files:", files);
     const fileArray = Array.from(files);
     const formData = new FormData();
     fileArray.forEach((file) => {
       formData.append("images", file);
     });
     setIsUploading(true);
-
-    console.log("in collections Form data:", formData);
 
     try {
       const response = await fetch("/api/images/embed", {
@@ -61,8 +58,7 @@ export default function ImageCollections() {
         throw new Error("Failed to upload images");
       }
 
-      const data = await response.json();
-      console.log("Upload response:", data);
+      await response.json();
     } catch (error) {
       console.error("Error uploading images:", error);
     } finally {
