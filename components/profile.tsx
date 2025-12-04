@@ -45,7 +45,7 @@ export default function Profile() {
           email: data.data.email || user?.email || "",
         });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Error fetching profile:", err);
       // Don't show error for initial load, just use defaults
     } finally {
