@@ -23,13 +23,6 @@ export default function Profile() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (user?.email) {
-      setProfile((prev) => ({ ...prev, email: user.email || "" }));
-    }
-    fetchProfile();
-  }, [user]);
-
   const fetchProfile = async () => {
     setLoading(true);
     setError(null);
@@ -52,6 +45,14 @@ export default function Profile() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (user?.email) {
+      setProfile((prev) => ({ ...prev, email: user.email || "" }));
+    }
+    fetchProfile();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,8 +81,8 @@ export default function Profile() {
       setSuccess("Profile updated successfully!");
       // Update auth context if needed
       setTimeout(() => setSuccess(null), 3000);
-    } catch (err: any) {
-      setError(err.message || "An error occurred");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setSaving(false);
     }

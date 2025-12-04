@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Upload, Loader2, X } from "lucide-react";
+import { Upload, Loader2 } from "lucide-react";
 import Image from "next/image";
 
 interface CollectionImage {

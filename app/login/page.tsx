@@ -13,7 +13,7 @@ export default function LoginPage() {
         </div>
         <LoginForm />
         <div className="text-center text-sm text-white/60">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link href="/signup" className="text-white hover:underline">
             Sign up
           </Link>
