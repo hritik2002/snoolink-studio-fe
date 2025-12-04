@@ -1,12 +1,40 @@
-import SearchVideo from "@/components/searchVideo";
+"use client";
+
+import { useState } from "react";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/appSidebar";
+import ImageSearch from "@/components/imageSearch";
+import ImageCollections from "@/components/imageCollections";
+import Profile from "@/components/profile";
+import { useAuth } from "@/contexts/AuthContext";
+import { Loader2 } from "lucide-react";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <h1>Welcome to Snoolink Studio</h1>
+  const [activeView, setActiveView] = useState<"search" | "collections" | "profile">("search");
+  const { loading } = useAuth();
 
-      <SearchVideo />
-      {/* <VideoUploader /> */}
-    </div>
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
+        <Loader2 className="h-8 w-8 animate-spin text-white/60" />
+      </div>
+    );
+  }
+
+  return (
+    <SidebarProvider>
+      <AppSidebar activeView={activeView} onViewChange={setActiveView} />
+      <SidebarInset className="bg-[var(--background-secondary)]">
+        <div className="flex flex-col h-screen overflow-auto px-8">
+          {activeView === "search" ? (
+            <ImageSearch />
+          ) : activeView === "collections" ? (
+            <ImageCollections />
+          ) : (
+            <Profile />
+          )}
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   );
 }
