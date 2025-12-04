@@ -5,10 +5,7 @@ export async function GET(_: NextRequest) {
   try {
     const token = await getAuthToken();
     if (!token) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const backendUrl =
@@ -30,10 +27,10 @@ export async function GET(_: NextRequest) {
 
       const data = await response.json();
       return NextResponse.json(data);
-    } catch (error: any) {
+    } catch (error: unknown) {
       return NextResponse.json({
         success: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : "Unknown error in collections route",
       });
     }
   } catch (error) {
