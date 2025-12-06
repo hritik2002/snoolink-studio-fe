@@ -2,12 +2,14 @@
 
 import axios from "axios";
 import { useState } from "react";
+import { useToast } from "@/lib/hooks/use-toast";
 
 export default function VideoUploader() {
   const [videoFile, setVideoFile] = useState<File | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [response, setResponse] = useState(null);
+  const { toast } = useToast();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -15,16 +17,34 @@ export default function VideoUploader() {
       setVideoFile(file);
       setVideoPreview(URL.createObjectURL(file));
     } else {
-      alert("Please select a valid video file");
+      toast({
+        title: "Invalid file",
+        description: "Please select a valid video file",
+        variant: "destructive",
+      });
     }
   };
 
   const handleUpload = async () => {
-    if (!videoFile) return alert("No video selected");
+    if (!videoFile) {
+      toast({
+        title: "No video selected",
+        description: "Please select a video file to upload",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const formData = new FormData();
     formData.append("file", videoFile);
     formData.append("language", "en");
+
+    // Show processing toast
+    const processingToast = toast({
+      title: "Uploading video",
+      description: "Processing your video file...",
+      variant: "default",
+    });
 
     try {
       setUploading(true);
@@ -38,9 +58,25 @@ export default function VideoUploader() {
         }
       );
       setResponse(res.data);
+      
+      // Dismiss processing toast and show success
+      processingToast.dismiss();
+      toast({
+        title: "Upload successful!",
+        description: "Your video has been uploaded and processed successfully.",
+        variant: "success",
+      });
     } catch (err) {
       console.error("Upload error:", err);
-      alert("Failed to upload video");
+      processingToast.dismiss();
+      const errorMessage = axios.isAxiosError(err) && err.response?.data?.error
+        ? err.response.data.error
+        : "Failed to upload video. Please try again.";
+      toast({
+        title: "Upload failed",
+        description: errorMessage,
+        variant: "destructive",
+      });
     } finally {
       setUploading(false);
     }

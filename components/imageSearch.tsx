@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Search, Loader2 } from "lucide-react";
 import Image from "next/image";
+import { useToast } from "@/lib/hooks/use-toast";
 
 interface SearchResult {
   id: string;
@@ -18,6 +19,7 @@ export default function ImageSearch() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
+  const { toast } = useToast();
 
   const handleSearch = useCallback(async () => {
     if (!searchQuery.trim()) return;
@@ -28,8 +30,12 @@ export default function ImageSearch() {
         method: "GET",
       });
 
-      const data = await response.json();
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Search failed");
+      }
 
+      const data = await response.json();
 
       const results = data.data.map(
         (result: {
@@ -48,13 +54,24 @@ export default function ImageSearch() {
       console.log("Search results:", results);
 
       setSearchResults(results);
+      
+      // Show success toast
+      toast({
+        title: "Search completed",
+        description: `Found ${results.length} result${results.length !== 1 ? "s" : ""} for "${searchQuery}"`,
+        variant: "success",
+      });
     } catch (error) {
       console.error("Error searching:", error);
-      alert("Search failed. Please try again.");
+      toast({
+        title: "Search failed",
+        description: error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsSearching(false);
     }
-  }, [searchQuery]);
+  }, [searchQuery, toast]);
 
   const handleKeyPress = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {

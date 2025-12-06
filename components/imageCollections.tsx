@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Upload, Loader2 } from "lucide-react";
 import Image from "next/image";
+import { useToast } from "@/lib/hooks/use-toast";
 
 interface CollectionImage {
   id: string;
@@ -18,6 +19,7 @@ export default function ImageCollections() {
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
   const fetchCollections = useCallback(async () => {
     setIsLoading(true);
@@ -27,13 +29,20 @@ export default function ImageCollections() {
         const data = await response.json();
         console.log("Collections data:", data);
         setImages(data.data || []);
+      } else {
+        throw new Error("Failed to fetch collections");
       }
     } catch (error) {
       console.error("Error fetching collections:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load collections. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [toast]);
 
   // Fetch collections on mount
   useEffect(() => {
@@ -42,11 +51,19 @@ export default function ImageCollections() {
 
   const handleMultipleImageUpload = useCallback(async (files: FileList) => {
     const fileArray = Array.from(files);
+    const imageCount = fileArray.length;
     const formData = new FormData();
     fileArray.forEach((file) => {
       formData.append("images", file);
     });
     setIsUploading(true);
+
+    // Show processing toast
+    const processingToast = toast({
+      title: "Processing images",
+      description: `${imageCount} image${imageCount !== 1 ? "s" : ""} being processed...`,
+      variant: "default",
+    });
 
     try {
       const response = await fetch("/api/images/embed", {
@@ -55,16 +72,34 @@ export default function ImageCollections() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to upload images");
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to upload images");
       }
 
-      await response.json();
+      const data = await response.json();
+      
+      // Dismiss processing toast and show success
+      processingToast.dismiss();
+      toast({
+        title: "Success!",
+        description: `${imageCount} image${imageCount !== 1 ? "s" : ""} uploaded and processed successfully.`,
+        variant: "success",
+      });
+
+      // Refresh collections
+      await fetchCollections();
     } catch (error) {
       console.error("Error uploading images:", error);
+      processingToast.dismiss();
+      toast({
+        title: "Upload failed",
+        description: error instanceof Error ? error.message : "Failed to upload images. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsUploading(false);
     }
-  }, []);
+  }, [toast, fetchCollections]);
 
   const handleFileSelect = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
