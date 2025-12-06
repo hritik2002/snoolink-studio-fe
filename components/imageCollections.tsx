@@ -76,7 +76,7 @@ export default function ImageCollections() {
         throw new Error(errorData.error || "Failed to upload images");
       }
 
-      const data = await response.json();
+      await response.json();
       
       // Dismiss processing toast and show success
       processingToast.dismiss();

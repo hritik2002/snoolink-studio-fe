@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthToken } from "@/lib/supabase/api-helper";
 
-export async function GET(_: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const token = await getAuthToken();
     if (!token) {
