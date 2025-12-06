@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthToken } from "@/lib/supabase/api-helper";
 
+// Configure route segment to handle larger payloads
+export const maxDuration = 60;
+export const runtime = "nodejs";
+
 export async function POST(request: NextRequest) {
   try {
     const token = await getAuthToken();
