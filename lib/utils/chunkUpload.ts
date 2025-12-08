@@ -115,31 +115,31 @@ export async function uploadMultipleFilesInChunks(
   files: File[],
   onFileProgress?: (fileId: string, progress: UploadProgress) => void
 ): Promise<{ fileId: string; fileName: string; success: boolean }[]> {
-  const results = await Promise.allSettled(
-    files.map(async (file) => {
+  // Upload files sequentially to avoid overwhelming the server
+  const results: { fileId: string; fileName: string; success: boolean }[] = [];
+
+  for (const file of files) {
+    try {
       const result = await uploadFileInChunks(file, (progress) => {
         if (onFileProgress) {
           onFileProgress(progress.fileId, progress);
         }
       });
-      return {
+      results.push({
         fileId: result.fileId,
         fileName: file.name,
         success: result.success,
-      };
-    })
-  );
-
-  return results.map((result, index) => {
-    if (result.status === "fulfilled") {
-      return result.value;
-    } else {
-      return {
+      });
+    } catch (error) {
+      console.error(`Error uploading file ${file.name}:`, error);
+      results.push({
         fileId: "",
-        fileName: files[index].name,
+        fileName: file.name,
         success: false,
-      };
+      });
     }
-  });
+  }
+
+  return results;
 }
 

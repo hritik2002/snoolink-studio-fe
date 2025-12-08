@@ -66,18 +66,17 @@ export default function ImageCollections() {
 
     try {
       // Upload files in chunks
+      const progressMap = new Map<string, number>();
+      
       const results = await uploadMultipleFilesInChunks(
         fileArray,
         (fileId, progress) => {
           // Update progress for this file
-          setUploadProgress((prev) => {
-            const newMap = new Map(prev);
-            newMap.set(fileId, progress.percentage);
-            return newMap;
-          });
+          progressMap.set(fileId, progress.percentage);
+          setUploadProgress(new Map(progressMap));
 
           // Update toast with progress
-          const totalProgress = Array.from(uploadProgress.values()).reduce(
+          const totalProgress = Array.from(progressMap.values()).reduce(
             (sum, p) => sum + p,
             0
           ) / imageCount;
@@ -125,7 +124,7 @@ export default function ImageCollections() {
       setIsUploading(false);
       setUploadProgress(new Map());
     }
-  }, [toast, fetchCollections, uploadProgress]);
+  }, [toast, fetchCollections]);
 
   const handleFileSelect = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
