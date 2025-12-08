@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const formData = await request.formData();
+    const { urls } = await request.json();
 
     const backendUrl =
       process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
@@ -25,8 +25,9 @@ export async function POST(request: NextRequest) {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-        body: formData,
+        body: JSON.stringify({ urls }),
       });
 
       if (!response.ok) {

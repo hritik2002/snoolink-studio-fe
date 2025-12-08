@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Upload, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { useToast } from "@/lib/hooks/use-toast";
+import axios from "axios";
 
 interface CollectionImage {
   id: string;
@@ -71,18 +72,33 @@ export default function ImageCollections() {
           formData.append("images", file);
         });
 
+        const response = await axios.post(
+          "/api/images/upload-cloudinary",
+          formData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+
+        const { urls } = response.data;
+
         // Upload directly to embed API
-        const response = await fetch("/api/images/embed", {
+        const embedResponse = await fetch("/api/images/embed", {
           method: "POST",
-          body: formData,
+          body: JSON.stringify({ urls }),
+          headers: {
+            "Content-Type": "application/json",
+          },
         });
 
-        if (!response.ok) {
-          const error = await response.json().catch(() => ({}));
+        if (!embedResponse.ok) {
+          const error = await embedResponse.json().catch(() => ({}));
           throw new Error(error.error || "Failed to upload images");
         }
 
-        const data = await response.json();
+        const data = await embedResponse.json();
 
         processingToast.dismiss();
 
