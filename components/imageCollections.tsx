@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Upload, Loader2 } from "lucide-react";
 import Image from "next/image";
 import { useToast } from "@/lib/hooks/use-toast";
+import { uploadMultipleFilesInChunks, type UploadProgress } from "@/lib/utils/chunkUpload";
 
 interface CollectionImage {
   id: string;
@@ -18,6 +19,7 @@ export default function ImageCollections() {
   const [images, setImages] = useState<CollectionImage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<Map<string, number>>(new Map());
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -52,39 +54,62 @@ export default function ImageCollections() {
   const handleMultipleImageUpload = useCallback(async (files: FileList) => {
     const fileArray = Array.from(files);
     const imageCount = fileArray.length;
-    const formData = new FormData();
-    fileArray.forEach((file) => {
-      formData.append("images", file);
-    });
     setIsUploading(true);
+    setUploadProgress(new Map());
 
     // Show processing toast
     const processingToast = toast({
-      title: "Processing images",
-      description: `${imageCount} image${imageCount !== 1 ? "s" : ""} being processed...`,
+      title: "Uploading images",
+      description: `Starting upload of ${imageCount} image${imageCount !== 1 ? "s" : ""}...`,
       variant: "default",
     });
 
     try {
-      const response = await fetch("/api/images/embed", {
-        method: "POST",
-        body: formData,
-      });
+      // Upload files in chunks
+      const results = await uploadMultipleFilesInChunks(
+        fileArray,
+        (fileId, progress) => {
+          // Update progress for this file
+          setUploadProgress((prev) => {
+            const newMap = new Map(prev);
+            newMap.set(fileId, progress.percentage);
+            return newMap;
+          });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "Failed to upload images");
+          // Update toast with progress
+          const totalProgress = Array.from(uploadProgress.values()).reduce(
+            (sum, p) => sum + p,
+            0
+          ) / imageCount;
+          
+          processingToast.update({
+            title: "Uploading images",
+            description: `Uploading... ${Math.round(totalProgress)}% complete`,
+          });
+        }
+      );
+
+      // Check results
+      const successful = results.filter((r) => r.success);
+      const failed = results.filter((r) => !r.success);
+
+      processingToast.dismiss();
+
+      if (successful.length > 0) {
+        toast({
+          title: "Success!",
+          description: `${successful.length} image${successful.length !== 1 ? "s" : ""} uploaded and processed successfully.${failed.length > 0 ? ` ${failed.length} failed.` : ""}`,
+          variant: "success",
+        });
       }
 
-      await response.json();
-      
-      // Dismiss processing toast and show success
-      processingToast.dismiss();
-      toast({
-        title: "Success!",
-        description: `${imageCount} image${imageCount !== 1 ? "s" : ""} uploaded and processed successfully.`,
-        variant: "success",
-      });
+      if (failed.length > 0) {
+        toast({
+          title: "Some uploads failed",
+          description: `${failed.length} image${failed.length !== 1 ? "s" : ""} failed to upload.`,
+          variant: "destructive",
+        });
+      }
 
       // Refresh collections
       await fetchCollections();
@@ -98,8 +123,9 @@ export default function ImageCollections() {
       });
     } finally {
       setIsUploading(false);
+      setUploadProgress(new Map());
     }
-  }, [toast, fetchCollections]);
+  }, [toast, fetchCollections, uploadProgress]);
 
   const handleFileSelect = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
