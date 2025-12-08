@@ -1,4 +1,7 @@
 {
+  "buildCommand": "npm run build",
+  "framework": "nextjs",
+  "nodeVersion": "20.x",
   "functions": {
     "app/api/images/embed/route.ts": {
       "maxDuration": 60,
