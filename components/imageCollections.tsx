@@ -68,18 +68,19 @@ export default function ImageCollections() {
       try {
         // Create FormData with all images
         const formData = new FormData();
-        fileArray.forEach((file) => {
-          formData.append("images", file);
-        });
+
+        // Make sure we're appending File objects directly
+        for (let i = 0; i < fileArray.length; i++) {
+          const file = fileArray[i];
+          if (file instanceof File) {
+            formData.append("images", file);
+          }
+        }
+
 
         const response = await axios.post(
           "/api/images/upload-cloudinary",
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-            },
-          }
+          formData
         );
 
         const { urls } = response.data;
