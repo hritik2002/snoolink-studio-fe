@@ -28,7 +28,7 @@ export default function ImageCollections() {
       const response = await fetch("/api/images/collections");
       if (response.ok) {
         const data = await response.json();
-        setImages(data.data || []);
+        setImages(data.data.reverse() || []);
       } else {
         throw new Error("Failed to fetch collections");
       }
