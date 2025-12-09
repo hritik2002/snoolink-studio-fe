@@ -28,7 +28,6 @@ export default function ImageCollections() {
       const response = await fetch("/api/images/collections");
       if (response.ok) {
         const data = await response.json();
-        console.log("Collections data:", data);
         setImages(data.data || []);
       } else {
         throw new Error("Failed to fetch collections");
@@ -66,24 +65,86 @@ export default function ImageCollections() {
       });
 
       try {
-        // Create FormData with all images
-        const formData = new FormData();
-
-        // Make sure we're appending File objects directly
-        for (let i = 0; i < fileArray.length; i++) {
-          const file = fileArray[i];
-          if (file instanceof File) {
+        // Upload files in parallel (each file in its own request to avoid body size limits)
+        const uploadPromises = fileArray.map(async (file, index) => {
+          try {
+            const formData = new FormData();
             formData.append("images", file);
+
+            const response = await axios.post(
+              "/api/images/upload-cloudinary",
+              formData,
+              {
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                },
+              }
+            );
+
+            // Update progress as each upload completes
+            processingToast.update({
+              title: "Uploading images",
+              description: `Uploaded ${index + 1} of ${imageCount}...`,
+            });
+
+            if (response.data.success && response.data.urls) {
+              return {
+                success: true,
+                urls: response.data.urls,
+                fileName: file.name,
+              };
+            } else {
+              return {
+                success: false,
+                urls: [],
+                fileName: file.name,
+                error: `Failed to upload ${file.name}`,
+              };
+            }
+          } catch (error) {
+            console.error(`Error uploading ${file.name}:`, error);
+            return {
+              success: false,
+              urls: [],
+              fileName: file.name,
+              error:
+                axios.isAxiosError(error) && error.response?.data?.error
+                  ? error.response.data.error
+                  : "Unknown error",
+            };
           }
+        });
+
+        const results = await Promise.all(uploadPromises);
+
+        const urls: string[] = [];
+        const errors: string[] = [];
+
+        results.forEach((result) => {
+          if (result.success) {
+            urls.push(...result.urls);
+          } else {
+            errors.push(result.error || `Failed to upload ${result.fileName}`);
+          }
+        });
+
+        if (errors.length > 0) {
+          toast({
+            title: `${errors.length} uploads failed`,
+            description: errors.join("; "),
+            variant: "destructive",
+          });
+          return;
         }
 
-
-        const response = await axios.post(
-          "/api/images/upload-cloudinary",
-          formData
-        );
-
-        const { urls } = response.data;
+        if (urls.length === 0) {
+          toast({
+            title: "Upload failed",
+            description: "All uploads failed. " + errors.join("; "),
+            variant: "destructive",
+          });
+          return;
+        }
 
         // Upload directly to embed API
         const embedResponse = await fetch("/api/images/embed", {

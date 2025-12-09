@@ -34,34 +34,16 @@ export async function POST(request: Request) {
       );
     }
 
-    console.log(`Processing ${validFiles.length} files`);
-
     const uploads = await Promise.all(
       validFiles.map(async (file) => {
-        console.log(`Processing file: ${file.name}, size: ${file.size} bytes`);
-
         let buffer = Buffer.from(await file.arrayBuffer());
-        let fileName = file.name;
+        const fileName = file.name;
 
         // Check if the file is HEIC/HEIF and convert to PNG
         const isHeic = /\.(heic|heif)$/i.test(file.name);
 
         if (isHeic) {
-          try {
-            const inputBuffer = Buffer.from(buffer);
-
-            const convertedBuffer = await heicConvert({
-              buffer: inputBuffer.buffer,
-              format: "PNG",
-              quality: 1,
-            });
-
-            buffer = Buffer.from(convertedBuffer);
-            fileName = file.name.replace(/\.(heic|heif)$/i, ".jpg");
-          } catch (conversionError) {
-            console.error("HEIC conversion failed:", conversionError);
-            throw new Error(`Failed to convert HEIC image: ${file.name}`);
-          }
+          throw new Error("HEIC images are not supported");
         }
 
         const maxSize = 1 * 1024 * 1024; // 1MB
@@ -74,9 +56,7 @@ export async function POST(request: Request) {
               })
               .jpeg({ quality: 70 })
               .toBuffer();
-
           } catch (compressionError) {
-            console.error("Image compression failed:", compressionError);
             throw new Error(`Failed to compress image: ${fileName}`);
           }
         }
@@ -108,7 +88,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true, urls }, { status: 200 });
   } catch (error) {
-    console.error("Upload error:", error);
     return NextResponse.json(
       {
         error:
