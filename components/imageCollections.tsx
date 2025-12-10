@@ -65,160 +65,126 @@ export default function ImageCollections() {
       });
 
       try {
-        // Upload files in parallel (each file in its own request to avoid body size limits)
-        const uploadPromises = fileArray.map(async (file, index) => {
-          try {
-            const formData = new FormData();
+        // Batch uploads to avoid overwhelming the server and hitting rate limits
+        const BATCH_SIZE = 5; // Upload 10 files at a time
+        const urls: string[] = [];
+        const errors: string[] = [];
+        const uploadedCount = 0;
+
+        const uploadPromises = [];
+
+        // Process files in batches
+        for (let i = 0; i < fileArray.length; i += BATCH_SIZE) {
+          const batch = fileArray.slice(i, i + BATCH_SIZE);
+          const batchNumber = Math.floor(i / BATCH_SIZE) + 1;
+          const totalBatches = Math.ceil(fileArray.length / BATCH_SIZE);
+
+          processingToast.update({
+            title: "Uploading images",
+            description: `Uploading batch ${batchNumber} of ${totalBatches} (${uploadedCount}/${imageCount} uploaded)...`,
+          });
+
+          const formData = new FormData();
+          batch.forEach((file) => {
             formData.append("images", file);
+          });
 
-            const response = await axios.post(
-              "/api/images/upload-cloudinary",
-              formData,
-              {
-                headers: {
-                  "Content-Type": "multipart/form-data",
-                },
-              }
+          uploadPromises.push(
+            axios.post("/api/images/upload-cloudinary", formData, {
+              headers: {
+                "Content-Type": "multipart/form-data",
+              },
+            })
+          );
+
+          // Small delay between batches to avoid rate limiting
+          if (i + BATCH_SIZE < fileArray.length) {
+            await new Promise((resolve) => setTimeout(resolve, 500));
+          }
+        }
+
+        const uploadResults = await Promise.all(uploadPromises);
+
+        uploadResults.forEach((result) => {
+          if (result.data.success) {
+            urls.push(...result.data.urls);
+          } else {
+            errors.push(
+              result.error || `Failed to upload ${result.data.fileName}`
             );
-
-            // Update progress as each upload completes
-            processingToast.update({
-              title: "Uploading images",
-              description: `Uploaded ${index + 1} of ${imageCount}...`,
-            });
-
-            if (response.data.success && response.data.urls) {
-              return {
-                success: true,
-                urls: response.data.urls,
-                fileName: file.name,
-              };
-            } else {
-              return {
-                success: false,
-                urls: [],
-                fileName: file.name,
-                error: `Failed to upload ${file.name}`,
-              };
-            }
-          } catch (error) {
-            console.error(`Error uploading ${file.name}:`, error);
-            return {
-              success: false,
-              urls: [],
-              fileName: file.name,
-              error:
-                axios.isAxiosError(error) && error.response?.data?.error
-                  ? error.response.data.error
-                  : "Unknown error",
-            };
           }
         });
 
-        const results = await Promise.all(uploadPromises);
+        // Batch embed API calls to avoid payload size limits
+        const EMBED_BATCH_SIZE = 20; // Process 20 URLs at a time
 
-        const urls: string[] = [];
-        const errors: string[] = [];
+        processingToast.update({
+          title: "Processing images",
+          description: `Embedding ${urls.length} images...`,
+        });
 
-        results.forEach((result) => {
-          if (result.success) {
-            urls.push(...result.urls);
-          } else {
-            errors.push(result.error || `Failed to upload ${result.fileName}`);
+        const embedPromises = [];
+
+        for (let i = 0; i < urls.length; i += EMBED_BATCH_SIZE) {
+          const urlBatch = urls.slice(i, i + EMBED_BATCH_SIZE);
+          const batchNumber = Math.floor(i / EMBED_BATCH_SIZE) + 1;
+          const totalBatches = Math.ceil(urls.length / EMBED_BATCH_SIZE);
+
+          embedPromises.push(
+            axios.post(
+              "/api/images/embed",
+              {
+                urls: urlBatch,
+              },
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                },
+              }
+            )
+          );
+        }
+
+        const embedResults = await Promise.all(embedPromises);
+
+
+        embedResults.forEach((result) => {
+          if (!result.data.success) {
+            errors.push(
+              result.error || `Failed to embed ${result.data.urls[0]}`
+            );
           }
         });
 
         if (errors.length > 0) {
           toast({
-            title: `${errors.length} uploads failed`,
-            description: errors.join("; "),
+            title: "Error",
+            description: errors.join(", "),
             variant: "destructive",
           });
-          return;
-        }
-
-        if (urls.length === 0) {
+        } else {
           toast({
-            title: "Upload failed",
-            description: "All uploads failed. " + errors.join("; "),
-            variant: "destructive",
+            title: "Images queued for processing",
+            description: `Indexing might take a few minutes...`,
+            variant: "success",
           });
-          return;
         }
-
-        // Upload directly to embed API
-        const embedResponse = await fetch("/api/images/embed", {
-          method: "POST",
-          body: JSON.stringify({ urls }),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!embedResponse.ok) {
-          const error = await embedResponse.json().catch(() => ({}));
-          throw new Error(error.error || "Failed to upload images");
-        }
-
-        const data = await embedResponse.json();
-
-        processingToast.dismiss();
-
-        if (data.success) {
-          const successful = data.data?.successful || [];
-          const failed = data.data?.failed || [];
-
-          if (successful.length > 0) {
-            toast({
-              title: "Success!",
-              description: `${successful.length} image${
-                successful.length !== 1 ? "s" : ""
-              } uploaded and processed successfully.${
-                failed.length > 0 ? ` ${failed.length} failed.` : ""
-              }`,
-              variant: "success",
-            });
-          }
-
-          if (failed.length > 0) {
-            toast({
-              title: "Some uploads failed",
-              description: `${failed.length} image${
-                failed.length !== 1 ? "s" : ""
-              } failed to upload.`,
-              variant: "destructive",
-            });
-          }
-        }
-
-        // Refresh collections
-        await fetchCollections();
       } catch (error) {
-        console.error("Error uploading images:", error);
-        processingToast.dismiss();
+        console.error("Error embedding images:", error);
         toast({
-          title: "Upload failed",
+          title: "Error",
           description:
             error instanceof Error
               ? error.message
-              : "Failed to upload images. Please try again.",
+              : "Failed to embed images. Please try again.",
           variant: "destructive",
         });
       } finally {
         setIsUploading(false);
+        fetchCollections();
       }
     },
     [toast, fetchCollections]
-  );
-
-  const handleFileSelect = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const files = e.target.files;
-      if (files && files.length > 0) {
-        handleMultipleImageUpload(files);
-      }
-    },
-    [handleMultipleImageUpload]
   );
 
   const handleDrop = useCallback(
@@ -239,9 +205,19 @@ export default function ImageCollections() {
     e.preventDefault();
   }, []);
 
+  const handleFileSelect = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      e.preventDefault();
+      const files = e.target.files;
+      if (files && files.length > 0) {
+        handleMultipleImageUpload(files as unknown as FileList);
+      }
+    },
+    [handleMultipleImageUpload]
+  );
+
   return (
     <div className="flex-1 flex flex-col h-full py-8">
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-3xl font-light text-white mb-2">Collections</h1>
         <p className="text-white/60 text-sm">
@@ -285,8 +261,8 @@ export default function ImageCollections() {
             type="file"
             accept="image/*"
             multiple
-            onChange={handleFileSelect}
             className="hidden"
+            onChange={handleFileSelect}
           />
         </div>
       </div>
