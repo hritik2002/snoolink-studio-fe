@@ -48,14 +48,12 @@ export default function ImageCollections() {
   useEffect(() => {
     fetchCollections();
   }, [fetchCollections]);
-
   const handleMultipleImageUpload = useCallback(
     async (files: FileList) => {
       const fileArray = Array.from(files);
       const imageCount = fileArray.length;
       setIsUploading(true);
 
-      // Show processing toast
       const processingToast = toast({
         title: "Uploading images",
         description: `Starting upload of ${imageCount} image${
@@ -65,15 +63,289 @@ export default function ImageCollections() {
       });
 
       try {
-        // Batch uploads to avoid overwhelming the server and hitting rate limits
-        const BATCH_SIZE = 5; // Upload 10 files at a time
+        const BATCH_SIZE = 5;
+        const EMBED_BATCH_SIZE = 20;
         const urls: string[] = [];
         const errors: string[] = [];
-        const uploadedCount = 0;
+        let uploadedCount = 0;
 
-        const uploadPromises = [];
+        const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`;
 
-        // Process files in batches
+        // ============ Helper: Convert to PNG with Compression ============
+        const convertToPNG = async (
+          file: File
+        ): Promise<{ blob: Blob; isHEIC: boolean }> => {
+          const MAX_SIZE = 10 * 1024 * 1024; // 10MB limit
+
+          // Check if it's HEIC/HEIF
+          const isHEIC =
+            /\.(heic|heif)$/i.test(file.name) ||
+            file.type === "image/heic" ||
+            file.type === "image/heif";
+
+          if (isHEIC) {
+            // For HEIC files, just return the original file
+            // Cloudinary will handle the conversion
+            // Only compress if over 10MB
+            if (file.size > MAX_SIZE) {
+              // For large HEIC files, we can't compress without converting
+              // So we'll try heic2any, but with better error handling
+              try {
+                const heic2any = (await import("heic2any")).default;
+                const convertedBlob = await heic2any({
+                  blob: file,
+                  toType: "image/jpeg",
+                  quality: 0.7,
+                });
+
+                const blob = Array.isArray(convertedBlob)
+                  ? convertedBlob[0]
+                  : convertedBlob;
+
+                // If still too large after conversion, compress more
+                if (blob.size > MAX_SIZE) {
+                  const compressed = await compressImage(blob, MAX_SIZE);
+                  return { blob: compressed, isHEIC: false };
+                }
+
+                return { blob, isHEIC: false };
+              } catch (heicError) {
+                console.error("HEIC conversion failed:", heicError);
+                // If file is too large and conversion failed, reject
+                throw new Error(
+                  "HEIC file too large and conversion failed. Please use a smaller file or convert to JPG/PNG first."
+                );
+              }
+            }
+
+            // File is under 10MB, let Cloudinary handle it
+            return { blob: file, isHEIC: true };
+          }
+
+          // For other image formats, use canvas
+          return new Promise((resolve, reject) => {
+            const img = document.createElement("img");
+            const url = URL.createObjectURL(file);
+
+            img.onload = async () => {
+              try {
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+
+                if (!ctx) {
+                  URL.revokeObjectURL(url);
+                  reject(new Error("Failed to get canvas context"));
+                  return;
+                }
+
+                let width = img.width;
+                let height = img.height;
+
+                // Calculate optimal size to stay under 10MB
+                // Start with max 4000x4000, but scale down if needed
+                let maxDimension = 4000;
+
+                if (width > maxDimension || height > maxDimension) {
+                  if (width > height) {
+                    height = (height * maxDimension) / width;
+                    width = maxDimension;
+                  } else {
+                    width = (width * maxDimension) / height;
+                    height = maxDimension;
+                  }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // Try PNG first with compression
+                let blob = await new Promise<Blob>((res, rej) => {
+                  canvas.toBlob(
+                    (b) =>
+                      b ? res(b) : rej(new Error("Failed to create blob")),
+                    "image/png",
+                    0.9
+                  );
+                });
+
+                URL.revokeObjectURL(url);
+
+                // If PNG is too large, convert to JPEG with progressive quality reduction
+                if (blob.size > MAX_SIZE) {
+                  blob = await compressImage(canvas, MAX_SIZE);
+                }
+
+                resolve({ blob, isHEIC: false });
+              } catch (err) {
+                URL.revokeObjectURL(url);
+                reject(err);
+              }
+            };
+
+            img.onerror = () => {
+              URL.revokeObjectURL(url);
+              reject(new Error("Failed to load image"));
+            };
+
+            img.src = url;
+          });
+        };
+
+        // ============ Helper: Compress Image to Target Size ============
+        const compressImage = async (
+          source: HTMLCanvasElement | Blob,
+          maxSize: number
+        ): Promise<Blob> => {
+          let canvas: HTMLCanvasElement;
+
+          // If source is a blob, load it into a canvas
+          if (source instanceof Blob) {
+            canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+            const img = document.createElement("img");
+
+            await new Promise((resolve, reject) => {
+              img.onload = () => {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx?.drawImage(img, 0, 0);
+                resolve(null);
+              };
+              img.onerror = reject;
+              img.src = URL.createObjectURL(source);
+            });
+
+            URL.revokeObjectURL(img.src);
+          } else {
+            canvas = source;
+          }
+
+          // Try progressively lower quality JPEG until size is acceptable
+          const qualities = [0.9, 0.8, 0.7, 0.6, 0.5, 0.4];
+
+          for (const quality of qualities) {
+            const blob = await new Promise<Blob>((resolve, reject) => {
+              canvas.toBlob(
+                (b) =>
+                  b ? resolve(b) : reject(new Error("Failed to compress")),
+                "image/jpeg",
+                quality
+              );
+            });
+
+            if (blob.size <= maxSize) {
+              return blob;
+            }
+          }
+
+          // If still too large, reduce dimensions
+          const scale = Math.sqrt(maxSize / (canvas.width * canvas.height * 3)); // Rough estimate
+          const newWidth = Math.floor(canvas.width * scale);
+          const newHeight = Math.floor(canvas.height * scale);
+
+          const smallerCanvas = document.createElement("canvas");
+          const ctx = smallerCanvas.getContext("2d");
+          smallerCanvas.width = newWidth;
+          smallerCanvas.height = newHeight;
+          ctx?.drawImage(canvas, 0, 0, newWidth, newHeight);
+
+          return new Promise<Blob>((resolve, reject) => {
+            smallerCanvas.toBlob(
+              (b) => (b ? resolve(b) : reject(new Error("Failed to compress"))),
+              "image/jpeg",
+              0.7
+            );
+          });
+        };
+
+        // ============ Helper: Upload Single File ============
+        const uploadSingleFile = async (file: File): Promise<string> => {
+          try {
+            // Convert to PNG or keep HEIC
+            const { blob: processedBlob, isHEIC } = await convertToPNG(file);
+
+            // Generate unique public_id
+            const timestamp = Date.now();
+            const random = Math.random().toString(36).slice(2, 9);
+            const sanitizedName = file.name
+              .replace(/\.[^/.]+$/, "")
+              .replace(/[^a-zA-Z0-9\s\-_]/g, "")
+              .replace(/\s+/g, "_")
+              .substring(0, 50);
+            const publicId = `${timestamp}_${random}_${sanitizedName}`;
+
+            // Get signature from backend
+            const paramsToSign: Record<string, any> = {
+              timestamp: Math.round(Date.now() / 1000),
+              folder: "snoolink-studio",
+              public_id: publicId,
+            };
+
+            // Only add format for HEIC files (let Cloudinary convert them)
+            if (isHEIC) {
+              paramsToSign.format = "jpg";
+            }
+
+            const signatureResponse = await axios.post(
+              "/api/images/cloudinary-signature",
+              { paramsToSign }
+            );
+
+            const { signature } = signatureResponse.data;
+
+            // Upload directly to Cloudinary
+            const formData = new FormData();
+            const fileExtension = isHEIC
+              ? "heic"
+              : processedBlob.type === "image/jpeg"
+              ? "jpg"
+              : "png";
+
+            // Ensure we have a proper Blob/File object
+            const uploadBlob =
+              processedBlob instanceof File
+                ? processedBlob
+                : new File(
+                    [processedBlob],
+                    `${sanitizedName}.${fileExtension}`,
+                    { type: processedBlob.type }
+                  );
+
+            formData.append("file", uploadBlob);
+            formData.append(
+              "api_key",
+              process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY!
+            );
+            formData.append("timestamp", paramsToSign.timestamp.toString());
+            formData.append("signature", signature);
+            formData.append("folder", "snoolink-studio");
+            formData.append("public_id", publicId);
+
+            // Tell Cloudinary to convert HEIC to JPG
+            if (isHEIC) {
+              formData.append("format", "jpg");
+            }
+
+            const uploadResponse = await axios.post(
+              CLOUDINARY_UPLOAD_URL,
+              formData
+            );
+
+            if (!uploadResponse.data.secure_url) {
+              throw new Error("Upload failed - no URL returned");
+            }
+
+            return uploadResponse.data.secure_url;
+          } catch (error) {
+            // Add file name to error for better debugging
+            const errorMessage =
+              error instanceof Error ? error.message : "Unknown error";
+            throw new Error(`${file.name}: ${errorMessage}`);
+          }
+        };
+
+        // ============ Step 1: Upload to Cloudinary ============
         for (let i = 0; i < fileArray.length; i += BATCH_SIZE) {
           const batch = fileArray.slice(i, i + BATCH_SIZE);
           const batchNumber = Math.floor(i / BATCH_SIZE) + 1;
@@ -84,101 +356,132 @@ export default function ImageCollections() {
             description: `Uploading batch ${batchNumber} of ${totalBatches} (${uploadedCount}/${imageCount} uploaded)...`,
           });
 
-          const formData = new FormData();
-          batch.forEach((file) => {
-            formData.append("images", file);
-          });
-
-          uploadPromises.push(
-            axios.post("/api/images/upload-cloudinary", formData, {
-              headers: {
-                "Content-Type": "multipart/form-data",
-              },
-            })
+          // Upload batch in parallel
+          const batchResults = await Promise.allSettled(
+            batch.map((file) => uploadSingleFile(file))
           );
 
-          // Small delay between batches to avoid rate limiting
+          // Process results
+          batchResults.forEach((result, index) => {
+            if (result.status === "fulfilled") {
+              urls.push(result.value);
+              uploadedCount++;
+            } else {
+              const fileName = batch[index].name;
+              const errorMsg =
+                result.reason instanceof Error
+                  ? result.reason.message
+                  : String(result.reason);
+              errors.push(`${fileName}: ${errorMsg}`);
+            }
+          });
+
+          // Update progress
+          processingToast.update({
+            title: "Uploading images",
+            description: `${uploadedCount}/${imageCount} images uploaded...`,
+          });
+
+          // Small delay between batches
           if (i + BATCH_SIZE < fileArray.length) {
             await new Promise((resolve) => setTimeout(resolve, 500));
           }
         }
 
-        const uploadResults = await Promise.all(uploadPromises);
+        // ============ Step 2: Embed Images ============
+        if (urls.length > 0) {
+          processingToast.update({
+            title: "Processing images",
+            description: `Embedding ${urls.length} images...`,
+          });
 
-        uploadResults.forEach((result) => {
-          if (result.data.success) {
-            urls.push(...result.data.urls);
-          } else {
-            errors.push(
-              result.error || `Failed to upload ${result.data.fileName}`
-            );
-          }
-        });
+          const embedPromises = [];
 
-        // Batch embed API calls to avoid payload size limits
-        const EMBED_BATCH_SIZE = 20; // Process 20 URLs at a time
+          for (let i = 0; i < urls.length; i += EMBED_BATCH_SIZE) {
+            const urlBatch = urls.slice(i, i + EMBED_BATCH_SIZE);
+            const batchNumber = Math.floor(i / EMBED_BATCH_SIZE) + 1;
+            const totalBatches = Math.ceil(urls.length / EMBED_BATCH_SIZE);
 
-        processingToast.update({
-          title: "Processing images",
-          description: `Embedding ${urls.length} images...`,
-        });
+            processingToast.update({
+              title: "Processing images",
+              description: `Embedding batch ${batchNumber} of ${totalBatches}...`,
+            });
 
-        const embedPromises = [];
-
-        for (let i = 0; i < urls.length; i += EMBED_BATCH_SIZE) {
-          const urlBatch = urls.slice(i, i + EMBED_BATCH_SIZE);
-          const batchNumber = Math.floor(i / EMBED_BATCH_SIZE) + 1;
-          const totalBatches = Math.ceil(urls.length / EMBED_BATCH_SIZE);
-
-          embedPromises.push(
-            axios.post(
-              "/api/images/embed",
-              {
+            embedPromises.push(
+              axios.post("/api/images/embed", {
                 urls: urlBatch,
-              },
-              {
-                headers: {
-                  "Content-Type": "application/json",
-                },
-              }
-            )
-          );
+              })
+            );
+
+            // Small delay between embed batches
+            if (i + EMBED_BATCH_SIZE < urls.length) {
+              await new Promise((resolve) => setTimeout(resolve, 300));
+            }
+          }
+
+          const embedResults = await Promise.allSettled(embedPromises);
+
+          embedResults.forEach((result, index) => {
+            if (result.status === "rejected") {
+              const errorMsg =
+                result.reason instanceof Error
+                  ? result.reason.message
+                  : String(result.reason);
+              errors.push(`Embed batch ${index + 1}: ${errorMsg}`);
+            } else if (!result.value.data.success) {
+              errors.push(
+                result.value.data.error || `Embed batch ${index + 1} failed`
+              );
+            }
+          });
         }
 
-        const embedResults = await Promise.all(embedPromises);
+        // ============ Final Results ============
+        processingToast.dismiss();
 
-
-        embedResults.forEach((result) => {
-          if (!result.data.success) {
-            errors.push(
-              result.error || `Failed to embed ${result.data.urls[0]}`
-            );
-          }
-        });
-
-        if (errors.length > 0) {
+        if (errors.length > 0 && urls.length === 0) {
+          // All uploads failed
           toast({
-            title: "Error",
-            description: errors.join(", "),
+            title: "Upload failed",
+            description: "All images failed to upload. Please try again.",
             variant: "destructive",
           });
+        } else if (errors.length > 0) {
+          // Some uploads/embeds failed
+          toast({
+            title: "Partial success",
+            description: `${urls.length} images uploaded successfully. ${errors.length} failed.`,
+            variant: "default",
+          });
         } else {
+          // All succeeded
           toast({
             title: "Images queued for processing",
-            description: `Indexing might take a few minutes...`,
+            description: `Successfully uploaded ${urls.length} image${
+              urls.length !== 1 ? "s" : ""
+            }. Indexing might take a few minutes...`,
             variant: "success",
           });
         }
+
+        // Log errors for debugging
+        if (errors.length > 0) {
+          console.error("Upload/embed errors:", errors);
+        }
+
+        return urls;
       } catch (error) {
-        console.error("Error embedding images:", error);
+        console.error("Error in image upload process:", error);
+        processingToast.dismiss();
         toast({
           title: "Error",
           description:
             error instanceof Error
               ? error.message
-              : "Failed to embed images. Please try again.",
+              : "Failed to process images. Please try again.",
           variant: "destructive",
         });
+        return [];
       } finally {
         setIsUploading(false);
         fetchCollections();
@@ -186,7 +489,6 @@ export default function ImageCollections() {
     },
     [toast, fetchCollections]
   );
-
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault();

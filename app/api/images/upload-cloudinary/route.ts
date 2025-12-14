@@ -11,6 +11,23 @@ cloudinary.config({
   api_key: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,
   api_secret: process.env.NEXT_PUBLIC_CLOUDINARY_API_SECRET,
 });
+
+// Allowed MIME types
+const ALLOWED_MIME_TYPES = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/gif",
+  "image/webp",
+  "image/bmp",
+  "image/tiff",
+  "image/heic",
+  "image/heif",
+  "image/svg+xml",
+];
+
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
+
 export async function POST(request: Request) {
   const token = await getAuthToken();
   if (!token) {
@@ -19,87 +36,129 @@ export async function POST(request: Request) {
 
   try {
     const formData = await request.formData();
-
     const files = formData.getAll("images");
 
-    // Filter to ensure we only have File objects
     const validFiles = files.filter(
       (file): file is File => file instanceof File
     );
 
-    if (!validFiles || validFiles.length === 0) {
+    if (validFiles.length === 0) {
       return NextResponse.json(
         { error: "No valid images provided" },
         { status: 400 }
       );
     }
 
+    // Validate files
+    for (const file of validFiles) {
+      if (!ALLOWED_MIME_TYPES.includes(file.type) && 
+          !/\.(heic|heif)$/i.test(file.name)) {
+        return NextResponse.json(
+          { error: `Unsupported file type: ${file.type || file.name}` },
+          { status: 400 }
+        );
+      }
+
+      if (file.size > MAX_FILE_SIZE) {
+        return NextResponse.json(
+          { error: `File ${file.name} exceeds maximum size of 50MB` },
+          { status: 400 }
+        );
+      }
+    }
+
     const uploads = await Promise.all(
       validFiles.map(async (file) => {
-        let buffer: Buffer = Buffer.from(await file.arrayBuffer()) as Buffer;
-        const fileName = file.name;
+        try {
+          let buffer = Buffer.from(await file.arrayBuffer());
+          const fileName = file.name;
+          const fileType = file.type.toLowerCase();
 
-        // Check if the file is HEIC/HEIF and convert to PNG
-        const isHeic = /\.(heic|heif)$/i.test(file.name);
-
-        if (isHeic) {
-          throw new Error("HEIC images are not supported");
-        }
-
-        const maxSize = 1 * 1024 * 1024; // 1MB
-        if (buffer.length > maxSize) {
-          try {
-            buffer = (await sharp(buffer)
-              .resize(4000, 4000, {
-                fit: "inside",
-                withoutEnlargement: true,
+          /* ---------------- HEIC/HEIF → PNG ---------------- */
+          if (
+            /\.(heic|heif)$/i.test(fileName) ||
+            fileType === "image/heic" ||
+            fileType === "image/heif"
+          ) {
+            buffer = Buffer.from(
+              await heicConvert({
+                buffer,
+                format: "PNG",
+                quality: 1, // max quality for HEIC conversion
               })
-              .jpeg({ quality: 70 })
-              .toBuffer()) as Buffer;
-          } catch (compressionError) {
-            throw new Error(`Failed to compress image: ${fileName}`);
+            );
           }
-        }
 
-        // Generate unique public_id to avoid collisions
-        // Use timestamp + random string + sanitized filename
-        const timestamp = Date.now();
-        const random = Math.random().toString(36).substring(2, 9);
-        // Remove extension and sanitize filename (remove special chars, keep alphanumeric, spaces, hyphens, underscores)
-        const sanitizedName = fileName
-          .replace(/\.[^/.]+$/, "") // Remove extension
-          .replace(/[^a-zA-Z0-9\s\-_]/g, "") // Remove special characters
-          .replace(/\s+/g, "_") // Replace spaces with underscores
-          .substring(0, 50); // Limit length
-        const uniquePublicId = `${timestamp}_${random}_${sanitizedName}`;
+          /* ---------------- Convert to PNG with Sharp ---------------- */
+          // Sharp handles most formats: JPEG, PNG, WebP, AVIF, TIFF, GIF, SVG
+          buffer = await sharp(buffer)
+            .rotate() // Auto-rotate based on EXIF orientation
+            .resize(4000, 4000, {
+              fit: "inside",
+              withoutEnlargement: true,
+            })
+            .png({
+              compressionLevel: 9, // 0-9, max compression
+              adaptiveFiltering: true,
+              quality: 100, // ensure high quality
+            })
+            .toBuffer();
 
-        return new Promise((resolve, reject) => {
-          const upload = cloudinary.uploader.upload_stream(
-            {
-              folder: "snoolink-studio",
-              resource_type: "image",
-              public_id: uniquePublicId,
-            },
-            (error, result) => {
-              if (error) {
-                reject(error);
-              } else {
-                resolve(result);
+          /* ---------------- Generate Unique public_id ---------------- */
+          const timestamp = Date.now();
+          const random = Math.random().toString(36).slice(2, 9);
+
+          const sanitizedName = fileName
+            .replace(/\.[^/.]+$/, "") // remove extension
+            .replace(/[^a-zA-Z0-9\s\-_]/g, "") // remove special chars
+            .replace(/\s+/g, "_") // replace spaces with underscore
+            .substring(0, 50);
+
+          const publicId = `${timestamp}_${random}_${sanitizedName}`;
+
+          /* ---------------- Upload to Cloudinary ---------------- */
+          return new Promise((resolve, reject) => {
+            const upload = cloudinary.uploader.upload_stream(
+              {
+                folder: "snoolink-studio",
+                resource_type: "image",
+                public_id: publicId,
+                format: "png", // force PNG format
+                invalidate: true, // invalidate CDN cache
+              },
+              (error, result) => {
+                if (error) {
+                  console.error(`Upload error for ${fileName}:`, error);
+                  reject(new Error(`Failed to upload ${fileName}: ${error.message}`));
+                } else {
+                  resolve(result);
+                }
               }
-            }
-          );
+            );
 
-          upload.end(buffer);
-        });
+            upload.end(buffer);
+          });
+        } catch (fileError) {
+          console.error(`Error processing ${file.name}:`, fileError);
+          throw new Error(
+            `Failed to process ${file.name}: ${
+              fileError instanceof Error ? fileError.message : "Unknown error"
+            }`
+          );
+        }
       })
     );
 
-    const urls = uploads.map(
-      (upload: Record<string, string>) => upload.secure_url
-    );
+    const urls = uploads.map((upload: any) => ({
+      url: upload.secure_url,
+      publicId: upload.public_id,
+      width: upload.width,
+      height: upload.height,
+    }));
 
-    return NextResponse.json({ success: true, urls }, { status: 200 });
+    return NextResponse.json({ success: true, images: urls }, { status: 200 });
   } catch (error) {
+    console.error("Upload error:", error);
     return NextResponse.json(
       {
         error:
