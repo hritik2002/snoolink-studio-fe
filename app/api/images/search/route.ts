@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      throw new Error(`Backend request failed: ${errorText}`);
+      throw new Error(`Backend request fail: ${errorText}`);
     }
 
     const data = await response.json();
