@@ -6,6 +6,9 @@
       "maxDuration": 60,
       "memory": 1024
     }
+  },
+  "rewrites": [],
+  "engines": {
+    "node": "20.x"
   }
 }
-
