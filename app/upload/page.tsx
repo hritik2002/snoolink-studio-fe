@@ -1,9 +1,9 @@
-import VideoUploader from "@/components/videoUpload";
+import UnifiedUpload from "@/components/unifiedUpload";
 
 export default function UploadPage() {
   return (
-    <div className="flex flex-col items-center justify-center h-screen mt-10">
-      <VideoUploader />
+    <div className="flex flex-col items-center justify-center min-h-screen py-10 px-4">
+      <UnifiedUpload />
     </div>
   );
 }

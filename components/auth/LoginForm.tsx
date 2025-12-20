@@ -2,35 +2,32 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { getAuthCallbackUrl } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
 
 export function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const supabase = createClient();
-  const router = useRouter();
 
   const handleGoogleLogin = async () => {
     setLoading(true);
     setError(null);
 
     try {
+      // Use window.location.origin to get the current domain (works in both dev and prod)
+      const redirectTo = `http://localhost:3000/auth/callback`;
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: getAuthCallbackUrl(),
+          redirectTo: redirectTo,
         },
       });
 
       if (error) throw error;
-      
-      router.push("/");
-      router.refresh();
+      // OAuth will handle the redirect automatically, no need for router.push
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "An error occurred");
-    } finally {
       setLoading(false);
     }
   };

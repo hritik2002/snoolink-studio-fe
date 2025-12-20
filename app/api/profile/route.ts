@@ -9,7 +9,7 @@ export async function GET() {
     }
 
     const backendUrl =
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
     const response = await fetch(`${backendUrl}/api/profile`, {
       method: "GET",
@@ -46,7 +46,7 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
 
     const backendUrl =
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
     const response = await fetch(`${backendUrl}/api/profile`, {
       method: "PUT",

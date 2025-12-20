@@ -15,7 +15,7 @@ export async function GET(request: Request) {
       try {
         const token = data.session.access_token;
         const backendUrl =
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
         // Call backend to ensure profile exists with user data from OAuth
         // This extracts name and email from Google OAuth and stores in profiles table

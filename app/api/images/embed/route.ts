@@ -18,10 +18,10 @@ export async function POST(request: NextRequest) {
     const { urls } = await request.json();
 
     const backendUrl =
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
     try {
-      const response = await fetch(`${backendUrl}/api/upload-images`, {
+      const response = await fetch(`${backendUrl}/api/media/upload-images`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,

@@ -3,10 +3,13 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Upload, Loader2 } from "lucide-react";
+import { Upload, Loader2, Image as ImageIcon, Video } from "lucide-react";
 import Image from "next/image";
 import { useToast } from "@/lib/hooks/use-toast";
+import { createClient } from "@/lib/supabase/client";
 import axios from "axios";
+
+type Mode = "image" | "video";
 
 interface CollectionImage {
   id: string;
@@ -16,9 +19,11 @@ interface CollectionImage {
 }
 
 export default function ImageCollections() {
+  const [mode, setMode] = useState<Mode>("image");
   const [images, setImages] = useState<CollectionImage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [videoPreviews, setVideoPreviews] = useState<Map<number, string>>(new Map());
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -489,18 +494,195 @@ export default function ImageCollections() {
     },
     [toast, fetchCollections]
   );
+
+  const handleMultipleVideoUpload = useCallback(
+    async (videoFiles: File[]) => {
+      setIsUploading(true);
+      const totalVideos = videoFiles.length;
+
+      const processingToast = toast({
+        title: "Uploading videos",
+        description: `Starting upload of ${totalVideos} video(s)...`,
+        variant: "default",
+      });
+
+      try {
+        // Get auth token from client-side Supabase
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
+        
+        if (!token) {
+          throw new Error("Not authenticated");
+        }
+
+        const backendUrl =
+          process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+        // Step 1: Upload all videos to Cloudinary in parallel
+        processingToast.update({
+          title: "Uploading videos",
+          description: `Uploading ${totalVideos} video(s) to Cloudinary...`,
+        });
+
+        const uploadPromises = videoFiles.map(async (videoFile, index) => {
+          try {
+            const videoFormData = new FormData();
+            videoFormData.append("file", videoFile);
+
+            const videoUploadResponse = await fetch("/api/videos/upload-cloudinary", {
+              method: "POST",
+              body: videoFormData,
+            });
+
+            if (!videoUploadResponse.ok) {
+              const error = await videoUploadResponse.json().catch(() => ({}));
+              throw new Error(error.error || "Failed to upload video");
+            }
+
+            const videoUploadData = await videoUploadResponse.json();
+            return {
+              success: true,
+              videoUrl: videoUploadData.url,
+              fileName: videoFile.name,
+              index,
+            };
+          } catch (error) {
+            return {
+              success: false,
+              error: error instanceof Error ? error.message : "Unknown error",
+              fileName: videoFile.name,
+              index,
+            };
+          }
+        });
+
+        const uploadResults = await Promise.all(uploadPromises);
+        const successfulUploads = uploadResults.filter((r) => r.success);
+        const failedUploads = uploadResults.filter((r) => !r.success);
+
+        if (successfulUploads.length === 0) {
+          throw new Error(
+            `All video uploads failed: ${failedUploads.map((f) => `${f.fileName}: ${f.error}`).join("; ")}`
+          );
+        }
+
+        // Step 2: Process all videos in parallel
+        processingToast.update({
+          title: "Queueing videos",
+          description: `Queueing ${successfulUploads.length} video(s) for processing...`,
+        });
+
+        const processPromises = successfulUploads.map(async (uploadResult) => {
+          try {
+            const processResponse = await fetch(`${backendUrl}/api/media/process-video`, {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ videoUrl: uploadResult.videoUrl }),
+            });
+
+            if (!processResponse.ok) {
+              const error = await processResponse.json().catch(() => ({}));
+              throw new Error(error.error || "Failed to queue video");
+            }
+
+            return {
+              success: true,
+              fileName: uploadResult.fileName,
+            };
+          } catch (error) {
+            return {
+              success: false,
+              error: error instanceof Error ? error.message : "Unknown error",
+              fileName: uploadResult.fileName,
+            };
+          }
+        });
+
+        const processResults = await Promise.all(processPromises);
+        const successfulProcesses = processResults.filter((r) => r.success);
+        const failedProcesses = processResults.filter((r) => !r.success);
+        const processedCount = successfulProcesses.length;
+
+        // Show results
+        processingToast.dismiss();
+        const totalFailed = failedUploads.length + failedProcesses.length;
+        
+        if (totalFailed === 0) {
+          toast({
+            title: "Videos queued!",
+            description: `${processedCount} video(s) queued for processing`,
+            variant: "success",
+          });
+        } else if (processedCount > 0) {
+          toast({
+            title: "Partial success",
+            description: `${processedCount} video(s) queued. ${totalFailed} failed.`,
+            variant: "default",
+          });
+        } else {
+          const allErrors = [
+            ...failedUploads.map((f) => `${f.fileName}: ${f.error}`),
+            ...failedProcesses.map((f) => `${f.fileName}: ${f.error}`),
+          ];
+          throw new Error(`All videos failed: ${allErrors.join("; ")}`);
+        }
+
+        // Reset
+        videoPreviews.forEach((url) => URL.revokeObjectURL(url));
+        setVideoPreviews(new Map());
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+      } catch (error) {
+        console.error("Video upload error:", error);
+        processingToast.dismiss();
+        toast({
+          title: "Upload failed",
+          description:
+            error instanceof Error ? error.message : "Failed to upload videos",
+          variant: "destructive",
+        });
+      } finally {
+        setIsUploading(false);
+      }
+    },
+    [toast, videoPreviews]
+  );
+
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault();
       const files = e.dataTransfer.files;
-      const imageFiles = Array.from(files).filter((file) =>
-        file.type.startsWith("image/")
-      );
-      if (imageFiles.length > 0) {
-        handleMultipleImageUpload(imageFiles as unknown as FileList);
+      if (files && files.length > 0) {
+        if (mode === "image") {
+          const imageFiles = Array.from(files).filter((file) =>
+            file.type.startsWith("image/")
+          );
+          if (imageFiles.length > 0) {
+            handleMultipleImageUpload(imageFiles as unknown as FileList);
+          }
+        } else {
+          const videoFiles = Array.from(files).filter((file) =>
+            file.type.startsWith("video/")
+          );
+          if (videoFiles.length > 0) {
+            // Create previews for all videos
+            const newPreviews = new Map<number, string>();
+            videoFiles.forEach((file, index) => {
+              newPreviews.set(index, URL.createObjectURL(file));
+            });
+            setVideoPreviews(newPreviews);
+            // Upload all videos
+            handleMultipleVideoUpload(videoFiles);
+          }
+        }
       }
     },
-    [handleMultipleImageUpload]
+    [handleMultipleImageUpload, handleMultipleVideoUpload, mode]
   );
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
@@ -512,10 +694,33 @@ export default function ImageCollections() {
       e.preventDefault();
       const files = e.target.files;
       if (files && files.length > 0) {
-        handleMultipleImageUpload(files as unknown as FileList);
+        if (mode === "image") {
+          handleMultipleImageUpload(files as unknown as FileList);
+        } else {
+          // Handle video uploads (multiple)
+          const videoFiles = Array.from(files).filter((file) =>
+            file.type.startsWith("video/")
+          );
+          if (videoFiles.length === 0) {
+            toast({
+              title: "Invalid files",
+              description: "Please select video files",
+              variant: "destructive",
+            });
+            return;
+          }
+          // Create previews for all videos
+          const newPreviews = new Map<number, string>();
+          videoFiles.forEach((file, index) => {
+            newPreviews.set(index, URL.createObjectURL(file));
+          });
+          setVideoPreviews(newPreviews);
+          // Upload all videos
+          handleMultipleVideoUpload(videoFiles);
+        }
       }
     },
-    [handleMultipleImageUpload]
+    [handleMultipleImageUpload, handleMultipleVideoUpload, mode, toast]
   );
 
   return (
@@ -523,8 +728,46 @@ export default function ImageCollections() {
       <div className="mb-8">
         <h1 className="text-3xl font-light text-white mb-2">Collections</h1>
         <p className="text-white/60 text-sm">
-          View and manage your ingested images
+          View and manage your ingested {mode === "image" ? "images" : "videos"}
         </p>
+      </div>
+
+      {/* Mode Toggle */}
+      <div className="mb-6">
+        <div className="flex gap-2 max-w-md">
+          <Button
+            variant={mode === "image" ? "default" : "outline"}
+            onClick={() => {
+              setMode("image");
+              videoPreviews.forEach((url) => URL.revokeObjectURL(url));
+              setVideoPreviews(new Map());
+              if (fileInputRef.current) {
+                fileInputRef.current.value = "";
+              }
+            }}
+            disabled={isUploading}
+            className="flex-1"
+          >
+            <ImageIcon className="h-4 w-4 mr-2" />
+            Images
+          </Button>
+          <Button
+            variant={mode === "video" ? "default" : "outline"}
+            onClick={() => {
+              setMode("video");
+              videoPreviews.forEach((url) => URL.revokeObjectURL(url));
+              setVideoPreviews(new Map());
+              if (fileInputRef.current) {
+                fileInputRef.current.value = "";
+              }
+            }}
+            disabled={isUploading}
+            className="flex-1"
+          >
+            <Video className="h-4 w-4 mr-2" />
+            Videos
+          </Button>
+        </div>
       </div>
 
       {/* Upload Section */}
@@ -536,10 +779,14 @@ export default function ImageCollections() {
         <div className="flex flex-col items-center justify-center text-center">
           <Upload className="h-12 w-12 text-white/40 mb-4" />
           <h3 className="text-lg font-medium text-white mb-2">
-            Upload Multiple Images
+            {mode === "image"
+              ? "Upload Multiple Images"
+              : "Upload Video"}
           </h3>
           <p className="text-white/60 text-sm mb-4">
-            Drag and drop images here, or click to select
+            {mode === "image"
+              ? "Drag and drop images here, or click to select"
+              : "Drag and drop video files (MP4, MOV, etc.) here, or click to select"}
           </p>
           <Button
             onClick={() => fileInputRef.current?.click()}
@@ -549,24 +796,46 @@ export default function ImageCollections() {
             {isUploading ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Uploading...
+                {mode === "image" ? "Uploading..." : "Processing..."}
               </>
             ) : (
               <>
                 <Upload className="h-4 w-4 mr-2" />
-                Select Images
+                Select {mode === "image" ? "Images" : "Video"}
               </>
             )}
           </Button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            multiple
-            className="hidden"
-            onChange={handleFileSelect}
-          />
-        </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={mode === "image" ? "image/*" : "video/mp4,video/quicktime,video/x-msvideo,video/*"}
+              multiple
+              className="hidden"
+              onChange={handleFileSelect}
+            />
+          </div>
+        
+        {/* Video Previews */}
+        {mode === "video" && videoPreviews.size > 0 && (
+          <div className="mt-4 space-y-2">
+            <p className="text-sm text-white/60">
+              {videoPreviews.size} video{videoPreviews.size !== 1 ? "s" : ""} selected:
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+              {Array.from(videoPreviews.entries()).map(([index, previewUrl]) => (
+                <div key={index} className="space-y-1">
+                  <div className="relative aspect-video rounded-lg overflow-hidden bg-black">
+                    <video
+                      src={previewUrl}
+                      controls
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Images Grid */}

@@ -4,20 +4,33 @@ import { useState, useCallback } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Search, Loader2 } from "lucide-react";
+import { Search, Loader2, Image as ImageIcon, Video } from "lucide-react";
 import Image from "next/image";
 import { useToast } from "@/lib/hooks/use-toast";
 
-interface SearchResult {
+type SearchMode = "image" | "video";
+
+interface ImageSearchResult {
   id: string;
   imageUrl: string;
   description?: string;
   score?: number;
 }
 
+interface VideoSearchResult {
+  id: string;
+  text: string;
+  videoUrl?: string;
+  startTime?: string;
+  endTime?: string;
+  score?: number;
+}
+
 export default function ImageSearch() {
+  const [mode, setMode] = useState<SearchMode>("image");
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [imageResults, setImageResults] = useState<ImageSearchResult[]>([]);
+  const [videoResults, setVideoResults] = useState<VideoSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const { toast } = useToast();
 
@@ -26,41 +39,79 @@ export default function ImageSearch() {
 
     setIsSearching(true);
     try {
-      const response = await fetch(`/api/images/search?query=${searchQuery}`, {
-        method: "GET",
-      });
+      if (mode === "image") {
+        const response = await fetch(`/api/images/search?query=${encodeURIComponent(searchQuery)}`, {
+          method: "GET",
+        });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "Search failed");
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || "Search failed");
+        }
+
+        const data = await response.json();
+
+        const results = data.data.map(
+          (result: {
+            id: string;
+            text: string;
+            score: number;
+            imageUrl: string;
+          }) => ({
+            id: result.id,
+            imageUrl: result.imageUrl,
+            description: result.text,
+            score: result.score,
+          })
+        );
+
+        setImageResults(results);
+        setVideoResults([]);
+
+        toast({
+          title: "Search completed",
+          description: `Found ${results.length} result${results.length !== 1 ? "s" : ""} for "${searchQuery}"`,
+          variant: "success",
+        });
+      } else {
+        const response = await fetch(`/api/videos/search?query=${encodeURIComponent(searchQuery)}`, {
+          method: "GET",
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || "Search failed");
+        }
+
+        const data = await response.json();
+
+        const results = data.data.map(
+          (result: {
+            id: string;
+            text: string;
+            videoUrl?: string;
+            startTime?: string;
+            endTime?: string;
+            score: number;
+          }) => ({
+            id: result.id,
+            text: result.text,
+            videoUrl: result.videoUrl,
+            startTime: result.startTime,
+            endTime: result.endTime,
+            score: result.score,
+          })
+        );
+
+        setVideoResults(results);
+        setImageResults([]);
+
+        toast({
+          title: "Search completed",
+          description: `Found ${results.length} video clip${results.length !== 1 ? "s" : ""} for "${searchQuery}"`,
+          variant: "success",
+        });
       }
-
-      const data = await response.json();
-
-      const results = data.data.map(
-        (result: {
-          id: string;
-          text: string;
-          score: number;
-          imageUrl: string;
-        }) => ({
-          id: result.id,
-          imageUrl: result.imageUrl,
-          description: result.text,
-          score: result.score,
-        })
-      );
-
-      console.log("Search results:", results);
-
-      setSearchResults(results);
-      
-      // Show success toast
-      toast({
-        title: "Search completed",
-        description: `Found ${results.length} result${results.length !== 1 ? "s" : ""} for "${searchQuery}"`,
-        variant: "success",
-      });
     } catch (error) {
       console.error("Error searching:", error);
       toast({
@@ -71,7 +122,7 @@ export default function ImageSearch() {
     } finally {
       setIsSearching(false);
     }
-  }, [searchQuery, toast]);
+  }, [searchQuery, mode, toast]);
 
   const handleKeyPress = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -89,15 +140,45 @@ export default function ImageSearch() {
         <div className="">
           <h1 className="text-3xl font-light text-white mb-2">Search</h1>
           <p className="text-white/60 text-sm">
-            Search images semantically using text
+            Search {mode === "image" ? "images" : "videos"} semantically using text
           </p>
+        </div>
+        
+        {/* Mode Toggle */}
+        <div className="flex gap-2">
+          <Button
+            variant={mode === "image" ? "default" : "outline"}
+            onClick={() => {
+              setMode("image");
+              setImageResults([]);
+              setVideoResults([]);
+            }}
+            disabled={isSearching}
+            className="flex-1"
+          >
+            <ImageIcon className="h-4 w-4 mr-2" />
+            Image Search
+          </Button>
+          <Button
+            variant={mode === "video" ? "default" : "outline"}
+            onClick={() => {
+              setMode("video");
+              setImageResults([]);
+              setVideoResults([]);
+            }}
+            disabled={isSearching}
+            className="flex-1"
+          >
+            <Video className="h-4 w-4 mr-2" />
+            Video Search
+          </Button>
         </div>
         <div className="relative w-full">
           <div className="relative flex items-center bg-[#1a1a1a] border border-white/10 rounded-2xl px-4 py-4 shadow-lg">
             {/* Search Input */}
             <Input
               type="text"
-              placeholder="Search images semantically..."
+              placeholder={mode === "image" ? "Search images semantically..." : "Search videos semantically..."}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={handleKeyPress}
@@ -128,49 +209,131 @@ export default function ImageSearch() {
           <div className="flex items-center justify-center">
             <Loader2 className="h-8 w-8 animate-spin" />
           </div>
-        ) : (
-          searchResults.length > 0 ? (
-          <div className="mt-12">
-            <h2 className="text-xl font-light text-white/80 mb-6">
-              {searchResults.length} result
-              {searchResults.length !== 1 ? "s" : ""} found
-            </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-              {searchResults.map((result) => (
-                <Card
-                  key={result.id}
-                  className="bg-[#1a1a1a] border-white/10 overflow-hidden hover:border-white/20 transition-colors"
-                >
-                  <div className="relative aspect-square">
-                    <Image
-                      src={result.imageUrl}
-                      alt={result.description || "Search result"}
-                      fill
-                      className="object-cover"
-                      unoptimized
-                    />
-                  </div>
-                  {result.description && (
-                    <div className="p-3">
-                      <p className="text-sm text-white/60 line-clamp-2">
-                        {result.description}
-                      </p>
-                      {result.score && (
-                        <p className="text-xs text-white/40 mt-1">
-                          Score: {result.score.toFixed(2)}
-                        </p>
-                      )}
+        ) : mode === "image" ? (
+          imageResults.length > 0 ? (
+            <div className="mt-12">
+              <h2 className="text-xl font-light text-white/80 mb-6">
+                {imageResults.length} result
+                {imageResults.length !== 1 ? "s" : ""} found
+              </h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {imageResults.map((result) => (
+                  <Card
+                    key={result.id}
+                    className="bg-[#1a1a1a] border-white/10 overflow-hidden hover:border-white/20 transition-colors"
+                  >
+                    <div className="relative aspect-square">
+                      <Image
+                        src={result.imageUrl}
+                        alt={result.description || "Search result"}
+                        fill
+                        className="object-cover"
+                        unoptimized
+                      />
                     </div>
-                  )}
-                </Card>
-              ))}
+                    {result.description && (
+                      <div className="p-3">
+                        <p className="text-sm text-white/60 line-clamp-2">
+                          {result.description}
+                        </p>
+                        {result.score && (
+                          <p className="text-xs text-white/40 mt-1">
+                            Score: {result.score.toFixed(2)}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </Card>
+                ))}
               </div>
             </div>
           ) : (
             <div className="text-center text-white/40 mt-12">
               <p>No results found. Try a different search query.</p>
             </div>
-          ))}
+          )
+        ) : (
+          videoResults.length > 0 ? (
+            <div className="mt-12">
+              <h2 className="text-xl font-light text-white/80 mb-6">
+                {videoResults.length} video clip
+                {videoResults.length !== 1 ? "s" : ""} found
+              </h2>
+              <div className="space-y-4">
+                {videoResults.map((result) => (
+                  <Card
+                    key={result.id}
+                    className="bg-[#1a1a1a] border-white/10 p-4 hover:border-white/20 transition-colors"
+                  >
+                    <div className="space-y-2">
+                      {result.videoUrl && (
+                        <div className="relative aspect-video rounded-lg overflow-hidden bg-black">
+                          <video
+                            src={result.videoUrl}
+                            controls
+                            className="w-full h-full object-contain"
+                            onLoadedMetadata={(e) => {
+                              const video = e.currentTarget;
+                              const startTime = result.startTime
+                                ? parseFloat(result.startTime)
+                                : 0;
+                              video.currentTime = startTime;
+                            }}
+                            onTimeUpdate={(e) => {
+                              const video = e.currentTarget;
+                              const endTime = result.endTime
+                                ? parseFloat(result.endTime)
+                                : video.duration;
+                              
+                              // Pause video when it reaches endTime
+                              if (video.currentTime >= endTime) {
+                                video.pause();
+                                // Seek back to startTime for looping or replay
+                                const startTime = result.startTime
+                                  ? parseFloat(result.startTime)
+                                  : 0;
+                                video.currentTime = startTime;
+                              }
+                            }}
+                            onPlay={(e) => {
+                              const video = e.currentTarget;
+                              const startTime = result.startTime
+                                ? parseFloat(result.startTime)
+                                : 0;
+                              // Ensure video starts from startTime when played
+                              if (video.currentTime < startTime) {
+                                video.currentTime = startTime;
+                              }
+                            }}
+                          />
+                        </div>
+                      )}
+                      <div className="space-y-1">
+                        <p className="text-sm text-white/80 line-clamp-3">
+                          {result.text}
+                        </p>
+                        {(result.startTime || result.endTime) && (
+                          <p className="text-xs text-white/40">
+                            Time: {result.startTime}s - {result.endTime}s
+                          </p>
+                        )}
+                        {result.score && (
+                          <p className="text-xs text-white/40">
+                            Score: {result.score.toFixed(2)}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center text-white/40 mt-12">
+              <p>No results found. Try a different search query.</p>
+            </div>
+          )
+        )}
       </div>
     </div>
   );

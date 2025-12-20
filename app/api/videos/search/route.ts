@@ -3,29 +3,27 @@ import { getAuthToken } from "@/lib/supabase/api-helper";
 
 export async function GET(request: NextRequest) {
   try {
-    const { searchParams } = new URL(request.url);
-    const query = searchParams.get("query");
+    const token = await getAuthToken();
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    if (!query || typeof query !== "string" || !query.trim()) {
+    const searchParams = request.nextUrl.searchParams;
+    const query = searchParams.get("query");
+    const topK = searchParams.get("topK");
+
+    if (!query) {
       return NextResponse.json(
         { error: "Search query is required" },
         { status: 400 }
       );
     }
 
-    const token = await getAuthToken();
-    if (!token) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-
     const backendUrl =
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
     const response = await fetch(
-      `${backendUrl}/api/media/search-images?query=${encodeURIComponent(query)}`,
+      `${backendUrl}/api/media/search-videos?query=${encodeURIComponent(query)}${topK ? `&topK=${topK}` : ""}`,
       {
         method: "GET",
         headers: {
@@ -51,3 +49,4 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+

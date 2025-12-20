@@ -9,10 +9,10 @@ export async function GET(_request: NextRequest) {
     }
 
     const backendUrl =
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
     try {
-      const response = await fetch(`${backendUrl}/api/get-all-images`, {
+      const response = await fetch(`${backendUrl}/api/media/get-all-images`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
