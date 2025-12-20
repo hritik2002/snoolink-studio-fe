@@ -18,9 +18,17 @@ interface CollectionImage {
   uploadedAt?: string;
 }
 
+interface CollectionVideo {
+  id: string;
+  videoUrl: string;
+  description?: string;
+  createdAt?: string;
+}
+
 export default function ImageCollections() {
   const [mode, setMode] = useState<Mode>("image");
   const [images, setImages] = useState<CollectionImage[]>([]);
+  const [videos, setVideos] = useState<CollectionVideo[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [videoPreviews, setVideoPreviews] = useState<Map<number, string>>(new Map());
@@ -30,10 +38,15 @@ export default function ImageCollections() {
   const fetchCollections = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/images/collections");
+      const resourceType = mode === "video" ? "video" : "image";
+      const response = await fetch(`/api/images/collections?type=${resourceType}`);
       if (response.ok) {
         const data = await response.json();
-        setImages(data.data.reverse() || []);
+        if (mode === "video") {
+          setVideos(data.data.reverse() || []);
+        } else {
+          setImages(data.data.reverse() || []);
+        }
       } else {
         throw new Error("Failed to fetch collections");
       }
@@ -47,7 +60,7 @@ export default function ImageCollections() {
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  }, [toast, mode]);
 
   // Fetch collections on mount
   useEffect(() => {
@@ -648,9 +661,10 @@ export default function ImageCollections() {
         });
       } finally {
         setIsUploading(false);
+        fetchCollections();
       }
     },
-    [toast, videoPreviews]
+    [toast, videoPreviews, fetchCollections]
   );
 
   const handleDrop = useCallback(
@@ -744,6 +758,7 @@ export default function ImageCollections() {
               if (fileInputRef.current) {
                 fileInputRef.current.value = "";
               }
+              fetchCollections();
             }}
             disabled={isUploading}
             className="flex-1"
@@ -760,6 +775,7 @@ export default function ImageCollections() {
               if (fileInputRef.current) {
                 fileInputRef.current.value = "";
               }
+              fetchCollections();
             }}
             disabled={isUploading}
             className="flex-1"
@@ -838,11 +854,50 @@ export default function ImageCollections() {
         )}
       </div>
 
-      {/* Images Grid */}
+      {/* Images/Videos Grid */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-white/40" />
         </div>
+      ) : mode === "video" ? (
+        videos.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <p className="text-white/40 text-lg mb-2">No videos yet</p>
+            <p className="text-white/30 text-sm">Upload videos to get started</p>
+          </div>
+        ) : (
+          <>
+            <div className="mb-4 flex items-center justify-between">
+              <p className="text-white/60 text-sm">
+                {videos.length} video{videos.length !== 1 ? "s" : ""} in
+                collection
+              </p>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+              {videos.map((video) => (
+                <Card
+                  key={video.id}
+                  className="bg-[#1a1a1a] border-white/10 overflow-hidden hover:border-white/20 transition-colors group"
+                >
+                  <div className="relative aspect-square">
+                    <video
+                      src={video.videoUrl}
+                      controls
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  {video.description && (
+                    <div className="p-3">
+                      <p className="text-sm text-white/60 line-clamp-2">
+                        {video.description}
+                      </p>
+                    </div>
+                  )}
+                </Card>
+              ))}
+            </div>
+          </>
+        )
       ) : images.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <p className="text-white/40 text-lg mb-2">No images yet</p>
