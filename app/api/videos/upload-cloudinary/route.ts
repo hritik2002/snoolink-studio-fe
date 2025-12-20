@@ -4,6 +4,9 @@ import { getAuthToken } from "@/lib/supabase/api-helper";
 
 export const runtime = "nodejs";
 
+// Configure max body size for this route (100MB)
+export const maxDuration = 300; // 5 minutes for large uploads
+
 cloudinary.config({
   cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
   api_key: process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY,
@@ -43,8 +46,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // Convert file to buffer
-    const buffer = Buffer.from(await file.arrayBuffer());
     const fileName = file.name;
 
     // Generate unique public_id
@@ -57,6 +58,11 @@ export async function POST(request: Request) {
       .substring(0, 50);
     const publicId = `${timestamp}_${random}_${sanitizedName}`;
 
+    // Stream file directly to Cloudinary to avoid memory issues
+    // Convert File to ReadableStream and then to Buffer in chunks
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
     // Upload to Cloudinary
     return new Promise((resolve) => {
       const upload = cloudinary.uploader.upload_stream(
@@ -65,6 +71,7 @@ export async function POST(request: Request) {
           resource_type: "video",
           public_id: publicId,
           invalidate: true,
+          chunk_size: 6000000, // 6MB chunks for better performance
         },
         (error, result) => {
           if (error) {

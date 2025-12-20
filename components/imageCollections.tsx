@@ -567,23 +567,61 @@ export default function ImageCollections() {
 
         const uploadPromises = videoFiles.map(async (videoFile, index) => {
           try {
-            const videoFormData = new FormData();
-            videoFormData.append("file", videoFile);
+            // Generate unique public_id
+            const timestamp = Date.now();
+            const random = Math.random().toString(36).slice(2, 9);
+            const sanitizedName = videoFile.name
+              .replace(/\.[^/.]+$/, "")
+              .replace(/[^a-zA-Z0-9\s\-_]/g, "")
+              .replace(/\s+/g, "_")
+              .substring(0, 50);
+            const publicId = `${timestamp}_${random}_${sanitizedName}`;
 
-            const videoUploadResponse = await fetch("/api/videos/upload-cloudinary", {
-              method: "POST",
-              body: videoFormData,
-            });
+            // Get signature from backend
+            const paramsToSign: Record<string, string | number> = {
+              timestamp: Math.round(Date.now() / 1000),
+              folder: "snoolink-studio/videos",
+              public_id: publicId,
+            };
 
-            if (!videoUploadResponse.ok) {
-              const error = await videoUploadResponse.json().catch(() => ({}));
-              throw new Error(error.error || "Failed to upload video");
+            const signatureResponse = await axios.post(
+              "/api/videos/cloudinary-signature",
+              { paramsToSign }
+            );
+
+            const { signature } = signatureResponse.data;
+
+            // Upload directly to Cloudinary (bypasses Next.js body size limits)
+            const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/video/upload`;
+            
+            const formData = new FormData();
+            formData.append("file", videoFile);
+            formData.append(
+              "api_key",
+              process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY!
+            );
+            formData.append("timestamp", paramsToSign.timestamp.toString());
+            formData.append("signature", signature);
+            formData.append("folder", "snoolink-studio/videos");
+            formData.append("public_id", publicId);
+
+            const videoUploadResponse = await axios.post(
+              CLOUDINARY_UPLOAD_URL,
+              formData,
+              {
+                headers: {
+                  "Content-Type": "multipart/form-data",
+                },
+              }
+            );
+
+            if (!videoUploadResponse.data.secure_url) {
+              throw new Error("Upload failed - no URL returned");
             }
 
-            const videoUploadData = await videoUploadResponse.json();
             return {
               success: true,
-              videoUrl: videoUploadData.url,
+              videoUrl: videoUploadResponse.data.secure_url,
               fileName: videoFile.name,
               index,
             };
