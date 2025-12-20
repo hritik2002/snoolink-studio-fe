@@ -33,8 +33,8 @@ function HomeContent() {
         setActiveView(view);
         router.push(`/?view=${view}`);
       }} />
-      <SidebarInset className="bg-[var(--background-secondary)]">
-        <div className="flex flex-col h-screen overflow-auto px-8">
+      <SidebarInset className="bg-gray-50">
+        <div className="flex flex-col h-screen overflow-auto px-4 sm:px-6 lg:px-8">
           {activeView === "search" ? (
             <ImageSearch />
           ) : activeView === "collections" ? (
@@ -53,8 +53,8 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
-        <Loader2 className="h-8 w-8 animate-spin text-white/60" />
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
       </div>
     );
   }

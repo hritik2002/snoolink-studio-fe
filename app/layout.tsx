@@ -21,9 +21,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <body
-        className={`${inter.variable} font-sans antialiased min-h-screen`}
+        className={`${inter.variable} font-sans antialiased min-h-screen bg-gray-50`}
       >
         <AuthProvider>{children}</AuthProvider>
         <Toaster />

@@ -31,10 +31,10 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
   };
 
   return (
-    <Sidebar className="border-r border-white/10 bg-[#0a0a0a]">
+    <Sidebar className="border-r border-gray-200 bg-white">
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-white/60 text-xs font-normal px-2">
+          <SidebarGroupLabel className="text-gray-500 text-xs font-normal px-2">
             Navigation
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -43,7 +43,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                 <SidebarMenuButton
                   asChild
                   isActive={activeView === "search"}
-                  className="text-white/80 hover:text-white hover:bg-white/10 data-[active=true]:bg-white/10 data-[active=true]:text-white"
+                  className="text-gray-700 hover:text-gray-900 hover:bg-gray-100 data-[active=true]:bg-purple-50 data-[active=true]:text-purple-600"
                 >
                   <button onClick={() => onViewChange("search")}>
                     <Search className="h-4 w-4" />
@@ -55,7 +55,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                 <SidebarMenuButton
                   asChild
                   isActive={activeView === "collections"}
-                  className="text-white/80 hover:text-white hover:bg-white/10 data-[active=true]:bg-white/10 data-[active=true]:text-white"
+                  className="text-gray-700 hover:text-gray-900 hover:bg-gray-100 data-[active=true]:bg-purple-50 data-[active=true]:text-purple-600"
                 >
                   <button onClick={() => onViewChange("collections")}>
                     <FolderOpen className="h-4 w-4" />
@@ -67,7 +67,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                 <SidebarMenuButton
                   asChild
                   isActive={activeView === "profile"}
-                  className="text-white/80 hover:text-white hover:bg-white/10 data-[active=true]:bg-white/10 data-[active=true]:text-white"
+                  className="text-gray-700 hover:text-gray-900 hover:bg-gray-100 data-[active=true]:bg-purple-50 data-[active=true]:text-purple-600"
                 >
                   <button onClick={() => onViewChange("profile")}>
                     <UserCircle className="h-4 w-4" />
@@ -79,16 +79,16 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="border-t border-white/10 p-4">
+      <SidebarFooter className="border-t border-gray-200 p-4">
         <div className="flex items-center gap-3 mb-3">
-          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10">
-            <User className="h-4 w-4 text-white/80" />
+          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-100">
+            <User className="h-4 w-4 text-purple-600" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-white truncate">
+            <p className="text-sm font-medium text-gray-900 truncate">
               {user?.email || "User"}
             </p>
-            <p className="text-xs text-white/60 truncate">
+            <p className="text-xs text-gray-500 truncate">
               {user?.email?.split("@")[0] || ""}
             </p>
           </div>
@@ -96,7 +96,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
         <Button
           onClick={handleSignOut}
           variant="ghost"
-          className="w-full justify-start text-white/80 hover:text-white hover:bg-white/10"
+          className="w-full justify-start text-gray-700 hover:text-gray-900 hover:bg-gray-100"
         >
           <LogOut className="h-4 w-4 mr-2" />
           Sign out

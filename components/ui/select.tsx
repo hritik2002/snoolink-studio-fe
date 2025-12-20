@@ -66,6 +66,9 @@ export function SelectTrigger({ children, className }: { children: React.ReactNo
         "bg-transparent border border-white/10 rounded-md",
         "hover:border-white/20 transition-colors",
         "text-white/80",
+        "dark:bg-transparent dark:border-white/10 dark:text-white/80",
+        "bg-white border-gray-300 text-gray-700",
+        "hover:border-gray-400",
         className
       )}
     >
@@ -86,6 +89,8 @@ export function SelectContent({ children, className }: { children: React.ReactNo
       className={cn(
         "absolute top-full mt-1 right-0 z-50",
         "bg-[#1a1a1a] border border-white/10 rounded-md shadow-lg",
+        "dark:bg-[#1a1a1a] dark:border-white/10",
+        "bg-white border-gray-200 shadow-xl",
         "min-w-[150px]",
         className
       )}
@@ -112,6 +117,8 @@ export function SelectItem({ value, children, className }: SelectItemProps) {
         "w-full flex items-center justify-between gap-2 px-3 py-2 text-sm",
         "hover:bg-white/5 transition-colors",
         "text-white/80",
+        "dark:hover:bg-white/5 dark:text-white/80",
+        "hover:bg-gray-50 text-gray-700",
         className
       )}
     >

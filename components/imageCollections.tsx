@@ -3,11 +3,16 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Upload, Loader2, Image as ImageIcon, Video } from "lucide-react";
+import { 
+  Upload, Loader2, Image as ImageIcon, Video, CloudUpload, Folder, 
+  CheckCircle2, Clock, AlertCircle, Sparkles, ChevronRight, X,
+  Filter, Grid3x3, List as ListIcon, Plus, Link as LinkIcon
+} from "lucide-react";
 import Image from "next/image";
 import { useToast } from "@/lib/hooks/use-toast";
 import { createClient } from "@/lib/supabase/client";
 import axios from "axios";
+import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
 
 type Mode = "image" | "video";
 
@@ -16,6 +21,7 @@ interface CollectionImage {
   imageUrl: string;
   description?: string;
   uploadedAt?: string;
+  status?: "indexed" | "processing" | "failed";
 }
 
 interface CollectionVideo {
@@ -23,7 +29,11 @@ interface CollectionVideo {
   videoUrl: string;
   description?: string;
   createdAt?: string;
+  status?: "indexed" | "processing" | "failed";
 }
+
+type FilterStatus = "all" | "indexed" | "processing" | "failed";
+type ViewMode = "grid" | "list";
 
 export default function ImageCollections() {
   const [mode, setMode] = useState<Mode>("image");
@@ -32,8 +42,17 @@ export default function ImageCollections() {
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [videoPreviews, setVideoPreviews] = useState<Map<number, string>>(new Map());
+  const [sortBy, setSortBy] = useState("date");
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [isDragActive, setIsDragActive] = useState(false);
+  const [showUploadZone, setShowUploadZone] = useState(true);
+  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  // Determine if we should show collapsed upload (when assets exist)
+  const hasAssets = mode === "image" ? images.length > 0 : videos.length > 0;
 
   const fetchCollections = useCallback(async () => {
     setIsLoading(true);
@@ -43,9 +62,17 @@ export default function ImageCollections() {
       if (response.ok) {
         const data = await response.json();
         if (mode === "video") {
-          setVideos(data.data.reverse() || []);
+          const videosWithStatus = (data.data || []).map((video: CollectionVideo) => ({
+            ...video,
+            status: video.status || "indexed" as const,
+          }));
+          setVideos(videosWithStatus.reverse());
         } else {
-          setImages(data.data.reverse() || []);
+          const imagesWithStatus = (data.data || []).map((image: CollectionImage) => ({
+            ...image,
+            status: image.status || "indexed" as const,
+          }));
+          setImages(imagesWithStatus.reverse());
         }
       } else {
         throw new Error("Failed to fetch collections");
@@ -161,7 +188,7 @@ export default function ImageCollections() {
 
                 // Calculate optimal size to stay under 10MB
                 // Start with max 4000x4000, but scale down if needed
-                let maxDimension = 4000;
+                const maxDimension = 4000;
 
                 if (width > maxDimension || height > maxDimension) {
                   if (width > height) {
@@ -294,7 +321,7 @@ export default function ImageCollections() {
             const publicId = `${timestamp}_${random}_${sanitizedName}`;
 
             // Get signature from backend
-            const paramsToSign: Record<string, any> = {
+            const paramsToSign: Record<string, string | number> = {
               timestamp: Math.round(Date.now() / 1000),
               folder: "snoolink-studio",
               public_id: publicId,
@@ -670,14 +697,15 @@ export default function ImageCollections() {
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault();
+      setIsDragActive(false);
       const files = e.dataTransfer.files;
       if (files && files.length > 0) {
         if (mode === "image") {
-          const imageFiles = Array.from(files).filter((file) =>
-            file.type.startsWith("image/")
-          );
-          if (imageFiles.length > 0) {
-            handleMultipleImageUpload(imageFiles as unknown as FileList);
+      const imageFiles = Array.from(files).filter((file) =>
+        file.type.startsWith("image/")
+      );
+      if (imageFiles.length > 0) {
+        handleMultipleImageUpload(imageFiles as unknown as FileList);
           }
         } else {
           const videoFiles = Array.from(files).filter((file) =>
@@ -701,7 +729,40 @@ export default function ImageCollections() {
 
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
+    setIsDragActive(true);
   }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragActive(false);
+  }, []);
+
+  // Filter assets based on status
+  const filteredImages = filterStatus === "all" 
+    ? images 
+    : images.filter(img => img.status === filterStatus);
+  
+  const filteredVideos = filterStatus === "all" 
+    ? videos 
+    : videos.filter(vid => vid.status === filterStatus);
+
+  // Get collection metadata
+  const collectionCount = mode === "image" ? images.length : videos.length;
+  const oldestImage = images.length > 0 ? images[images.length - 1] : null;
+  const oldestVideo = videos.length > 0 ? videos[videos.length - 1] : null;
+  
+  const formatDate = (dateString?: string) => {
+    if (!dateString) return "Recently";
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return "Today";
+    if (diffDays === 1) return "Yesterday";
+    if (diffDays < 7) return `${diffDays} days ago`;
+    return date.toLocaleDateString();
+  };
 
   const handleFileSelect = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -709,7 +770,7 @@ export default function ImageCollections() {
       const files = e.target.files;
       if (files && files.length > 0) {
         if (mode === "image") {
-          handleMultipleImageUpload(files as unknown as FileList);
+        handleMultipleImageUpload(files as unknown as FileList);
         } else {
           // Handle video uploads (multiple)
           const videoFiles = Array.from(files).filter((file) =>
@@ -738,19 +799,20 @@ export default function ImageCollections() {
   );
 
   return (
-    <div className="flex-1 flex flex-col h-full py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-light text-white mb-2">Collections</h1>
-        <p className="text-white/60 text-sm">
-          View and manage your ingested {mode === "image" ? "images" : "videos"}
-        </p>
+    <div className="flex-1 flex flex-col h-full py-4 sm:py-6 lg:py-8 bg-white">
+      {/* Breadcrumbs */}
+      <div className="mb-4 flex items-center gap-2 text-sm text-gray-500">
+        <span>Collections</span>
+        <ChevronRight className="h-4 w-4" />
+        <span className="text-gray-900 font-medium">
+          {mode === "image" ? "Images" : "Videos"}
+        </span>
       </div>
 
-      {/* Mode Toggle */}
-      <div className="mb-6">
-        <div className="flex gap-2 max-w-md">
-          <Button
-            variant={mode === "image" ? "default" : "outline"}
+      {/* Mode Toggle - Tabs */}
+      <div className="mb-6 border-b border-gray-200">
+        <div className="flex gap-0">
+          <button
             onClick={() => {
               setMode("image");
               videoPreviews.forEach((url) => URL.revokeObjectURL(url));
@@ -761,13 +823,15 @@ export default function ImageCollections() {
               fetchCollections();
             }}
             disabled={isUploading}
-            className="flex-1"
+            className={`px-4 sm:px-6 py-2 sm:py-3 font-medium text-sm border-b-2 transition-colors whitespace-nowrap ${
+              mode === "image"
+                ? "border-purple-600 text-purple-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
           >
-            <ImageIcon className="h-4 w-4 mr-2" />
             Images
-          </Button>
-          <Button
-            variant={mode === "video" ? "default" : "outline"}
+          </button>
+          <button
             onClick={() => {
               setMode("video");
               videoPreviews.forEach((url) => URL.revokeObjectURL(url));
@@ -778,146 +842,395 @@ export default function ImageCollections() {
               fetchCollections();
             }}
             disabled={isUploading}
-            className="flex-1"
+            className={`px-4 sm:px-6 py-2 sm:py-3 font-medium text-sm border-b-2 transition-colors whitespace-nowrap ${
+              mode === "video"
+                ? "border-purple-600 text-purple-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
           >
-            <Video className="h-4 w-4 mr-2" />
             Videos
-          </Button>
+          </button>
         </div>
       </div>
 
-      {/* Upload Section */}
-      <div
-        className="mb-8 p-8 border-2 border-dashed border-white/20 rounded-xl bg-[#1a1a1a]/50 hover:border-white/30 transition-colors"
+      {/* Header with Collection Metadata */}
+      <div className="mb-6 sm:mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
+              {mode === "image" ? "Image Collection" : "Video Collection"}
+            </h1>
+            {hasAssets && (
+              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                <span className="flex items-center gap-1.5">
+                  <span className="font-medium">{collectionCount}</span>
+                  <span>{mode === "image" ? "images" : "videos"}</span>
+                </span>
+                {((mode === "image" && oldestImage) || (mode === "video" && oldestVideo)) && (
+                  <>
+                    <span>•</span>
+                    <span>Created {formatDate(mode === "image" ? oldestImage?.uploadedAt : oldestVideo?.createdAt)}</span>
+                  </>
+                )}
+                <span>•</span>
+                <span className="flex items-center gap-1.5 text-purple-600">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  <span>Auto-indexed for semantic search</span>
+                </span>
+              </div>
+            )}
+            {!hasAssets && (
+              <p className="text-gray-600 text-sm sm:text-base">
+                Upload {mode === "image" ? "images" : "videos"} to build your semantic search collection
+              </p>
+            )}
+      </div>
+
+          {/* Toolbar Actions */}
+          {hasAssets && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
+                className="border-gray-300"
+              >
+                {viewMode === "grid" ? (
+                  <><ListIcon className="h-4 w-4 mr-2" />List</>
+                ) : (
+                  <><Grid3x3 className="h-4 w-4 mr-2" />Grid</>
+                )}
+              </Button>
+              <Button
+                onClick={() => {
+                  setShowUploadZone(!showUploadZone);
+                  if (!showUploadZone) {
+                    setTimeout(() => fileInputRef.current?.click(), 100);
+                  }
+                }}
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+                size="sm"
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Upload {mode === "image" ? "Images" : "Video"}
+              </Button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Upload Section - Collapsed when assets exist */}
+      {(!hasAssets || showUploadZone) && (
+        <div className="mb-4 sm:mb-6">
+          <div
+            className={`p-4 sm:p-6 border-2 border-dashed rounded-lg transition-all ${
+              isDragActive
+                ? "border-purple-500 bg-purple-50 border-solid scale-[1.02]"
+                : "border-gray-300 bg-gray-50 hover:border-purple-400 hover:bg-purple-50/30"
+            }`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
       >
         <div className="flex flex-col items-center justify-center text-center">
-          <Upload className="h-12 w-12 text-white/40 mb-4" />
-          <h3 className="text-lg font-medium text-white mb-2">
-            {mode === "image"
-              ? "Upload Multiple Images"
-              : "Upload Video"}
+              <div className={`mb-2 sm:mb-3 transition-transform ${isDragActive ? "scale-110" : ""}`}>
+                <CloudUpload className={`h-8 w-8 sm:h-10 sm:w-10 text-purple-600 ${isDragActive ? "animate-bounce" : ""}`} />
+              </div>
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1">
+                {mode === "image"
+                  ? "Upload Multiple Images"
+                  : "Upload Video"}
           </h3>
-          <p className="text-white/60 text-sm mb-4">
-            {mode === "image"
-              ? "Drag and drop images here, or click to select"
-              : "Drag and drop video files (MP4, MOV, etc.) here, or click to select"}
-          </p>
+              <p className="text-gray-600 text-xs sm:text-sm mb-1 px-2">
+                {mode === "image"
+                  ? "Drag and drop images here, or click to select from your computer."
+                  : "Drag and drop video files (MP4, MOV, etc.) here, or click to select from your computer."}
+              </p>
+              <p className="text-xs text-gray-500 mb-3 sm:mb-4">
+                {mode === "image"
+                  ? "Supports JPG, PNG, HEIC · Max 10MB per image · Auto-indexed for semantic search"
+                  : "Supports MP4, MOV, AVI · Auto-indexed for semantic search"}
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-3">
           <Button
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
-            className="bg-white/10 hover:bg-white/20 text-white border border-white/20"
+                  className="bg-purple-600 hover:bg-purple-700 text-white border-0"
           >
             {isUploading ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                {mode === "image" ? "Uploading..." : "Processing..."}
+                      {mode === "image" ? "Uploading..." : "Processing..."}
               </>
             ) : (
               <>
-                <Upload className="h-4 w-4 mr-2" />
-                Select {mode === "image" ? "Images" : "Video"}
+                      <Folder className="h-4 w-4 mr-2" />
+                      Select {mode === "image" ? "Images" : "Video"}
               </>
             )}
           </Button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept={mode === "image" ? "image/*" : "video/mp4,video/quicktime,video/x-msvideo,video/*"}
-              multiple
-              className="hidden"
-              onChange={handleFileSelect}
-            />
-          </div>
-        
-        {/* Video Previews */}
-        {mode === "video" && videoPreviews.size > 0 && (
-          <div className="mt-4 space-y-2">
-            <p className="text-sm text-white/60">
-              {videoPreviews.size} video{videoPreviews.size !== 1 ? "s" : ""} selected:
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
-              {Array.from(videoPreviews.entries()).map(([index, previewUrl]) => (
-                <div key={index} className="space-y-1">
-                  <div className="relative aspect-video rounded-lg overflow-hidden bg-black">
-                    <video
-                      src={previewUrl}
-                      controls
-                      className="w-full h-full object-contain"
+                {mode === "image" && (
+                  <Button
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="border-gray-300"
+                  >
+                    <LinkIcon className="h-4 w-4 mr-2" />
+                    Upload via URL
+                  </Button>
+                )}
+              </div>
+              {uploadProgress && (
+                <div className="mt-4 w-full max-w-md">
+                  <div className="flex items-center justify-between text-xs text-gray-600 mb-1">
+                    <span>Processing {uploadProgress.current} of {uploadProgress.total}</span>
+                    <span>{Math.round((uploadProgress.current / uploadProgress.total) * 100)}%</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className="bg-purple-600 h-2 rounded-full transition-all duration-300"
+                      style={{ width: `${(uploadProgress.current / uploadProgress.total) * 100}%` }}
                     />
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
+              )}
+          <input
+            ref={fileInputRef}
+            type="file"
+                accept={mode === "image" ? "image/*" : "video/mp4,video/quicktime,video/x-msvideo,video/*"}
+            multiple
+            className="hidden"
+            onChange={handleFileSelect}
+          />
+        </div>
       </div>
+
+          {/* Video Previews */}
+          {mode === "video" && videoPreviews.size > 0 && (
+            <div className="mt-4 space-y-2">
+              <p className="text-sm text-gray-600">
+                {videoPreviews.size} video{videoPreviews.size !== 1 ? "s" : ""} selected:
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
+                {Array.from(videoPreviews.entries()).map(([index, previewUrl]) => (
+                  <div key={index} className="space-y-1">
+                    <div className="relative aspect-video rounded-lg overflow-hidden bg-black">
+                      <video
+                        src={previewUrl}
+                        controls
+                        className="w-full h-full object-contain"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Filters and Sort Bar */}
+      {hasAssets && (
+        <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm text-gray-600 font-medium flex items-center gap-1.5">
+              <Filter className="h-4 w-4" />
+              Filter:
+            </span>
+            {(["all", "indexed", "processing", "failed"] as FilterStatus[]).map((status) => (
+              <button
+                key={status}
+                onClick={() => setFilterStatus(status)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
+                  filterStatus === status
+                    ? "bg-purple-600 text-white"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                }`}
+              >
+                {status === "all" ? "All" : status.charAt(0).toUpperCase() + status.slice(1)}
+              </button>
+            ))}
+          </div>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-full sm:w-[180px] border-gray-300 bg-white text-gray-700">
+              <span>SORT BY: {sortBy === "relevance" ? "Relevance" : sortBy === "date" ? "Date Added" : sortBy === "name" ? "Name" : "Score"}</span>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="relevance">Relevance</SelectItem>
+              <SelectItem value="name">Name</SelectItem>
+              <SelectItem value="score">Score</SelectItem>
+              <SelectItem value="date">Date Added</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      {/* Status Indicator */}
+      {hasAssets && (
+        <div className="mb-4 flex items-center gap-2 text-xs text-gray-600 bg-purple-50 border border-purple-100 rounded-lg px-3 py-2">
+          <Sparkles className="h-3.5 w-3.5 text-purple-600" />
+          <span>
+            {mode === "image" 
+              ? `Embedding ${images.filter(img => img.status === "processing").length || 0} images in background`
+              : `Processing ${videos.filter(vid => vid.status === "processing").length || 0} videos in background`}
+          </span>
+        </div>
+      )}
 
       {/* Images/Videos Grid */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-white/40" />
+          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
         </div>
       ) : mode === "video" ? (
-        videos.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
-            <p className="text-white/40 text-lg mb-2">No videos yet</p>
-            <p className="text-white/30 text-sm">Upload videos to get started</p>
-          </div>
-        ) : (
-          <>
-            <div className="mb-4 flex items-center justify-between">
-              <p className="text-white/60 text-sm">
-                {videos.length} video{videos.length !== 1 ? "s" : ""} in
-                collection
-              </p>
-            </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-              {videos.map((video) => (
+        filteredVideos.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed border-gray-200 rounded-lg bg-gray-50">
+            <Video className="h-12 w-12 text-gray-400 mb-4" />
+            <p className="text-gray-900 font-medium text-lg mb-2">
+              {filterStatus !== "all" ? `No ${filterStatus} videos` : "No videos yet"}
+            </p>
+            <p className="text-gray-500 text-sm mb-4">
+              {filterStatus !== "all" 
+                ? "Try adjusting your filters"
+                : "Upload videos to build your semantic search collection"}
+            </p>
+            {filterStatus !== "all" && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setFilterStatus("all")}
+                className="mt-2"
+              >
+                <X className="h-4 w-4 mr-2" />
+                Clear filters
+              </Button>
+            )}
+        </div>
+      ) : (
+          <div className={viewMode === "grid" 
+            ? "grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3"
+            : "space-y-3"
+          }>
+            {filteredVideos.map((video) => {
+              const urlParts = video.videoUrl.split('/');
+              const filename = urlParts[urlParts.length - 1].split('?')[0] || 'video.mp4';
+              const status = video.status || "indexed";
+              // Extract a shorter description preview
+              const descriptionPreview = video.description 
+                ? video.description.length > 80 
+                  ? video.description.substring(0, 80) + "..." 
+                  : video.description
+                : null;
+              
+              return (
                 <Card
                   key={video.id}
-                  className="bg-[#1a1a1a] border-white/10 overflow-hidden hover:border-white/20 transition-colors group"
+                  className={`bg-white border border-gray-200 rounded-lg overflow-hidden hover:border-purple-300 hover:shadow-lg transition-all group ${
+                    viewMode === "list" ? "flex flex-row" : "flex flex-col"
+                  }`}
                 >
-                  <div className="relative aspect-square">
+                  <div className={`relative bg-gray-100 ${
+                    viewMode === "list" 
+                      ? "w-24 h-24 flex-shrink-0" 
+                      : "aspect-video"
+                  }`}>
                     <video
                       src={video.videoUrl}
                       controls
-                      className="w-full h-full object-contain"
+                      className="w-full h-full object-cover"
                     />
-                  </div>
-                  {video.description && (
-                    <div className="p-3">
-                      <p className="text-sm text-white/60 line-clamp-2">
-                        {video.description}
-                      </p>
+                    {/* Status Badge - Smaller */}
+                    <div className="absolute top-1.5 right-1.5">
+                      {status === "indexed" && (
+                        <div className="bg-green-500 text-white text-[10px] font-medium px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                          <CheckCircle2 className="h-2.5 w-2.5" />
+                          <span className="hidden sm:inline">Indexed</span>
+                        </div>
+                      )}
+                      {status === "processing" && (
+                        <div className="bg-yellow-500 text-white text-[10px] font-medium px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                          <Clock className="h-2.5 w-2.5 animate-spin" />
+                          <span className="hidden sm:inline">Processing</span>
+                        </div>
+                      )}
+                      {status === "failed" && (
+                        <div className="bg-red-500 text-white text-[10px] font-medium px-1.5 py-0.5 rounded-full flex items-center gap-0.5">
+                          <AlertCircle className="h-2.5 w-2.5" />
+                          <span className="hidden sm:inline">Failed</span>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  </div>
+                  <div className={`flex-1 flex flex-col ${viewMode === "list" ? "p-3" : "p-3"} min-w-0`}>
+                    <p className="text-xs font-semibold text-gray-900 mb-1 truncate">
+                      {filename}
+                    </p>
+                    {descriptionPreview && (
+                      <p className={`text-[11px] text-gray-600 leading-snug ${
+                        viewMode === "list" ? "line-clamp-1" : "line-clamp-2"
+                      }`}>
+                        {descriptionPreview}
+                      </p>
+                    )}
+          </div>
                 </Card>
-              ))}
-            </div>
-          </>
+              );
+            })}
+          </div>
         )
-      ) : images.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <p className="text-white/40 text-lg mb-2">No images yet</p>
-          <p className="text-white/30 text-sm">Upload images to get started</p>
+      ) : filteredImages.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed border-gray-200 rounded-lg bg-gray-50">
+          <ImageIcon className="h-12 w-12 text-gray-400 mb-4" />
+          <p className="text-gray-900 font-medium text-lg mb-2">
+            {filterStatus !== "all" ? `No ${filterStatus} images` : "No images yet"}
+          </p>
+          <p className="text-gray-500 text-sm mb-4">
+            {filterStatus !== "all" 
+              ? "Try adjusting your filters"
+              : "Upload images to build your semantic search collection"}
+          </p>
+          {filterStatus !== "all" && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setFilterStatus("all")}
+              className="mt-2"
+            >
+              <X className="h-4 w-4 mr-2" />
+              Clear filters
+            </Button>
+          )}
         </div>
       ) : (
-        <>
-          <div className="mb-4 flex items-center justify-between">
-            <p className="text-white/60 text-sm">
-              {images.length} image{images.length !== 1 ? "s" : ""} in
-              collection
-            </p>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {images.map((image) => (
+        <div className={viewMode === "grid" 
+          ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3"
+          : "space-y-3"
+        }>
+          {filteredImages.map((image) => {
+            // Extract filename from URL
+            const urlParts = image.imageUrl.split('/');
+            const filename = urlParts[urlParts.length - 1].split('?')[0] || 'image.jpg';
+            const status = image.status || "indexed";
+            // Extract a shorter description preview
+            const descriptionPreview = image.description 
+              ? image.description.length > 60 
+                ? image.description.substring(0, 60) + "..." 
+                : image.description
+              : null;
+            
+            return (
               <Card
                 key={image.id}
-                className="bg-[#1a1a1a] border-white/10 overflow-hidden hover:border-white/20 transition-colors group"
+                className={`bg-white border border-gray-200 rounded-lg overflow-hidden hover:border-purple-300 hover:shadow-lg transition-all group ${
+                  viewMode === "list" ? "flex flex-row" : "flex flex-col"
+                }`}
               >
-                <div className="relative aspect-square">
+                <div className={`relative bg-gray-100 ${
+                  viewMode === "list" 
+                    ? "w-20 h-20 flex-shrink-0" 
+                    : "aspect-square"
+                }`}>
                   <Image
                     src={image.imageUrl}
                     alt={image.description || "Collection image"}
@@ -925,18 +1238,45 @@ export default function ImageCollections() {
                     className="object-cover"
                     unoptimized
                   />
-                </div>
-                {image.description && (
-                  <div className="p-3">
-                    <p className="text-sm text-white/60 line-clamp-2">
-                      {image.description}
-                    </p>
+                  {/* Status Badge - Always visible, smaller */}
+                  <div className="absolute top-1.5 right-1.5">
+                    {status === "indexed" && (
+                      <div className="bg-green-500 text-white text-[10px] font-medium px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shadow-sm">
+                        <CheckCircle2 className="h-2.5 w-2.5" />
+                      </div>
+                    )}
+                    {status === "processing" && (
+                      <div className="bg-yellow-500 text-white text-[10px] font-medium px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shadow-sm">
+                        <Clock className="h-2.5 w-2.5 animate-spin" />
+                      </div>
+                    )}
+                    {status === "failed" && (
+                      <div className="bg-red-500 text-white text-[10px] font-medium px-1.5 py-0.5 rounded-full flex items-center gap-0.5 shadow-sm">
+                        <AlertCircle className="h-2.5 w-2.5" />
+                      </div>
+                    )}
                   </div>
-                )}
+                  {/* Subtle hover overlay */}
+                  {viewMode === "grid" && (
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  )}
+                </div>
+                <div className={`flex-1 flex flex-col ${viewMode === "list" ? "p-2.5" : "p-2.5"} min-w-0`}>
+                  <p className="text-[11px] font-semibold text-gray-900 mb-1 truncate leading-tight">
+                    {filename}
+                  </p>
+                  {descriptionPreview && (
+                    <p className={`text-[10px] text-gray-600 leading-snug ${
+                      viewMode === "list" ? "line-clamp-1" : "line-clamp-2"
+                    }`}>
+                      {descriptionPreview}
+                    </p>
+                  )}
+                </div>
               </Card>
-            ))}
+            );
+          })}
           </div>
-        </>
       )}
     </div>
   );
