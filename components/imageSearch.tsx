@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card";
 import { 
   Search, Loader2, Image as ImageIcon, Video, Clock, Download, Share2, 
   MoreVertical, Sparkles, Info, ChevronDown, ChevronUp, Lock, 
-  ExternalLink, Grid3x3, List as ListIcon
+  ExternalLink, Grid3x3, List as ListIcon, Play
 } from "lucide-react";
 import Image from "next/image";
 import { useToast } from "@/lib/hooks/use-toast";
@@ -47,56 +47,133 @@ const getMatchPercentage = (score: number): number => {
   return Math.round(score * 100);
 };
 
-// Helper to extract scene summary from description (first sentence or key phrase)
+// Helper to extract factual scene label from description (not narration)
 const extractSceneSummary = (description: string): string => {
-  // Try to extract a concise scene description
-  const sentences = description.split(/[.!?]\s+/);
-  if (sentences.length > 0) {
-    const firstSentence = sentences[0];
-    // If first sentence is too long, try to find key phrases
-    if (firstSentence.length > 80) {
-      // Look for patterns like "person walking", "car stopping", etc.
-      const patterns = [
-        /(?:a|an|the)?\s*([a-z]+(?:\s+[a-z]+){0,3})\s+(?:walking|running|standing|sitting|driving|stopping|moving)/i,
-        /(?:shows|features|displays|presents)\s+([a-z]+(?:\s+[a-z]+){0,4})/i,
-      ];
-      for (const pattern of patterns) {
-        const match = description.match(pattern);
-        if (match && match[1]) {
-          return match[1].charAt(0).toUpperCase() + match[1].slice(1);
-        }
+  // Remove age-specific terms and replace with neutral terms
+  const cleaned = description
+    .replace(/\b(boy|girl|child|kid|teenager|young man|young woman)\b/gi, "person")
+    .replace(/\b(man|woman|guy|lady)\b/gi, "person");
+  
+  // Extract factual elements: subject + action + location
+  const patterns = [
+    // Pattern: "person [action] [location]"
+    /(?:a|an|the)?\s*(person|people|individual)\s+([a-z]+(?:\s+[a-z]+){0,2})\s+(?:in|on|at|inside|within)\s+([a-z]+(?:\s+[a-z]+){0,2})/i,
+    // Pattern: "person [action]"
+    /(?:a|an|the)?\s*(person|people|individual)\s+([a-z]+(?:\s+[a-z]+){0,2})/i,
+    // Pattern: "[object] [action]"
+    /(?:a|an|the)?\s*([a-z]+(?:\s+[a-z]+){0,2})\s+(?:using|with|holding|stopping|moving|driving)/i,
+  ];
+  
+  for (const pattern of patterns) {
+    const match = cleaned.match(pattern);
+    if (match) {
+      const parts = match.slice(1).filter(Boolean);
+      if (parts.length >= 2) {
+        return parts.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(" ");
       }
-      return firstSentence.substring(0, 60) + "...";
     }
+  }
+  
+  // Fallback: extract first meaningful phrase
+  const firstSentence = cleaned.split(/[.!?]\s+/)[0];
+  if (firstSentence.length <= 60) {
     return firstSentence;
   }
-  return description.substring(0, 60) + "...";
+  return firstSentence.substring(0, 60) + "...";
 };
 
-// Helper to extract "Why this matched" reasons from description
-const extractMatchReasons = (description: string, query: string): string[] => {
-  const reasons: string[] = [];
+// Helper to extract match reasons, split into matched vs additional context
+const extractMatchReasons = (description: string, query: string): { matched: string[]; additional: string[] } => {
+  const matched: string[] = [];
+  const additional: string[] = [];
   const queryLower = query.toLowerCase();
   const descLower = description.toLowerCase();
   
-  // Extract key concepts
-  if (descLower.includes("person") || descLower.includes("man") || descLower.includes("woman")) {
-    reasons.push("Detected person");
+  // Check what's in the query
+  const queryHasPerson = /(person|people|man|woman|boy|girl|individual)/i.test(query);
+  const queryHasPhone = /(phone|mobile|device|smartphone)/i.test(query);
+  const queryHasTrain = /(train|railway|subway|metro)/i.test(query);
+  const queryHasWalking = /(walking|walk|moving)/i.test(query);
+  const queryHasOutdoor = /(outdoor|outside|road|path|street)/i.test(query);
+  const queryHasNight = /(night|dark|evening)/i.test(query);
+  const queryHasVehicle = /(car|vehicle|truck|bus)/i.test(query);
+  
+  // Matched reasons (directly related to query)
+  if (queryHasPerson && (descLower.includes("person") || descLower.includes("man") || descLower.includes("woman") || descLower.includes("individual"))) {
+    matched.push("Person detected");
   }
-  if (descLower.includes("walking") || descLower.includes("moving")) {
-    reasons.push("Walking motion detected");
+  if (queryHasPhone && (descLower.includes("phone") || descLower.includes("mobile") || descLower.includes("device"))) {
+    matched.push("Phone usage detected");
   }
-  if (descLower.includes("outdoor") || descLower.includes("outside") || descLower.includes("road") || descLower.includes("path")) {
-    reasons.push("Outdoor setting");
+  if (queryHasTrain && (descLower.includes("train") || descLower.includes("railway") || descLower.includes("subway") || descLower.includes("metro"))) {
+    matched.push("Enclosed vehicle environment");
   }
-  if (descLower.includes("night") || descLower.includes("dark")) {
-    reasons.push("Nighttime scene");
+  if (queryHasWalking && (descLower.includes("walking") || descLower.includes("moving"))) {
+    matched.push("Walking motion detected");
   }
-  if (descLower.includes("car") || descLower.includes("vehicle")) {
-    reasons.push("Vehicle present");
+  if (queryHasOutdoor && (descLower.includes("outdoor") || descLower.includes("outside") || descLower.includes("road") || descLower.includes("path"))) {
+    matched.push("Outdoor setting");
+  }
+  if (queryHasVehicle && (descLower.includes("car") || descLower.includes("vehicle"))) {
+    matched.push("Vehicle present");
   }
   
-  return reasons.slice(0, 3); // Max 3 reasons
+  // Additional context (not in query but detected)
+  if (!queryHasNight && (descLower.includes("night") || descLower.includes("dark") || descLower.includes("evening"))) {
+    additional.push("Nighttime");
+  }
+  if (!queryHasOutdoor && (descLower.includes("outdoor") || descLower.includes("outside"))) {
+    additional.push("Outdoor setting");
+  }
+  if (!queryHasPerson && (descLower.includes("person") || descLower.includes("man") || descLower.includes("woman"))) {
+    additional.push("Person present");
+  }
+  
+  return {
+    matched: matched.slice(0, 3),
+    additional: additional.slice(0, 2)
+  };
+};
+
+// Helper to generate semantic interpretation from query (not echoing raw text)
+const generateQueryInterpretation = (query: string): string[] => {
+  const queryLower = query.toLowerCase();
+  const tokens: string[] = [];
+  
+  // Extract semantic concepts, not raw words
+  if (/(person|people|man|woman|boy|girl|individual)/i.test(query)) {
+    tokens.push("Person");
+  }
+  if (/(phone|mobile|device|smartphone)/i.test(query)) {
+    tokens.push("Using phone");
+  }
+  if (/(train|railway|subway|metro)/i.test(query)) {
+    tokens.push("Inside train");
+  }
+  if (/(walking|walk|moving)/i.test(query)) {
+    tokens.push("Walking");
+  }
+  if (/(outdoor|outside|road|path|street)/i.test(query)) {
+    tokens.push("Outdoors");
+  }
+  if (/(road|path|street)/i.test(query)) {
+    tokens.push("Road/path");
+  }
+  if (/(night|dark|evening)/i.test(query)) {
+    tokens.push("Nighttime");
+  }
+  if (/(car|vehicle|truck|bus)/i.test(query)) {
+    tokens.push("Vehicle");
+  }
+  
+  // If no specific tokens found, use generic decomposition
+  if (tokens.length === 0) {
+    // Try to extract key nouns and verbs
+    const words = queryLower.split(/\s+/).filter(w => w.length > 3);
+    tokens.push(...words.slice(0, 3).map(w => w.charAt(0).toUpperCase() + w.slice(1)));
+  }
+  
+  return tokens.length > 0 ? tokens : ["General search"];
 };
 
 // Example query chips
@@ -116,47 +193,49 @@ export default function ImageSearch() {
   const [viewMode, setViewMode] = useState<ViewMode>("list");
   const [compactMode, setCompactMode] = useState<CompactMode>(false);
   const [expandedDescriptions, setExpandedDescriptions] = useState<Set<string>>(new Set());
-  const [queryInterpretation, setQueryInterpretation] = useState<string | null>(null);
+  const [queryInterpretation, setQueryInterpretation] = useState<string[]>([]);
+  const [timelineHoverTime, setTimelineHoverTime] = useState<{ resultId: string; time: number } | null>(null);
+  const [playingVideos, setPlayingVideos] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
   const handleSearch = useCallback(async () => {
     if (!searchQuery.trim()) return;
 
     setIsSearching(true);
-    setQueryInterpretation(null);
+    setQueryInterpretation([]);
     
     try {
       if (mode === "image") {
         const response = await fetch(`/api/images/search?query=${encodeURIComponent(searchQuery)}`, {
-          method: "GET",
-        });
+        method: "GET",
+      });
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.error || "Search failed");
-        }
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Search failed");
+      }
 
-        const data = await response.json();
+      const data = await response.json();
 
-        const results = data.data.map(
-          (result: {
-            id: string;
-            text: string;
-            score: number;
-            imageUrl: string;
-          }) => ({
-            id: result.id,
-            imageUrl: result.imageUrl,
-            description: result.text,
-            score: result.score,
-          })
-        );
+      const results = data.data.map(
+        (result: {
+          id: string;
+          text: string;
+          score: number;
+          imageUrl: string;
+        }) => ({
+          id: result.id,
+          imageUrl: result.imageUrl,
+          description: result.text,
+          score: result.score,
+        })
+      );
 
         setImageResults(results);
         setVideoResults([]);
         
-        // Generate query interpretation
-        const interpretation = `Image search: ${searchQuery.toLowerCase()}`;
+        // Generate query interpretation (semantic decomposition)
+        const interpretation = generateQueryInterpretation(searchQuery);
         setQueryInterpretation(interpretation);
       } else {
         const response = await fetch(`/api/videos/search?query=${encodeURIComponent(searchQuery)}`, {
@@ -191,26 +270,9 @@ export default function ImageSearch() {
         setVideoResults(results);
         setImageResults([]);
         
-        // Generate query interpretation (simplified - in real app, this would come from backend)
-        const queryLower = searchQuery.toLowerCase();
-        const interpretations: string[] = [];
-        if (queryLower.includes("person") || queryLower.includes("man") || queryLower.includes("woman")) {
-          interpretations.push("person");
-        }
-        if (queryLower.includes("walking") || queryLower.includes("walk")) {
-          interpretations.push("walking");
-        }
-        if (queryLower.includes("outdoor") || queryLower.includes("outside") || queryLower.includes("road") || queryLower.includes("path")) {
-          interpretations.push("outdoors");
-        }
-        if (queryLower.includes("road") || queryLower.includes("path")) {
-          interpretations.push("road/path");
-        }
-        if (queryLower.includes("night") || queryLower.includes("dark")) {
-          interpretations.push("nighttime");
-        }
-        
-        setQueryInterpretation(interpretations.length > 0 ? interpretations.join(" → ") : searchQuery);
+        // Generate query interpretation (semantic decomposition, not echoing raw text)
+        const interpretation = generateQueryInterpretation(searchQuery);
+        setQueryInterpretation(interpretation);
       }
     } catch (error) {
       console.error("Error searching:", error);
@@ -246,8 +308,17 @@ export default function ImageSearch() {
       } else {
         next.add(resultId);
       }
-      return next;
+      // Return a new Set to ensure React detects the state change
+      return new Set(next);
     });
+  }, []);
+  
+  // Video playback control - play segment from startTime to endTime
+  const handleVideoPlay = useCallback((videoElement: HTMLVideoElement, startTime: number, endTime: number) => {
+    if (videoElement.currentTime < startTime || videoElement.currentTime > endTime) {
+      videoElement.currentTime = startTime;
+    }
+    videoElement.play();
   }, []);
 
   const handleDownloadImage = useCallback(
@@ -379,7 +450,7 @@ export default function ImageSearch() {
 
   return (
     <div className="flex-1 flex flex-col h-full w-full max-w-5xl mx-auto relative">
-      <div className="sticky top-0 left-0 right-0 z-10 bg-white py-4 sm:py-6 lg:py-8 flex flex-col gap-4 pb-6 border-b border-gray-200">
+      <div className="sticky top-0 left-0 right-0 z-[200] bg-white py-4 sm:py-6 lg:py-8 flex flex-col gap-4 pb-6 border-b border-gray-200">
         <div>
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Search</h1>
           <p className="text-gray-600 text-sm sm:text-base">
@@ -398,13 +469,13 @@ export default function ImageSearch() {
                 setMode("image");
                 setImageResults([]);
                 setVideoResults([]);
-                setQueryInterpretation(null);
+                setQueryInterpretation([]);
               }}
               disabled={isSearching}
               className={`flex-1 ${
                 mode === "image"
                   ? "bg-purple-600 hover:bg-purple-700 text-white"
-                  : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                  : "border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700"
               }`}
             >
               <ImageIcon className="h-4 w-4 mr-2" />
@@ -416,13 +487,13 @@ export default function ImageSearch() {
                 setMode("video");
                 setImageResults([]);
                 setVideoResults([]);
-                setQueryInterpretation(null);
+                setQueryInterpretation([]);
               }}
               disabled={isSearching}
               className={`flex-1 ${
                 mode === "video"
                   ? "bg-purple-600 hover:bg-purple-700 text-white"
-                  : "border-gray-300 text-gray-700 hover:bg-gray-50"
+                  : "border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700"
               }`}
             >
               <Video className="h-4 w-4 mr-2" />
@@ -433,22 +504,22 @@ export default function ImageSearch() {
             <Lock className="h-3 w-3" />
             <span>
               {mode === "image" 
-                ? "Currently searching images"
-                : "Currently searching video moments"}
+                ? "Finds images"
+                : "Finds short moments inside longer videos"}
             </span>
           </div>
         </div>
 
         {/* Search Input with Example Chips */}
         <div className="space-y-3">
-          <div className="relative w-full">
+        <div className="relative w-full">
             <div className="relative flex items-center bg-white border border-gray-300 rounded-xl px-3 sm:px-4 py-3 sm:py-4 shadow-sm hover:border-purple-400 transition-colors">
-              <Input
-                type="text"
+            <Input
+              type="text"
                 placeholder="Describe a scene, action, or moment (e.g. 'man walking on road at night')"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyPress={handleKeyPress}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyPress={handleKeyPress}
                 className="flex-1 bg-transparent border-0 text-gray-900 placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0 text-base sm:text-lg"
               />
               <div className="flex items-center gap-2 ml-2 sm:ml-4">
@@ -458,23 +529,23 @@ export default function ImageSearch() {
                     You can describe actions, objects, environment, and time
                   </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon"
+            <Button
+              variant="ghost"
+              size="icon"
                   className="h-8 w-8 text-gray-500 hover:text-gray-700 hover:bg-gray-100"
-                  onClick={handleSearch}
-                  disabled={isSearching || !searchQuery.trim()}
-                >
-                  {isSearching ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Search className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
-            </div>
+              onClick={handleSearch}
+              disabled={isSearching || !searchQuery.trim()}
+            >
+              {isSearching ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Search className="h-4 w-4" />
+              )}
+            </Button>
           </div>
-          
+        </div>
+      </div>
+
           {/* Example Query Chips */}
           {!hasResults && (
             <div className="flex flex-wrap items-center gap-2">
@@ -494,14 +565,23 @@ export default function ImageSearch() {
       </div>
 
       <div className="w-full space-y-4 pt-4">
-        {/* Query Interpretation Strip */}
-        {queryInterpretation && hasResults && (
-          <div className="bg-purple-50 border border-purple-200 rounded-lg px-4 py-2.5 flex items-center gap-2">
+        {/* Query Interpretation Strip - Structured with Chips */}
+        {queryInterpretation && queryInterpretation.length > 0 && hasResults && (
+          <div className="bg-purple-50 border border-purple-200 rounded-lg px-4 py-2.5 flex items-center gap-2 flex-wrap">
             <Sparkles className="h-4 w-4 text-purple-600 flex-shrink-0" />
-            <span className="text-sm text-gray-700">
-              <span className="font-medium">Interpreted as:</span>{" "}
-              <span className="text-purple-700">{queryInterpretation}</span>
-            </span>
+            <span className="text-sm font-medium text-gray-700">Interpreted as:</span>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {queryInterpretation.map((token, idx) => (
+                <span key={idx} className="inline-flex items-center gap-1">
+                  <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded">
+                    {token}
+                  </span>
+                  {idx < queryInterpretation.length - 1 && (
+                    <span className="text-purple-400">·</span>
+                  )}
+                </span>
+              ))}
+            </div>
           </div>
         )}
 
@@ -564,24 +644,24 @@ export default function ImageSearch() {
                 const matchPercentage = result.score ? getMatchPercentage(result.score) : 0;
                 const sceneSummary = result.description ? extractSceneSummary(result.description) : "Image";
                 const isExpanded = expandedDescriptions.has(result.id);
-                const matchReasons = result.description ? extractMatchReasons(result.description, searchQuery) : [];
+                const matchReasons = result.description ? extractMatchReasons(result.description, searchQuery) : { matched: [], additional: [] };
                 
                 return (
-                  <Card
-                    key={result.id}
+                <Card
+                  key={result.id}
                     className={`bg-white border border-gray-200 hover:border-purple-300 hover:shadow-md transition-all overflow-hidden ${compactMode ? "p-3" : "p-4"}`}
-                  >
+                >
                     <div className={`flex ${viewMode === "grid" ? "flex-col" : "flex-row"} gap-4`}>
                       {/* Thumbnail */}
                       <div className={`relative ${viewMode === "grid" ? "w-full aspect-square" : "w-32 h-32"} flex-shrink-0 rounded-lg overflow-hidden bg-gray-100`}>
                         {viewMode === "list" ? (
-                          <Image
-                            src={result.imageUrl}
+                    <Image
+                      src={result.imageUrl}
                             alt={sceneSummary}
-                            fill
-                            className="object-cover"
-                            unoptimized
-                          />
+                      fill
+                      className="object-cover"
+                      unoptimized
+                    />
                         ) : (
                           <Image
                             src={result.imageUrl}
@@ -600,7 +680,7 @@ export default function ImageSearch() {
                             </div>
                           </div>
                         )}
-                      </div>
+                  </div>
 
                       {/* Content */}
                       <div className="flex-1 flex flex-col justify-between min-w-0">
@@ -610,12 +690,17 @@ export default function ImageSearch() {
                           </h3>
                           {!compactMode && (
                             <>
-                              <p className={`text-sm text-gray-600 ${isExpanded ? "" : "line-clamp-2"} mb-2`}>
-                                {result.description}
-                              </p>
-                              {result.description && result.description.length > 100 && (
+                              <p className={`text-sm text-gray-600 ${isExpanded ? "" : "line-clamp-2"} mb-2 leading-snug`}>
+                        {result.description}
+                      </p>
+                              {result.description && result.description.length > 80 && (
                                 <button
-                                  onClick={() => toggleDescription(result.id)}
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    toggleDescription(result.id);
+                                  }}
                                   className="text-xs text-purple-600 hover:text-purple-700 mb-2 flex items-center gap-1 cursor-pointer"
                                 >
                                   {isExpanded ? (
@@ -625,17 +710,30 @@ export default function ImageSearch() {
                                   )}
                                 </button>
                               )}
-                              {matchReasons.length > 0 && (
+                              {matchReasons.matched.length > 0 && (
                                 <div className="mb-3 p-2 bg-gray-50 rounded border border-gray-200">
-                                  <p className="text-xs font-medium text-gray-700 mb-1">Why this matched:</p>
-                                  <ul className="text-xs text-gray-600 space-y-0.5">
-                                    {matchReasons.map((reason, idx) => (
+                                  <p className="text-xs font-medium text-gray-700 mb-1.5">Why this matched:</p>
+                                  <ul className="text-xs text-gray-600 space-y-0.5 mb-2">
+                                    {matchReasons.matched.map((reason, idx) => (
                                       <li key={idx} className="flex items-start gap-1">
                                         <span className="text-purple-600">•</span>
                                         <span>{reason}</span>
                                       </li>
                                     ))}
                                   </ul>
+                                  {matchReasons.additional.length > 0 && (
+                                    <>
+                                      <p className="text-xs font-medium text-gray-600 mb-1">Additional context detected:</p>
+                                      <ul className="text-xs text-gray-500 space-y-0.5">
+                                        {matchReasons.additional.map((reason, idx) => (
+                                          <li key={idx} className="flex items-start gap-1">
+                                            <span className="text-gray-400">•</span>
+                                            <span>{reason}</span>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </>
+                                  )}
                                 </div>
                               )}
                             </>
@@ -679,7 +777,33 @@ export default function ImageSearch() {
         ) : (
           videoResults.length > 0 ? (
             <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 gap-4" : "space-y-4"}>
-              {videoResults.map((result) => {
+              {/* Group results by video URL */}
+              {(() => {
+                // Group video results by videoUrl
+                const groupedResults = videoResults.reduce((acc, result) => {
+                  const key = result.videoUrl || result.id;
+                  if (!acc[key]) {
+                    acc[key] = [];
+                  }
+                  acc[key].push(result);
+                  return acc;
+                }, {} as Record<string, typeof videoResults>);
+
+                return Object.entries(groupedResults).map(([videoUrl, results]) => {
+                  // If multiple moments from same video, show grouped header
+                  const isGrouped = results.length > 1;
+                  const videoName = videoUrl ? videoUrl.split('/').pop()?.split('?')[0] || 'Video' : 'Video';
+                  
+                  return (
+                    <div key={videoUrl || results[0].id} className="space-y-3">
+                      {isGrouped && (
+                        <div className="flex items-center gap-2 text-sm text-gray-700 font-medium">
+                          <Video className="h-4 w-4 text-purple-600" />
+                          <span>Video: {videoName}</span>
+                          <span className="text-xs text-gray-500 font-normal">({results.length} matching moments)</span>
+                        </div>
+                      )}
+                      {results.map((result) => {
                 const matchPercentage = result.score ? getMatchPercentage(result.score) : 0;
                 const sceneSummary = extractSceneSummary(result.text);
                 const startTime = result.startTime ? parseFloat(result.startTime) : 0;
@@ -697,33 +821,111 @@ export default function ImageSearch() {
                   >
                     <div className={`flex ${viewMode === "grid" ? "flex-col" : "flex-row"} gap-4`}>
                       {/* Thumbnail */}
-                      <div className={`relative ${viewMode === "grid" ? "w-full aspect-video" : "w-48 h-32"} flex-shrink-0 rounded-lg overflow-hidden bg-gray-100`}>
+                      <div className={`relative ${viewMode === "grid" ? "w-full aspect-video" : "w-[400px] h-[360px]"} flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 group`}>
                         {result.videoUrl ? (
                           <>
                             <video
                               src={result.videoUrl}
-                              className="w-full h-full object-cover"
+                              className="w-full h-full object-cover cursor-pointer relative z-0"
+                              controls
                               muted
                               playsInline
                               preload="metadata"
                               onLoadedMetadata={(e) => {
                                 const video = e.currentTarget;
-                                if (startTime > 0) {
+                                // Set initial time to startTime
+                                if (startTime > 0 && startTime < video.duration) {
                                   video.currentTime = startTime;
                                 }
                               }}
+                              onPlay={(e) => {
+                                const video = e.currentTarget;
+                                // Ensure video starts from startTime when play is clicked
+                                if (video.currentTime < startTime || video.currentTime > endTime) {
+                                  video.currentTime = startTime;
+                                }
+                                setPlayingVideos(prev => new Set(prev).add(result.id));
+                              }}
+                              onPause={(e) => {
+                                setPlayingVideos(prev => {
+                                  const next = new Set(prev);
+                                  next.delete(result.id);
+                                  return next;
+                                });
+                              }}
+                              onTimeUpdate={(e) => {
+                                const video = e.currentTarget;
+                                // Loop playback between startTime and endTime
+                                if (endTime > startTime && video.currentTime >= endTime) {
+                                  video.pause();
+                                  video.currentTime = startTime; // Reset to start for replay
+                                  setPlayingVideos(prev => {
+                                    const next = new Set(prev);
+                                    next.delete(result.id);
+                                    return next;
+                                  });
+                                }
+                              }}
+                              onClick={(e) => {
+                                // Only handle clicks on the video itself (not controls)
+                                const video = e.currentTarget;
+                                const target = e.target as HTMLElement;
+                                // Check if click is on video element itself, not controls
+                                if (target === video || target.tagName === 'VIDEO') {
+                                  if (video.paused) {
+                                    video.currentTime = startTime;
+                                    video.play().catch((err) => {
+                                      console.error("Error playing video:", err);
+                                    });
+                                  }
+                                }
+                              }}
                             />
+                            {/* Match badge - visible but doesn't block controls */}
                             {matchPercentage > 0 && (
-                              <div className="absolute top-2 left-2 bg-purple-600 text-white text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1 group">
+                              <div className="absolute top-2 left-2 bg-purple-600 text-white text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1 group z-10 pointer-events-none">
                                 {matchPercentage}% Match
-                                <div className="absolute left-0 top-6 w-48 p-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-                                  Semantic similarity score between your query and this moment
-                                </div>
                               </div>
                             )}
+                            {/* Timestamp - visible but positioned to avoid controls area */}
                             {endTime > 0 && (
-                              <div className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                              <div className="absolute bottom-12 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded z-10 pointer-events-none">
                                 {formatTime(endTime)}
+                              </div>
+                            )}
+                            {/* Play overlay - only appears on hover when paused, below everything */}
+                            {!playingVideos.has(result.id) && (
+                              <div 
+                                className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-[1] pointer-events-none"
+                                style={{ zIndex: 1 }}
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  const video = e.currentTarget.parentElement?.querySelector('video') as HTMLVideoElement;
+                                  if (video && video.paused) {
+                                    video.currentTime = startTime;
+                                    video.play().catch((err) => {
+                                      console.error("Error playing video:", err);
+                                    });
+                                    setPlayingVideos(prev => new Set(prev).add(result.id));
+                                  }
+                                }}
+                                onMouseEnter={(e) => {
+                                  const video = e.currentTarget.parentElement?.querySelector('video') as HTMLVideoElement;
+                                  // Only enable if video is paused
+                                  if (video && video.paused) {
+                                    e.currentTarget.style.pointerEvents = 'auto';
+                                    e.currentTarget.style.zIndex = '10';
+                                  }
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.pointerEvents = 'none';
+                                  e.currentTarget.style.zIndex = '10';
+                                }}
+                              >
+                                <div className="bg-purple-600/90 rounded-full p-3 hover:bg-purple-700/90 transition-colors pointer-events-auto">
+                                  <Play className="h-6 w-6 text-white fill-white" />
+                                </div>
                               </div>
                             )}
                           </>
@@ -742,13 +944,18 @@ export default function ImageSearch() {
                           </h3>
                           {!compactMode && (
                             <>
-                              <p className={`text-sm text-gray-600 ${isExpanded ? "" : "line-clamp-2"} mb-2`}>
+                              <p className={`text-sm text-gray-600 ${isExpanded ? "" : "line-clamp-2"} mb-2 leading-snug`}>
                                 {result.text}
                               </p>
-                              {result.text && result.text.length > 100 && (
+                              {result.text && result.text.length > 80 && (
                                 <button
-                                  onClick={() => toggleDescription(result.id)}
-                                  className="text-xs text-purple-600 hover:text-purple-700 mb-2 flex items-center gap-1"
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    toggleDescription(result.id);
+                                  }}
+                                  className="text-xs text-purple-600 hover:text-purple-700 mb-2 flex items-center gap-1 cursor-pointer"
                                 >
                                   {isExpanded ? (
                                     <>Show less <ChevronUp className="h-3 w-3" /></>
@@ -757,56 +964,99 @@ export default function ImageSearch() {
                                   )}
                                 </button>
                               )}
-                              {matchReasons.length > 0 && (
+                              {matchReasons.matched.length > 0 && (
                                 <div className="mb-3 p-2 bg-gray-50 rounded border border-gray-200">
-                                  <p className="text-xs font-medium text-gray-700 mb-1">Why this matched:</p>
-                                  <ul className="text-xs text-gray-600 space-y-0.5">
-                                    {matchReasons.map((reason, idx) => (
+                                  <p className="text-xs font-medium text-gray-700 mb-1.5">Why this matched:</p>
+                                  <ul className="text-xs text-gray-600 space-y-0.5 mb-2">
+                                    {matchReasons.matched.map((reason, idx) => (
                                       <li key={idx} className="flex items-start gap-1">
                                         <span className="text-purple-600">•</span>
                                         <span>{reason}</span>
                                       </li>
                                     ))}
                                   </ul>
+                                  {matchReasons.additional.length > 0 && (
+                                    <>
+                                      <p className="text-xs font-medium text-gray-600 mb-1">Additional context detected:</p>
+                                      <ul className="text-xs text-gray-500 space-y-0.5">
+                                        {matchReasons.additional.map((reason, idx) => (
+                                          <li key={idx} className="flex items-start gap-1">
+                                            <span className="text-gray-400">•</span>
+                                            <span>{reason}</span>
+                                          </li>
+                                        ))}
+                                      </ul>
+                                    </>
+                                  )}
                                 </div>
                               )}
                             </>
                           )}
                           
-                          {/* Timeline Bar */}
+                          {/* Interactive Timeline Bar */}
                           {videoDuration > 0 && (
                             <div className="mb-2">
                               <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
                                 <span>{formatTime(startTime)} - {formatTime(endTime)}</span>
                                 <span className="text-gray-400">of {formatTime(videoDuration)}</span>
                               </div>
-                              <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                              <div 
+                                className="w-full h-2 bg-gray-200 rounded-full overflow-hidden relative cursor-pointer group"
+                                onMouseMove={(e) => {
+                                  const rect = e.currentTarget.getBoundingClientRect();
+                                  const x = e.clientX - rect.left;
+                                  const percent = (x / rect.width) * 100;
+                                  const hoverTime = (percent / 100) * videoDuration;
+                                  setTimelineHoverTime({ resultId: result.id, time: hoverTime });
+                                }}
+                                onMouseLeave={() => setTimelineHoverTime(null)}
+                                onClick={(e) => {
+                                  const rect = e.currentTarget.getBoundingClientRect();
+                                  const x = e.clientX - rect.left;
+                                  const percent = (x / rect.width) * 100;
+                                  const clickTime = (percent / 100) * videoDuration;
+                                  // Jump to that time in the video
+                                  const videoElement = e.currentTarget.closest('.relative')?.querySelector('video') as HTMLVideoElement;
+                                  if (videoElement) {
+                                    videoElement.currentTime = Math.max(0, Math.min(clickTime, videoDuration));
+                                  }
+                                }}
+                                title={`Moment occurs at ${formatTime(startTime)}–${formatTime(endTime)} of video`}
+                              >
                                 <div 
-                                  className="h-full bg-purple-600"
+                                  className="h-full bg-purple-600 transition-all"
                                   style={{ 
                                     width: `${(duration / videoDuration) * 100}%`,
                                     marginLeft: `${positionPercent}%`
                                   }}
                                 />
+                                {timelineHoverTime?.resultId === result.id && (
+                                  <div 
+                                    className="absolute top-0 h-full w-0.5 bg-purple-400 opacity-50"
+                                    style={{ left: `${(timelineHoverTime.time / videoDuration) * 100}%` }}
+                                  />
+                                )}
                               </div>
                             </div>
                           )}
                         </div>
                         <div className="flex items-center justify-between mt-2">
                           <div className="flex items-center gap-2">
+                            {/* Primary Action - Play/View Full Video */}
                             <Button
-                              variant="ghost"
+                              variant="default"
                               size="sm"
-                              className="h-8 text-xs text-gray-600 hover:text-gray-900"
+                              className="h-8 text-xs bg-purple-600 hover:bg-purple-700 text-white"
                               onClick={() => {
                                 if (result.videoUrl) {
                                   window.open(result.videoUrl, "_blank");
                                 }
                               }}
                             >
-                              <ExternalLink className="h-3.5 w-3.5 mr-1.5" />
-                              Full video
+                              <Video className="h-3.5 w-3.5 mr-1.5" />
+                              View full video
                             </Button>
+                            {/* Secondary Actions - Text buttons */}
                             <Button
                               variant="ghost"
                               size="sm"
@@ -830,15 +1080,20 @@ export default function ImageSearch() {
                               Share
                             </Button>
                           </div>
+                          {/* Tertiary Actions - Menu */}
                           <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 hover:text-gray-700">
                             <MoreVertical className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>
                     </div>
-                  </Card>
-                );
-              })}
+                </Card>
+                      );
+                    })}
+              </div>
+                  );
+                });
+              })()}
             </div>
           ) : (
             <div className="text-center text-gray-400 py-12">
