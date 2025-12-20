@@ -33,7 +33,7 @@ function HomeContent() {
         setActiveView(view);
         router.push(`/?view=${view}`);
       }} />
-      <SidebarInset className="bg-gray-50">
+      <SidebarInset className="bg-white">
         <div className="flex flex-col h-screen overflow-auto px-4 sm:px-6 lg:px-8">
           {activeView === "search" ? (
             <ImageSearch />

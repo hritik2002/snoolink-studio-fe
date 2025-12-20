@@ -31,7 +31,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
   };
 
   return (
-    <Sidebar className="border-r border-gray-200 bg-white">
+    <Sidebar className="border-r-2 border-gray-300 bg-white shadow-sm">
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel className="text-gray-500 text-xs font-normal px-2">

@@ -861,7 +861,7 @@ export default function ImageCollections() {
               fetchCollections();
             }}
             disabled={isUploading}
-            className={`px-4 sm:px-6 py-2 sm:py-3 font-medium text-sm border-b-2 transition-colors whitespace-nowrap ${
+            className={`px-4 sm:px-6 py-2 sm:py-3 font-medium text-sm border-b-2 transition-colors whitespace-nowrap cursor-pointer disabled:cursor-not-allowed ${
               mode === "image"
                 ? "border-purple-600 text-purple-600"
                 : "border-transparent text-gray-500 hover:text-gray-700"
@@ -880,7 +880,7 @@ export default function ImageCollections() {
               fetchCollections();
             }}
             disabled={isUploading}
-            className={`px-4 sm:px-6 py-2 sm:py-3 font-medium text-sm border-b-2 transition-colors whitespace-nowrap ${
+            className={`px-4 sm:px-6 py-2 sm:py-3 font-medium text-sm border-b-2 transition-colors whitespace-nowrap cursor-pointer disabled:cursor-not-allowed ${
               mode === "video"
                 ? "border-purple-600 text-purple-600"
                 : "border-transparent text-gray-500 hover:text-gray-700"
@@ -1080,7 +1080,7 @@ export default function ImageCollections() {
               <button
                 key={status}
                 onClick={() => setFilterStatus(status)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors ${
+                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors cursor-pointer ${
                   filterStatus === status
                     ? "bg-purple-600 text-white"
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200"

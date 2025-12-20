@@ -69,6 +69,7 @@ export function SelectTrigger({ children, className }: { children: React.ReactNo
         "dark:bg-transparent dark:border-white/10 dark:text-white/80",
         "bg-white border-gray-300 text-gray-700",
         "hover:border-gray-400",
+        "cursor-pointer",
         className
       )}
     >
@@ -119,6 +120,7 @@ export function SelectItem({ value, children, className }: SelectItemProps) {
         "text-white/80",
         "dark:hover:bg-white/5 dark:text-white/80",
         "hover:bg-gray-50 text-gray-700",
+        "cursor-pointer",
         className
       )}
     >
