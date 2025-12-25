@@ -166,17 +166,6 @@ export default function ImageCollections() {
   useEffect(() => {
     fetchCollections();
   }, [fetchCollections]);
-
-  // Auto-refresh when viewing videos to update processing status
-  useEffect(() => {
-    if (mode === "video") {
-      const interval = setInterval(() => {
-        fetchCollections();
-      }, 10000); // Refresh every 10 seconds
-
-      return () => clearInterval(interval);
-    }
-  }, [mode, fetchCollections]);
   const handleMultipleImageUpload = useCallback(
     async (files: FileList) => {
       const fileArray = Array.from(files);
