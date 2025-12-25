@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { 
   Upload, Loader2, Image as ImageIcon, Video, CloudUpload, Folder, 
   CheckCircle2, Clock, AlertCircle, Sparkles, ChevronRight, X,
-  Filter, Grid3x3, List as ListIcon, Plus, Link as LinkIcon
+  Filter, Grid3x3, List as ListIcon, Plus, Link as LinkIcon, CheckSquare, Square, Trash2, RotateCcw
 } from "lucide-react";
 import Image from "next/image";
 import { useToast } from "@/lib/hooks/use-toast";
@@ -30,6 +30,7 @@ interface CollectionVideo {
   description?: string;
   createdAt?: string;
   status?: "indexed" | "processing" | "failed";
+  jobId?: string; // For failed/processing videos from queue
 }
 
 type FilterStatus = "all" | "indexed" | "processing" | "failed";
@@ -50,6 +51,8 @@ export default function ImageCollections() {
   const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const [selectedVideos, setSelectedVideos] = useState<Set<string>>(new Set());
+  const [isProcessingAction, setIsProcessingAction] = useState(false);
 
   // Determine if we should show collapsed upload (when assets exist)
   const hasAssets = mode === "image" ? images.length > 0 : videos.length > 0;
@@ -62,16 +65,86 @@ export default function ImageCollections() {
       if (response.ok) {
         const data = await response.json();
         if (mode === "video") {
-          const videosWithStatus = (data.data || []).map((video: CollectionVideo) => ({
+          const indexedVideos = (data.data || []).map((video: CollectionVideo) => ({
             ...video,
-            status: video.status || "indexed" as const,
+            status: "indexed" as const,
           }));
-          setVideos(videosWithStatus.reverse());
+
+          // Fetch processing and failed videos
+          try {
+            const processingFailedResponse = await fetch(
+              "/api/media/processing-failed-videos"
+            );
+            if (processingFailedResponse.ok) {
+              const processingFailedData = await processingFailedResponse.json();
+              if (processingFailedData.success) {
+                const { processing, failed } = processingFailedData.data;
+
+                // Convert processing videos to CollectionVideo format
+                const processingVideos: CollectionVideo[] = processing.map(
+                  (job: any) => ({
+                    id: job.id,
+                    videoUrl: job.videoUrl,
+                    description: `Processing... ${job.progress ? `${job.progress}%` : ""}`,
+                    status: "processing" as const,
+                    jobId: job.id, // Store jobId for tracking
+                    createdAt: job.timestamp
+                      ? new Date(job.timestamp).toISOString()
+                      : undefined,
+                  })
+                );
+
+                // Convert failed videos to CollectionVideo format
+                const failedVideos: CollectionVideo[] = failed.map(
+                  (job: any) => ({
+                    id: job.id,
+                    videoUrl: job.videoUrl,
+                    description: job.failedReason || "Processing failed",
+                    status: "failed" as const,
+                    jobId: job.id, // Store jobId for removal/requeue
+                    createdAt: job.timestamp
+                      ? new Date(job.timestamp).toISOString()
+                      : undefined,
+                  })
+                );
+
+                // Merge all videos: indexed, processing, and failed
+                const allVideos = [
+                  ...indexedVideos,
+                  ...processingVideos,
+                  ...failedVideos,
+                ];
+
+                // Sort by creation date (newest first)
+                allVideos.sort((a, b) => {
+                  const dateA = a.createdAt
+                    ? new Date(a.createdAt).getTime()
+                    : 0;
+                  const dateB = b.createdAt
+                    ? new Date(b.createdAt).getTime()
+                    : 0;
+                  return dateB - dateA;
+                });
+
+                setVideos(allVideos);
+              } else {
+                setVideos(indexedVideos.reverse());
+              }
+            } else {
+              setVideos(indexedVideos.reverse());
+            }
+          } catch (error) {
+            console.error("Error fetching processing/failed videos:", error);
+            // If fetching processing/failed videos fails, just show indexed videos
+            setVideos(indexedVideos.reverse());
+          }
         } else {
-          const imagesWithStatus = (data.data || []).map((image: CollectionImage) => ({
-            ...image,
-            status: image.status || "indexed" as const,
-          }));
+          const imagesWithStatus = (data.data || []).map(
+            (image: CollectionImage) => ({
+              ...image,
+              status: image.status || ("indexed" as const),
+            })
+          );
           setImages(imagesWithStatus.reverse());
         }
       } else {
@@ -93,6 +166,17 @@ export default function ImageCollections() {
   useEffect(() => {
     fetchCollections();
   }, [fetchCollections]);
+
+  // Auto-refresh when viewing videos to update processing status
+  useEffect(() => {
+    if (mode === "video") {
+      const interval = setInterval(() => {
+        fetchCollections();
+      }, 10000); // Refresh every 10 seconds
+
+      return () => clearInterval(interval);
+    }
+  }, [mode, fetchCollections]);
   const handleMultipleImageUpload = useCallback(
     async (files: FileList) => {
       const fileArray = Array.from(files);
@@ -784,6 +868,140 @@ export default function ImageCollections() {
     ? videos 
     : videos.filter(vid => vid.status === filterStatus);
 
+  // Get only failed videos for selection
+  const failedVideos = filteredVideos.filter(vid => vid.status === "failed");
+  const allFailedSelected = failedVideos.length > 0 && failedVideos.every(vid => selectedVideos.has(vid.id));
+
+  // Selection handlers
+  const toggleVideoSelection = (videoId: string) => {
+    setSelectedVideos(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(videoId)) {
+        newSet.delete(videoId);
+      } else {
+        newSet.add(videoId);
+      }
+      return newSet;
+    });
+  };
+
+  const toggleSelectAllFailed = () => {
+    if (allFailedSelected) {
+      // Deselect all failed videos
+      setSelectedVideos(prev => {
+        const newSet = new Set(prev);
+        failedVideos.forEach(vid => newSet.delete(vid.id));
+        return newSet;
+      });
+    } else {
+      // Select all failed videos
+      setSelectedVideos(prev => {
+        const newSet = new Set(prev);
+        failedVideos.forEach(vid => newSet.add(vid.id));
+        return newSet;
+      });
+    }
+  };
+
+  // Clear selection when filter changes
+  useEffect(() => {
+    setSelectedVideos(new Set());
+  }, [filterStatus]);
+
+  // Action handlers
+  const handleRemoveFailed = async () => {
+    const selectedFailedVideos = failedVideos.filter(vid => selectedVideos.has(vid.id));
+    if (selectedFailedVideos.length === 0) {
+      toast({
+        title: "No videos selected",
+        description: "Please select videos to remove",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const jobIds = selectedFailedVideos.map(vid => vid.jobId || vid.id).filter(Boolean);
+    
+    setIsProcessingAction(true);
+    try {
+      const response = await fetch("/api/media/remove-failed-videos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ jobIds }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        const removedCount = data.data?.removedCount || 0;
+        toast({
+          title: "Videos removed",
+          description: `Successfully removed ${removedCount} failed video${removedCount !== 1 ? "s" : ""}`,
+        });
+        setSelectedVideos(new Set());
+        // Refresh the collection
+        fetchCollections();
+      } else {
+        throw new Error(data.error || "Failed to remove videos");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to remove videos",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessingAction(false);
+    }
+  };
+
+  const handleReuploadFailed = async () => {
+    const selectedFailedVideos = failedVideos.filter(vid => selectedVideos.has(vid.id));
+    if (selectedFailedVideos.length === 0) {
+      toast({
+        title: "No videos selected",
+        description: "Please select videos to re-upload",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const jobIds = selectedFailedVideos.map(vid => vid.jobId || vid.id).filter(Boolean);
+    
+    setIsProcessingAction(true);
+    try {
+      const response = await fetch("/api/media/requeue-failed-videos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ jobIds }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        toast({
+          title: "Videos re-queued",
+          description: `Re-queued ${data.data.results.length} video(s) for processing`,
+        });
+        setSelectedVideos(new Set());
+        // Refresh the collection
+        fetchCollections();
+      } else {
+        throw new Error(data.error || "Failed to re-queue videos");
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to re-queue videos",
+        variant: "destructive",
+      });
+    } finally {
+      setIsProcessingAction(false);
+    }
+  };
+
   // Get collection metadata
   const collectionCount = mode === "image" ? images.length : videos.length;
   const oldestImage = images.length > 0 ? images[images.length - 1] : null;
@@ -837,7 +1055,7 @@ export default function ImageCollections() {
   );
 
   return (
-    <div className="flex-1 flex flex-col h-full py-4 sm:py-6 lg:py-8 bg-white">
+    <div className="flex-1 flex flex-col h-full py-4 sm:py-6 lg:py-8 bg-white px-4 sm:px-6 lg:px-8">
       {/* Breadcrumbs */}
       <div className="mb-4 flex items-center gap-2 text-sm text-gray-500">
         <span>Collections</span>
@@ -1116,6 +1334,59 @@ export default function ImageCollections() {
         </div>
       )}
 
+      {/* Selection Bar for Failed Videos */}
+      {mode === "video" && filterStatus === "failed" && failedVideos.length > 0 && (
+        <div className="mb-4 flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleSelectAllFailed}
+              className="flex items-center gap-2"
+            >
+              {allFailedSelected ? (
+                <CheckSquare className="h-4 w-4" />
+              ) : (
+                <Square className="h-4 w-4" />
+              )}
+              <span>{allFailedSelected ? "Deselect All" : "Select All"}</span>
+            </Button>
+            {selectedVideos.size > 0 && (
+              <span className="text-sm text-gray-600">
+                {selectedVideos.size} video{selectedVideos.size !== 1 ? "s" : ""} selected
+              </span>
+            )}
+          </div>
+          {selectedVideos.size > 0 && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRemoveFailed}
+                disabled={isProcessingAction}
+                className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span>Remove</span>
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleReuploadFailed}
+                disabled={isProcessingAction}
+                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700"
+              >
+                {isProcessingAction ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RotateCcw className="h-4 w-4" />
+                )}
+                <span>Re-upload</span>
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Images/Videos Grid */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
@@ -1161,18 +1432,38 @@ export default function ImageCollections() {
                   : video.description
                 : null;
               
+              const isSelected = selectedVideos.has(video.id);
+              const isFailed = status === "failed";
+              
               return (
                 <Card
                   key={video.id}
-                  className={`bg-white border border-gray-200 rounded-lg overflow-hidden hover:border-purple-300 hover:shadow-lg transition-all group ${
-                    viewMode === "list" ? "flex flex-row" : "flex flex-col"
-                  }`}
+                  className={`bg-white border rounded-lg overflow-hidden hover:border-purple-300 hover:shadow-lg transition-all group ${
+                    isSelected ? "border-purple-500 border-2" : "border-gray-200"
+                  } ${viewMode === "list" ? "flex flex-row" : "flex flex-col"}`}
                 >
                   <div className={`relative bg-gray-100 ${
                     viewMode === "list" 
                       ? "w-24 h-24 flex-shrink-0" 
                       : "aspect-video"
                   }`}>
+                    {/* Checkbox for failed videos */}
+                    {isFailed && (
+                      <div className="absolute top-1.5 left-1.5 z-10">
+                        <button
+                          onClick={() => toggleVideoSelection(video.id)}
+                          className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
+                            isSelected
+                              ? "bg-purple-600 border-purple-600"
+                              : "bg-white border-gray-300 hover:border-purple-400"
+                          }`}
+                        >
+                          {isSelected && (
+                            <CheckCircle2 className="h-3.5 w-3.5 text-white" />
+                          )}
+                        </button>
+                      </div>
+                    )}
                     <video
                       src={video.videoUrl}
                       controls

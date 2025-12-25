@@ -6,6 +6,7 @@ import { AppSidebar } from "@/components/appSidebar";
 import ImageSearch from "@/components/imageSearch";
 import ImageCollections from "@/components/imageCollections";
 import Profile from "@/components/profile";
+import { HistoryPage, AnalyticsPage, SettingsPage, BillingPage } from "@/components/comingSoon";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
@@ -15,13 +16,14 @@ function HomeContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [activeView, setActiveView] = useState<
-    "search" | "collections" | "profile"
+    "search" | "collections" | "profile" | "history" | "analytics" | "settings" | "billing"
   >("search");
 
   useEffect(() => {
     const view = searchParams.get("view");
-    if (view && ["search", "collections", "profile"].includes(view)) {
-      setActiveView(view as "search" | "collections" | "profile");
+    const validViews = ["search", "collections", "profile", "history", "analytics", "settings", "billing"];
+    if (view && validViews.includes(view)) {
+      setActiveView(view as typeof activeView);
     } else {
       setActiveView("search");
     }
@@ -34,13 +36,23 @@ function HomeContent() {
         router.push(`/?view=${view}`);
       }} />
       <SidebarInset className="bg-white">
-        <div className="flex flex-col h-screen overflow-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col h-screen overflow-auto">
           {activeView === "search" ? (
             <ImageSearch />
           ) : activeView === "collections" ? (
             <ImageCollections />
-          ) : (
+          ) : activeView === "profile" ? (
             <Profile />
+          ) : activeView === "history" ? (
+            <HistoryPage />
+          ) : activeView === "analytics" ? (
+            <AnalyticsPage />
+          ) : activeView === "settings" ? (
+            <SettingsPage />
+          ) : activeView === "billing" ? (
+            <BillingPage />
+          ) : (
+            <ImageSearch />
           )}
         </div>
       </SidebarInset>

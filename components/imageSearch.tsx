@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { 
   Search, Loader2, Image as ImageIcon, Video, Clock, Download, Share2, 
-  MoreVertical, Sparkles, Info, ChevronDown, ChevronUp, Lock, 
-  ExternalLink, Grid3x3, List as ListIcon, Play
+  MoreVertical, Sparkles, ChevronDown, ChevronUp, ChevronRight, List as ListIcon, Play, Star, ArrowRight, Filter, Plus, Lightbulb, CloudUpload, Folder
 } from "lucide-react";
 import Image from "next/image";
 import { useToast } from "@/lib/hooks/use-toast";
@@ -45,6 +44,26 @@ const formatTime = (seconds: number): string => {
 // Helper function to get match percentage from score
 const getMatchPercentage = (score: number): number => {
   return Math.round(score * 100);
+};
+
+// Helper to extract hashtags from description
+const extractHashtags = (text: string): string[] => {
+  const hashtags: string[] = [];
+  // Look for common keywords and convert to hashtags
+  const keywords = [
+    "landscape", "snow", "mountains", "clouds", "timelapse", "nature", "cold",
+    "winter", "outdoor", "scenic", "aerial", "drone", "city", "urban", "people",
+    "talking", "conversation", "indoor", "sunset", "sunrise", "ocean", "beach"
+  ];
+  
+  const textLower = text.toLowerCase();
+  keywords.forEach(keyword => {
+    if (textLower.includes(keyword) && !hashtags.includes(`#${keyword}`)) {
+      hashtags.push(`#${keyword}`);
+    }
+  });
+  
+  return hashtags.slice(0, 5); // Limit to 5 hashtags
 };
 
 // Helper to extract factual scene label from description (not narration)
@@ -448,190 +467,156 @@ export default function ImageSearch() {
 
   const hasResults = (mode === "image" ? imageResults.length : videoResults.length) > 0;
 
+  // Trending topics
+  const trendingTopics = [
+    "Mountain landscapes",
+    "Drone footage",
+    "City time-lapse",
+    "People talking"
+  ];
+
   return (
-    <div className="flex-1 flex flex-col h-full w-full max-w-5xl mx-auto relative">
-      <div className="sticky top-0 left-0 right-0 z-[200] bg-white py-4 sm:py-6 lg:py-8 flex flex-col gap-4 pb-6 border-b border-gray-200">
+    <div className="flex-1 flex flex-col h-full w-full overflow-hidden">
+      {/* Header with Purple Gradient Background */}
+      <div className="sticky top-0 left-0 right-0 z-[200] bg-gradient-to-b from-purple-100 via-purple-50 to-white pt-6 pb-6 px-6 flex-shrink-0">
+            {/* Header with Title and Action Buttons */}
+            <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">Search</h1>
-          <p className="text-gray-600 text-sm sm:text-base">
-            {mode === "image" 
-              ? "Search images semantically using text"
-              : "Search moments inside videos using natural language"}
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">Search</h1>
+                <p className="text-gray-600 text-sm">
+                  Find specific moments in your media library instantly.
           </p>
         </div>
-        
-        {/* Mode Toggle with Helper Text */}
-        <div className="space-y-2">
-          <div className="flex gap-2">
-            <Button
-              variant={mode === "image" ? "default" : "outline"}
-              onClick={() => {
-                setMode("image");
-                setImageResults([]);
-                setVideoResults([]);
-                setQueryInterpretation([]);
-              }}
-              disabled={isSearching}
-              className={`flex-1 ${
-                mode === "image"
-                  ? "bg-purple-600 hover:bg-purple-700 text-white"
-                  : "border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700"
-              }`}
-            >
-              <ImageIcon className="h-4 w-4 mr-2" />
-              <span>Image Search</span>
+              <div className="flex items-center gap-3">
+                <Button variant="outline" size="sm" className="flex items-center gap-2 bg-white border-gray-200 hover:bg-gray-50">
+                  <Filter className="h-4 w-4" />
+                  <span>Filters</span>
             </Button>
-            <Button
-              variant={mode === "video" ? "default" : "outline"}
-              onClick={() => {
-                setMode("video");
-                setImageResults([]);
-                setVideoResults([]);
-                setQueryInterpretation([]);
-              }}
-              disabled={isSearching}
-              className={`flex-1 ${
-                mode === "video"
-                  ? "bg-purple-600 hover:bg-purple-700 text-white"
-                  : "border-gray-200 text-gray-500 hover:bg-gray-50 hover:text-gray-700"
-              }`}
-            >
-              <Video className="h-4 w-4 mr-2" />
-              <span>Video Search</span>
+                <Button size="sm" className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white">
+                  <CloudUpload className="h-4 w-4" />
+                  <span>Upload Media</span>
             </Button>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-gray-500">
-            <Lock className="h-3 w-3" />
-            <span>
-              {mode === "image" 
-                ? "Finds images"
-                : "Finds short moments inside longer videos"}
-            </span>
           </div>
         </div>
 
-        {/* Search Input with Example Chips */}
-        <div className="space-y-3">
-        <div className="relative w-full">
-            <div className="relative flex items-center bg-white border border-gray-300 rounded-xl px-3 sm:px-4 py-3 sm:py-4 shadow-sm hover:border-purple-400 transition-colors">
+        {/* Search Bar */}
+        <div className="relative w-full mb-5">
+          <div className="relative flex items-center bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 shadow-sm hover:shadow-md hover:border-purple-200 transition-all">
+            <Sparkles className="h-5 w-5 text-purple-600 mr-4 flex-shrink-0" />
             <Input
               type="text"
-                placeholder="Describe a scene, action, or moment (e.g. 'man walking on road at night')"
+              placeholder="snow weather"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={handleKeyPress}
-                className="flex-1 bg-transparent border-0 text-gray-900 placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0 text-base sm:text-lg"
-              />
-              <div className="flex items-center gap-2 ml-2 sm:ml-4">
-                <div className="group relative">
-                  <Info className="h-4 w-4 text-gray-400 hover:text-gray-600 cursor-help" />
-                  <div className="absolute right-0 top-6 w-64 p-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
-                    You can describe actions, objects, environment, and time
-                  </div>
-                </div>
+              className="flex-1 bg-transparent border-0 text-gray-900 placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-0 text-lg font-normal !h-auto py-1 px-0 shadow-none rounded-none"
+            />
             <Button
               variant="ghost"
               size="icon"
-                  className="h-8 w-8 text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+              className="h-10 w-10 bg-purple-100 hover:bg-purple-200 text-purple-600 rounded-xl ml-3 flex-shrink-0 transition-colors"
               onClick={handleSearch}
               disabled={isSearching || !searchQuery.trim()}
             >
               {isSearching ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <Loader2 className="h-5 w-5 animate-spin" />
               ) : (
-                <Search className="h-4 w-4" />
+                <ArrowRight className="h-5 w-5" />
               )}
             </Button>
           </div>
         </div>
+
+            {/* Search Mode Buttons */}
+            <div className="flex gap-3 mb-5">
+              <Button
+                variant={mode === "video" ? "default" : "outline"}
+                onClick={() => {
+                  setMode("video");
+                  setImageResults([]);
+                  setVideoResults([]);
+                  setQueryInterpretation([]);
+                }}
+                disabled={isSearching}
+                className={
+                  mode === "video"
+                    ? "bg-purple-600 hover:bg-purple-700 text-white rounded-full px-5"
+                    : "border-gray-200 text-gray-700 hover:bg-gray-50 bg-white rounded-full px-5"
+                }
+              >
+                <Video className="h-4 w-4 mr-2" />
+                Search Videos
+              </Button>
+              <Button
+                variant={mode === "image" ? "default" : "outline"}
+                onClick={() => {
+                  setMode("image");
+                  setImageResults([]);
+                  setVideoResults([]);
+                  setQueryInterpretation([]);
+                }}
+                disabled={isSearching}
+                className={
+                  mode === "image"
+                    ? "bg-purple-600 hover:bg-purple-700 text-white rounded-full px-5"
+                    : "border-gray-200 text-gray-700 hover:bg-gray-50 bg-white rounded-full px-5"
+                }
+              >
+                <ImageIcon className="h-4 w-4 mr-2" />
+                Search Images
+              </Button>
       </div>
 
-          {/* Example Query Chips */}
-          {!hasResults && (
+            {/* Trending Section */}
+            <div className="flex items-center gap-4 pb-4 border-b border-gray-100">
+              <span className="text-xs font-bold text-gray-500 tracking-wider uppercase">TRENDING:</span>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs text-gray-500">Try:</span>
-              {EXAMPLE_QUERIES.map((example, idx) => (
+                {trendingTopics.map((topic, idx) => (
                 <button
                   key={idx}
-                  onClick={() => handleExampleClick(example)}
-                  className="px-3 py-1 text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full transition-colors cursor-pointer"
+                    onClick={() => handleExampleClick(topic)}
+                    className="px-4 py-1.5 text-sm bg-white border border-gray-200 hover:border-purple-400 hover:bg-purple-50 text-gray-700 rounded-full transition-all cursor-pointer"
                 >
-                  {example}
+                  {topic}
                 </button>
               ))}
             </div>
-          )}
         </div>
       </div>
 
-      <div className="w-full space-y-4 pt-4">
-        {/* Query Interpretation Strip - Structured with Chips */}
-        {queryInterpretation && queryInterpretation.length > 0 && hasResults && (
-          <div className="bg-purple-50 border border-purple-200 rounded-lg px-4 py-2.5 flex items-center gap-2 flex-wrap">
-            <Sparkles className="h-4 w-4 text-purple-600 flex-shrink-0" />
-            <span className="text-sm font-medium text-gray-700">Interpreted as:</span>
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {queryInterpretation.map((token, idx) => (
-                <span key={idx} className="inline-flex items-center gap-1">
-                  <span className="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs font-medium rounded">
-                    {token}
-                  </span>
-                  {idx < queryInterpretation.length - 1 && (
-                    <span className="text-purple-400">·</span>
-                  )}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Search Results Header */}
+      {/* Results Section with Sidebar */}
+      <div className="flex gap-6 px-6 flex-1 min-h-0 overflow-hidden">
+        {/* Left Column - Results */}
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          {/* Search Results Header - Sticky */}
         {!isSearching && hasResults && (
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-4">
-              <h2 className="text-lg sm:text-xl font-medium text-gray-900">
-                {mode === "image" 
-                  ? `${imageResults.length} matching image${imageResults.length !== 1 ? "s" : ""} found`
-                  : `${videoResults.length} matching moment${videoResults.length !== 1 ? "s" : ""} found`}
-              </h2>
+            <div className="flex items-center justify-between py-4 bg-white sticky top-0 z-10 border-b border-gray-100 flex-shrink-0">
               <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
-                  className="border-gray-300"
-                >
-                  {viewMode === "grid" ? (
-                    <><ListIcon className="h-4 w-4 mr-2" />List</>
-                  ) : (
-                    <><Grid3x3 className="h-4 w-4 mr-2" />Grid</>
-                  )}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCompactMode(!compactMode)}
-                  className="border-gray-300"
-                >
-                  {compactMode ? "Expanded" : "Compact"}
-                </Button>
+                <h2 className="text-xl font-bold text-gray-900">Results</h2>
+                <span className="w-6 h-6 rounded-full bg-purple-100 text-purple-700 text-xs font-bold flex items-center justify-center">
+                  {mode === "image" ? imageResults.length : videoResults.length}
+                </span>
               </div>
-            </div>
+              <div className="flex items-center text-sm text-gray-500">
+                <span>Sort by:</span>
             <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-full sm:w-[200px] border-gray-300 bg-white text-gray-700">
-                <span>Sort by: {sortBy === "relevance" ? "Relevance (semantic similarity)" : sortBy === "confidence" ? "Confidence (model score)" : sortBy === "length" ? "Video length" : "Timestamp order"}</span>
+                  <SelectTrigger className="w-auto border-0 bg-transparent text-gray-900 hover:bg-gray-50 rounded-lg gap-1 pl-1 pr-0 h-auto py-0 font-medium">
+                    <span>Relevance</span>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="relevance">Relevance (semantic similarity)</SelectItem>
-                {mode === "video" && <SelectItem value="confidence">Confidence (model score)</SelectItem>}
+                    <SelectItem value="relevance">Relevance</SelectItem>
+                    {mode === "video" && <SelectItem value="confidence">Confidence</SelectItem>}
                 {mode === "video" && <SelectItem value="length">Video length</SelectItem>}
-                {mode === "video" && <SelectItem value="timestamp">Timestamp order</SelectItem>}
-                {mode === "image" && <SelectItem value="confidence">Confidence (model score)</SelectItem>}
+                    {mode === "video" && <SelectItem value="timestamp">Timestamp</SelectItem>}
+                    {mode === "image" && <SelectItem value="confidence">Confidence</SelectItem>}
               </SelectContent>
             </Select>
+              </div>
           </div>
         )}
 
+          {/* Scrollable Results Container */}
+          <div className="flex-1 overflow-y-auto space-y-4 pt-4">
         {/* Search Results */}
         {isSearching ? (
           <div className="flex items-center justify-center py-12">
@@ -649,11 +634,11 @@ export default function ImageSearch() {
                 return (
                 <Card
                   key={result.id}
-                    className={`bg-white border border-gray-200 hover:border-purple-300 hover:shadow-md transition-all overflow-hidden ${compactMode ? "p-3" : "p-4"}`}
+                    className={`bg-white border border-gray-200 hover:border-purple-200 hover:shadow-lg transition-all overflow-hidden rounded-2xl ${compactMode ? "p-3" : "p-4"}`}
                 >
-                    <div className={`flex ${viewMode === "grid" ? "flex-col" : "flex-row"} gap-4`}>
+                    <div className={`flex ${viewMode === "grid" ? "flex-col" : "flex-row"} gap-5`}>
                       {/* Thumbnail */}
-                      <div className={`relative ${viewMode === "grid" ? "w-full aspect-square" : "w-32 h-32"} flex-shrink-0 rounded-lg overflow-hidden bg-gray-100`}>
+                      <div className={`relative ${viewMode === "grid" ? "w-full aspect-square" : "w-32 h-32"} flex-shrink-0 rounded-xl overflow-hidden bg-gray-100`}>
                         {viewMode === "list" ? (
                     <Image
                       src={result.imageUrl}
@@ -817,11 +802,19 @@ export default function ImageSearch() {
                 return (
                   <Card
                     key={result.id}
-                    className={`bg-white border border-gray-200 hover:border-purple-300 hover:shadow-md transition-all overflow-hidden ${compactMode ? "p-3" : "p-4"}`}
+                    className={`bg-white border border-gray-200 hover:border-purple-200 hover:shadow-lg transition-all overflow-hidden relative rounded-2xl ${compactMode ? "p-3" : "p-4"}`}
                   >
-                    <div className={`flex ${viewMode === "grid" ? "flex-col" : "flex-row"} gap-4`}>
+                    {/* Three dots menu - top right */}
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      className="absolute top-3 right-3 h-8 w-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full z-20"
+                    >
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                    <div className={`flex ${viewMode === "grid" ? "flex-col" : "flex-row"} gap-5`}>
                       {/* Thumbnail */}
-                      <div className={`relative ${viewMode === "grid" ? "w-full aspect-video" : "w-[400px] h-[360px]"} flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 group`}>
+                      <div className={`relative ${viewMode === "grid" ? "w-full aspect-video" : "w-[320px] h-[240px]"} flex-shrink-0 rounded-xl overflow-hidden bg-gray-100 group`}>
                         {result.videoUrl ? (
                           <>
                             <video
@@ -881,16 +874,16 @@ export default function ImageSearch() {
                                 }
                               }}
                             />
-                            {/* Match badge - visible but doesn't block controls */}
+                            {/* Match badge - green pill */}
                             {matchPercentage > 0 && (
-                              <div className="absolute top-2 left-2 bg-purple-600 text-white text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1 group z-10 pointer-events-none">
+                              <div className="absolute top-3 left-3 bg-emerald-500 text-white text-xs font-semibold px-2.5 py-1 rounded-md flex items-center gap-1 z-10 pointer-events-none shadow-sm">
                                 {matchPercentage}% Match
                               </div>
                             )}
-                            {/* Timestamp - visible but positioned to avoid controls area */}
-                            {endTime > 0 && (
-                              <div className="absolute bottom-12 right-2 bg-black/70 text-white text-xs px-2 py-1 rounded z-10 pointer-events-none">
-                                {formatTime(endTime)}
+                            {/* Duration badge - bottom right of thumbnail */}
+                            {startTime >= 0 && (
+                              <div className="absolute bottom-3 right-3 bg-black/75 text-white text-xs font-medium px-2 py-1 rounded-md z-10 pointer-events-none">
+                                {formatTime(endTime > 0 ? endTime : startTime)}
                               </div>
                             )}
                             {/* Play overlay - only appears on hover when paused, below everything */}
@@ -937,17 +930,17 @@ export default function ImageSearch() {
                       </div>
 
                       {/* Content */}
-                      <div className="flex-1 flex flex-col justify-between min-w-0">
+                      <div className="flex-1 flex flex-col justify-between min-w-0 pr-8">
                         <div>
-                          <h3 className="text-base font-semibold text-gray-900 mb-1.5">
+                          <h3 className="text-lg font-bold text-gray-900 mb-2">
                             {sceneSummary}
                           </h3>
                           {!compactMode && (
                             <>
-                              <p className={`text-sm text-gray-600 ${isExpanded ? "" : "line-clamp-2"} mb-2 leading-snug`}>
+                              <p className={`text-sm text-gray-600 ${isExpanded ? "" : "line-clamp-3"} mb-3 leading-relaxed`}>
                                 {result.text}
                               </p>
-                              {result.text && result.text.length > 80 && (
+                              {result.text && result.text.length > 120 && (
                                 <button
                                   type="button"
                                   onClick={(e) => {
@@ -955,7 +948,7 @@ export default function ImageSearch() {
                                     e.stopPropagation();
                                     toggleDescription(result.id);
                                   }}
-                                  className="text-xs text-purple-600 hover:text-purple-700 mb-2 flex items-center gap-1 cursor-pointer"
+                                  className="text-xs text-purple-600 hover:text-purple-700 mb-3 flex items-center gap-1 cursor-pointer font-medium"
                                 >
                                   {isExpanded ? (
                                     <>Show less <ChevronUp className="h-3 w-3" /></>
@@ -964,126 +957,64 @@ export default function ImageSearch() {
                                   )}
                                 </button>
                               )}
-                              {matchReasons.matched.length > 0 && (
-                                <div className="mb-3 p-2 bg-gray-50 rounded border border-gray-200">
-                                  <p className="text-xs font-medium text-gray-700 mb-1.5">Why this matched:</p>
-                                  <ul className="text-xs text-gray-600 space-y-0.5 mb-2">
-                                    {matchReasons.matched.map((reason, idx) => (
-                                      <li key={idx} className="flex items-start gap-1">
-                                        <span className="text-purple-600">•</span>
-                                        <span>{reason}</span>
-                                      </li>
-                                    ))}
-                                  </ul>
-                                  {matchReasons.additional.length > 0 && (
-                                    <>
-                                      <p className="text-xs font-medium text-gray-600 mb-1">Additional context detected:</p>
-                                      <ul className="text-xs text-gray-500 space-y-0.5">
-                                        {matchReasons.additional.map((reason, idx) => (
-                                          <li key={idx} className="flex items-start gap-1">
-                                            <span className="text-gray-400">•</span>
-                                            <span>{reason}</span>
-                                          </li>
-                                        ))}
-                                      </ul>
-                                    </>
-                                  )}
+                              {/* Hashtags */}
+                              {!compactMode && (
+                                <div className="flex flex-wrap gap-2 mb-4">
+                                  {extractHashtags(result.text).map((tag, idx) => (
+                                    <span
+                                      key={idx}
+                                      className="px-3 py-1 text-xs border border-gray-200 text-gray-600 rounded-full hover:border-gray-300 transition-colors"
+                                    >
+                                      {tag}
+                                    </span>
+                                  ))}
                                 </div>
                               )}
                             </>
                           )}
                           
-                          {/* Interactive Timeline Bar */}
-                          {videoDuration > 0 && (
-                            <div className="mb-2">
-                              <div className="flex items-center justify-between text-xs text-gray-500 mb-1">
-                                <span>{formatTime(startTime)} - {formatTime(endTime)}</span>
-                                <span className="text-gray-400">of {formatTime(videoDuration)}</span>
                               </div>
-                              <div 
-                                className="w-full h-2 bg-gray-200 rounded-full overflow-hidden relative cursor-pointer group"
-                                onMouseMove={(e) => {
-                                  const rect = e.currentTarget.getBoundingClientRect();
-                                  const x = e.clientX - rect.left;
-                                  const percent = (x / rect.width) * 100;
-                                  const hoverTime = (percent / 100) * videoDuration;
-                                  setTimelineHoverTime({ resultId: result.id, time: hoverTime });
-                                }}
-                                onMouseLeave={() => setTimelineHoverTime(null)}
-                                onClick={(e) => {
-                                  const rect = e.currentTarget.getBoundingClientRect();
-                                  const x = e.clientX - rect.left;
-                                  const percent = (x / rect.width) * 100;
-                                  const clickTime = (percent / 100) * videoDuration;
-                                  // Jump to that time in the video
-                                  const videoElement = e.currentTarget.closest('.relative')?.querySelector('video') as HTMLVideoElement;
-                                  if (videoElement) {
-                                    videoElement.currentTime = Math.max(0, Math.min(clickTime, videoDuration));
-                                  }
-                                }}
-                                title={`Moment occurs at ${formatTime(startTime)}–${formatTime(endTime)} of video`}
-                              >
-                                <div 
-                                  className="h-full bg-purple-600 transition-all"
-                                  style={{ 
-                                    width: `${(duration / videoDuration) * 100}%`,
-                                    marginLeft: `${positionPercent}%`
-                                  }}
-                                />
-                                {timelineHoverTime?.resultId === result.id && (
-                                  <div 
-                                    className="absolute top-0 h-full w-0.5 bg-purple-400 opacity-50"
-                                    style={{ left: `${(timelineHoverTime.time / videoDuration) * 100}%` }}
-                                  />
-                                )}
+                        
+                        {/* Duration and Actions - Bottom aligned */}
+                        <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-100">
+                          <div className="flex items-center gap-2 text-sm text-gray-500">
+                            <Clock className="h-4 w-4 text-gray-400" />
+                            <span>{formatTime(startTime)}</span>
+                            <span className="text-gray-300">-</span>
+                            <span>{formatTime(endTime)}</span>
                               </div>
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex items-center justify-between mt-2">
-                          <div className="flex items-center gap-2">
-                            {/* Primary Action - Play/View Full Video */}
-                            <Button
-                              variant="default"
-                              size="sm"
-                              className="h-8 text-xs bg-purple-600 hover:bg-purple-700 text-white"
-                              onClick={() => {
-                                if (result.videoUrl) {
-                                  window.open(result.videoUrl, "_blank");
-                                }
-                              }}
-                            >
-                              <Video className="h-3.5 w-3.5 mr-1.5" />
-                              View full video
-                            </Button>
-                            {/* Secondary Actions - Text buttons */}
+                          <div className="flex items-center gap-1">
                             <Button
                               variant="ghost"
-                              size="sm"
-                              className="h-8 text-xs text-gray-600 hover:text-gray-900"
+                              size="icon"
+                              className="h-8 w-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                              title="Add to playlist"
+                            >
+                              <ListIcon className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
                               onClick={() => {
                                 if (result.videoUrl && startTime >= 0 && endTime > startTime) {
                                   handleDownloadVideo(result.videoUrl, startTime, endTime);
                                 }
                               }}
                               disabled={!result.videoUrl || startTime < 0 || endTime <= startTime}
+                              title="Download"
                             >
-                              <Download className="h-3.5 w-3.5 mr-1.5" />
-                              Download
+                              <Download className="h-4 w-4" />
                             </Button>
                             <Button
                               variant="ghost"
-                              size="sm"
-                              className="h-8 text-xs text-gray-600 hover:text-gray-900"
+                              size="icon"
+                              className="h-8 w-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                              title="Share"
                             >
-                              <Share2 className="h-3.5 w-3.5 mr-1.5" />
-                              Share
+                              <Share2 className="h-4 w-4" />
                             </Button>
                           </div>
-                          {/* Tertiary Actions - Menu */}
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 hover:text-gray-700">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
                         </div>
                       </div>
                     </div>
@@ -1102,12 +1033,113 @@ export default function ImageSearch() {
           )
         )}
 
-        {/* AI Confidence Footer */}
+            {/* Load More Button */}
+            {hasResults && (mode === "video" ? videoResults.length > 0 : imageResults.length > 0) && (
+              <div className="py-8 flex justify-center">
+                <Button
+                  variant="outline"
+                  className="border-gray-200 text-gray-700 hover:bg-gray-50 rounded-full px-8 py-2 shadow-sm"
+                >
+                  Load More Results
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right Sidebar - Sticky */}
         {hasResults && (
-          <div className="pt-4 border-t border-gray-200">
-            <p className="text-xs text-gray-500 text-center">
-              Search powered by multimodal embeddings · Avg confidence: {Math.round(avgConfidence)}%
-            </p>
+          <div className="w-80 flex-shrink-0 sticky top-0 self-start space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto pb-6">
+            {/* Search Insights */}
+            <Card className="p-4 bg-white border border-gray-200 rounded-xl shadow-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <Sparkles className="h-4 w-4 text-purple-600" />
+                <h3 className="text-sm font-semibold text-gray-900">Search Insights</h3>
+              </div>
+              
+              {/* Stats Grid */}
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-xs text-gray-500 mb-1">Total Hits</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {(mode === "image" ? imageResults.length : videoResults.length).toLocaleString()}
+                  </p>
+                </div>
+                <div className="bg-gray-50 rounded-lg p-3">
+                  <p className="text-xs text-gray-500 mb-1">Avg. Conf.</p>
+                  <p className="text-2xl font-bold text-gray-900">{Math.round(avgConfidence)}%</p>
+                </div>
+              </div>
+              
+              {/* Dominant Concepts */}
+              <div className="pt-3 border-t border-gray-100">
+                <p className="text-xs text-gray-500 mb-2">Dominant Concepts</p>
+                <div className="flex flex-wrap gap-2">
+                  {(queryInterpretation.length > 0 ? queryInterpretation.slice(0, 3) : ["Snow", "Nature", "Cold"]).map((concept, idx) => (
+                    <span
+                      key={idx}
+                      className="px-3 py-1 text-xs bg-purple-100 text-purple-700 rounded-full font-medium"
+                    >
+                      {concept}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </Card>
+
+            {/* Related Collections */}
+            <Card className="p-4 bg-white border border-gray-200 rounded-xl shadow-sm">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-gray-900">Related Collections</h3>
+                <button className="text-xs text-purple-600 hover:text-purple-700 font-medium">View all</button>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between cursor-pointer hover:bg-gray-50 -mx-2 px-2 py-2 rounded-lg transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                      <Folder className="h-4 w-4 text-purple-600" />
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-800">Winter B-Roll</span>
+                      <p className="text-xs text-gray-500">142 items</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-gray-400" />
+                </div>
+                <div className="flex items-center justify-between cursor-pointer hover:bg-gray-50 -mx-2 px-2 py-2 rounded-lg transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center">
+                      <Folder className="h-4 w-4 text-teal-600" />
+                    </div>
+                    <div>
+                      <span className="text-sm font-medium text-gray-800">Travel 2023</span>
+                      <p className="text-xs text-gray-500">89 items</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-gray-400" />
+                </div>
+              </div>
+            </Card>
+
+            {/* Refine your search */}
+            <Card className="p-4 bg-purple-50 border border-purple-100 rounded-xl relative overflow-hidden">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Lightbulb className="h-4 w-4 text-purple-600" />
+                </div>
+                <div className="flex-1 pr-8">
+                  <h4 className="text-sm font-semibold text-gray-900 mb-1">Refine your search</h4>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Try adding emotional descriptors like &quot;serene&quot; or &quot;dramatic&quot; to filter by mood.
+                  </p>
+                  <button className="text-sm text-purple-600 hover:text-purple-700 font-medium">
+                    Learn syntax
+                  </button>
+                </div>
+              </div>
+              {/* Moon decoration */}
+              <div className="absolute bottom-2 right-2 w-8 h-8 bg-purple-400 rounded-full opacity-80" />
+            </Card>
           </div>
         )}
       </div>
