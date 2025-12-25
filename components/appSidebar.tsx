@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, FolderOpen, LogOut, User, UserCircle, AlertCircle, Loader2, History, BarChart3, Settings, CreditCard } from "lucide-react";
+import { Search, FolderOpen, LogOut, User, UserCircle, AlertCircle, Loader2, History, BarChart3, Settings, CreditCard, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
@@ -18,7 +18,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 
-type ViewType = "search" | "collections" | "profile" | "history" | "analytics" | "settings" | "billing";
+type ViewType = "search" | "uploads" | "collections" | "profile" | "history" | "analytics" | "settings" | "billing";
 
 interface AppSidebarProps {
   activeView: ViewType;
@@ -112,6 +112,18 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                   <button onClick={() => onViewChange("search")}>
                     <Search className="h-4 w-4" />
                     <span>Semantic Search</span>
+                  </button>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  asChild
+                  isActive={activeView === "uploads"}
+                  className="text-gray-700 hover:text-gray-900 hover:bg-gray-50 data-[active=true]:bg-purple-50 data-[active=true]:text-purple-600 data-[active=true]:font-medium"
+                >
+                  <button onClick={() => onViewChange("uploads")}>
+                    <Upload className="h-4 w-4" />
+                    <span>Uploads</span>
                   </button>
                 </SidebarMenuButton>
               </SidebarMenuItem>

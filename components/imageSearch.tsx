@@ -478,7 +478,15 @@ export default function ImageSearch() {
   return (
     <div className="flex-1 flex flex-col h-full w-full overflow-hidden">
       {/* Header with Purple Gradient Background */}
-      <div className="sticky top-0 left-0 right-0 z-[200] bg-gradient-to-b from-purple-100 via-purple-50 to-white pt-6 pb-6 px-6 flex-shrink-0">
+      <div className="sticky top-0 left-0 right-0 z-[200] pt-6 pb-6 px-6 flex-shrink-0 overflow-hidden">
+        {/* Gradient Background */}
+        <div 
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'linear-gradient(180deg, rgba(167, 139, 250, 0.25) 0%, rgba(196, 181, 253, 0.15) 30%, rgba(233, 213, 255, 0.08) 60%, rgba(255, 255, 255, 1) 100%)',
+          }}
+        />
+        <div className="relative z-10">
             {/* Header with Title and Action Buttons */}
             <div className="flex items-start justify-between mb-6">
         <div>
@@ -581,6 +589,7 @@ export default function ImageSearch() {
                 </button>
               ))}
             </div>
+        </div>
         </div>
       </div>
 

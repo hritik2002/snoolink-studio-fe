@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
 
 export function LoginForm() {
   const [loading, setLoading] = useState(false);
@@ -14,8 +13,7 @@ export function LoginForm() {
     setError(null);
 
     try {
-      // Use window.location.origin to get the current domain (works in both dev and prod)
-      const redirectTo = `http://localhost:3000/auth/callback`;
+      const redirectTo = `${window.location.origin}/auth/callback`;
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -25,7 +23,6 @@ export function LoginForm() {
       });
 
       if (error) throw error;
-      // OAuth will handle the redirect automatically, no need for router.push
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "An error occurred");
       setLoading(false);
@@ -33,18 +30,20 @@ export function LoginForm() {
   };
 
   return (
-    <div className="space-y-4 w-full max-w-md">
+    <div className="w-full">
       {error && (
-        <div className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-md p-3">
+        <div className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
           {error}
         </div>
       )}
-      <Button
+      
+      <button
         type="button"
         onClick={handleGoogleLogin}
         disabled={loading}
-        className="w-full bg-white text-black hover:bg-white/90 flex items-center justify-center gap-2"
+        className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
       >
+        {/* Google Icon */}
         <svg
           className="w-5 h-5"
           viewBox="0 0 24 24"
@@ -68,8 +67,10 @@ export function LoginForm() {
             fill="#EA4335"
           />
         </svg>
-        {loading ? "Signing in..." : "Continue with Google"}
-      </Button>
+        <span className="text-gray-700 font-medium text-sm">
+          {loading ? "Signing in..." : "Continue with Google"}
+        </span>
+      </button>
     </div>
   );
 }
