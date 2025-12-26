@@ -617,40 +617,42 @@ export default function ImageCollections() {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full py-4 sm:py-6 lg:py-8 bg-white px-4 sm:px-6 lg:px-8">
+    <div className="flex-1 flex flex-col h-full py-3 sm:py-4 md:py-6 lg:py-8 bg-white px-3 sm:px-4 md:px-6 lg:px-8">
       {/* Breadcrumbs */}
-      <div className="mb-4 flex items-center gap-2 text-sm text-gray-500">
+      <div className="mb-3 sm:mb-4 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-500">
         <span>Uploads</span>
-        <ChevronRight className="h-4 w-4" />
+        <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
         <span className="text-gray-900 font-medium">Upload Queue</span>
       </div>
 
       {/* Header */}
-      <div className="mb-6 sm:mb-8">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
+      <div className="mb-4 sm:mb-6 md:mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
               Upload Queue
             </h1>
             {hasAssets ? (
-              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
-                <span className="flex items-center gap-1.5">
-                  <Clock className="h-4 w-4 text-yellow-500" />
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 text-xs sm:text-sm text-gray-600">
+                <span className="flex items-center gap-1 sm:gap-1.5">
+                  <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500" />
                   <span className="font-medium">{files.filter(f => f.status === "processing").length}</span>
-                  <span>processing</span>
+                  <span className="hidden sm:inline">processing</span>
+                  <span className="sm:hidden">proc</span>
                 </span>
-                <span className="flex items-center gap-1.5">
-                  <AlertCircle className="h-4 w-4 text-red-500" />
+                <span className="flex items-center gap-1 sm:gap-1.5">
+                  <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
                   <span className="font-medium">{files.filter(f => f.status === "failed").length}</span>
-                  <span>failed</span>
+                  <span className="hidden sm:inline">failed</span>
+                  <span className="sm:hidden">fail</span>
                 </span>
-                    <span>•</span>
-                <span className="text-gray-500 text-xs">
+                    <span className="hidden sm:inline">•</span>
+                <span className="text-gray-500 text-xs hidden sm:inline">
                   Completed uploads appear in Collections
                 </span>
               </div>
             ) : (
-              <p className="text-gray-600 text-sm sm:text-base">
+              <p className="text-gray-600 text-xs sm:text-sm md:text-base">
                 Upload new files or monitor processing status. Completed files appear in Collections.
               </p>
             )}
@@ -662,7 +664,7 @@ export default function ImageCollections() {
       {(!hasAssets || showUploadZone) && (
         <div className="mb-4 sm:mb-6">
           <div
-            className={`p-6 sm:p-8 border-2 border-dashed rounded-xl transition-all ${
+            className={`p-4 sm:p-6 md:p-8 border-2 border-dashed rounded-lg sm:rounded-xl transition-all ${
               isDragActive
                 ? "border-purple-500 bg-purple-50 border-solid scale-[1.01]"
                 : "border-gray-300 bg-gray-50 hover:border-purple-400 hover:bg-purple-50/30"
@@ -672,24 +674,24 @@ export default function ImageCollections() {
             onDragLeave={handleDragLeave}
       >
         <div className="flex flex-col items-center justify-center text-center">
-              <div className={`mb-3 p-3 rounded-full bg-purple-100 transition-transform ${isDragActive ? "scale-110" : ""}`}>
-                <FileUp className={`h-8 w-8 text-purple-600 ${isDragActive ? "animate-bounce" : ""}`} />
+              <div className={`mb-2 sm:mb-3 p-2 sm:p-3 rounded-full bg-purple-100 transition-transform ${isDragActive ? "scale-110" : ""}`}>
+                <FileUp className={`h-6 w-6 sm:h-8 sm:w-8 text-purple-600 ${isDragActive ? "animate-bounce" : ""}`} />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1">
                 Upload Files
           </h3>
-              <p className="text-gray-600 text-sm mb-1 max-w-md">
+              <p className="text-gray-600 text-xs sm:text-sm mb-1 max-w-md px-2">
                 Drag and drop images or videos here, or click to select from your computer.
               </p>
-              <p className="text-xs text-gray-500 mb-4">
+              <p className="text-xs text-gray-500 mb-3 sm:mb-4 px-2">
                 Supports JPG, PNG, HEIC, MP4, MOV, AVI · Auto-indexed for semantic search
               </p>
 
               {/* Collection Selector */}
-              <div className="flex items-center gap-2 mb-4">
-                <span className="text-sm text-gray-600">Upload to:</span>
+              <div className="flex flex-col sm:flex-row items-center gap-2 mb-3 sm:mb-4 w-full sm:w-auto">
+                <span className="text-xs sm:text-sm text-gray-600">Upload to:</span>
                 <Select value={selectedCollection} onValueChange={setSelectedCollection}>
-                  <SelectTrigger className="w-[200px] bg-white border-gray-300">
+                  <SelectTrigger className="w-full sm:w-[200px] bg-white border-gray-300 text-sm">
                     <Folder className="h-4 w-4 mr-2 text-purple-600" />
                     <span className="truncate">{selectedCollection}</span>
                   </SelectTrigger>
@@ -741,12 +743,13 @@ export default function ImageCollections() {
           <Button
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
-                className="bg-purple-600 hover:bg-purple-700 text-white"
+                className="bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white w-full sm:w-auto touch-manipulation"
           >
             {isUploading ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Uploading...
+                    <span className="hidden sm:inline">Uploading...</span>
+                    <span className="sm:hidden">Uploading</span>
               </>
             ) : (
               <>
@@ -770,19 +773,19 @@ export default function ImageCollections() {
 
       {/* Filters - Always visible */}
       <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm text-gray-600 font-medium flex items-center gap-1.5">
-              <Filter className="h-4 w-4" />
-              Filter:
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <span className="text-xs sm:text-sm text-gray-600 font-medium flex items-center gap-1.5">
+              <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+              <span className="hidden sm:inline">Filter:</span>
             </span>
           {(["all", "processing", "failed"] as FilterStatus[]).map((status) => (
               <button
                 key={status}
                 onClick={() => setFilterStatus(status)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-full transition-colors cursor-pointer ${
+                className={`px-2.5 sm:px-3 py-1.5 text-xs font-medium rounded-full transition-colors cursor-pointer touch-manipulation ${
                   filterStatus === status
-                    ? "bg-purple-600 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    ? "bg-purple-600 text-white active:bg-purple-700"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300"
                 }`}
               >
                 {status === "all" ? "All" : status.charAt(0).toUpperCase() + status.slice(1)}
@@ -790,8 +793,9 @@ export default function ImageCollections() {
             ))}
           </div>
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-full sm:w-[180px] border-gray-300 bg-white text-gray-700">
-            <span>SORT BY: {sortBy === "date" ? "Date Added" : "Name"}</span>
+            <SelectTrigger className="w-full sm:w-[180px] border-gray-300 bg-white text-gray-700 text-xs sm:text-sm">
+            <span className="hidden sm:inline">SORT BY: </span>
+            <span>{sortBy === "date" ? "Date Added" : "Name"}</span>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="date">Date Added</SelectItem>
@@ -802,14 +806,15 @@ export default function ImageCollections() {
 
       {/* Selection Bar for Failed Files */}
       {failedFiles.length > 0 && (
-        <div className="mb-4 flex items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
-          <div className="flex items-center gap-4">
-            <Button variant="outline" size="sm" onClick={toggleSelectAllFailed} className="flex items-center gap-2">
-              {allFailedSelected ? <CheckSquare className="h-4 w-4" /> : <Square className="h-4 w-4" />}
-              <span>{allFailedSelected ? "Deselect All" : "Select All Failed"}</span>
+        <div className="mb-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-3 sm:px-4 py-2 sm:py-3 gap-2 sm:gap-0">
+          <div className="flex items-center gap-2 sm:gap-4">
+            <Button variant="outline" size="sm" onClick={toggleSelectAllFailed} className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm touch-manipulation">
+              {allFailedSelected ? <CheckSquare className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : <Square className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
+              <span className="hidden sm:inline">{allFailedSelected ? "Deselect All" : "Select All Failed"}</span>
+              <span className="sm:hidden">{allFailedSelected ? "Deselect" : "Select All"}</span>
             </Button>
             {selectedFiles.size > 0 && (
-              <span className="text-sm text-gray-600">{selectedFiles.size} selected</span>
+              <span className="text-xs sm:text-sm text-gray-600">{selectedFiles.size} selected</span>
             )}
         </div>
           {selectedFiles.size > 0 && (
@@ -819,36 +824,36 @@ export default function ImageCollections() {
                 size="sm"
                 onClick={handleRemoveFailed}
                 disabled={isProcessingAction}
-                className="flex items-center gap-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                className="flex items-center gap-1.5 sm:gap-2 text-red-600 hover:text-red-700 hover:bg-red-50 active:bg-red-100 text-xs sm:text-sm touch-manipulation flex-1 sm:flex-initial"
               >
-                <Trash2 className="h-4 w-4" />
+                <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 <span>Remove</span>
               </Button>
               <Button
                 size="sm"
                 onClick={handleRetryFailed}
                 disabled={isProcessingAction}
-                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700"
+                className="flex items-center gap-1.5 sm:gap-2 bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-xs sm:text-sm touch-manipulation flex-1 sm:flex-initial"
               >
-                {isProcessingAction ? <Loader2 className="h-4 w-4 animate-spin" /> : <RotateCcw className="h-4 w-4" />}
+                {isProcessingAction ? <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
                 <span>Retry</span>
               </Button>
                         </div>
                       )}
-                        </div>
-                      )}
+        </div>
+      )}
 
       {/* Files List */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-                        </div>
+        </div>
       ) : filteredFiles.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50">
           {filterStatus === "processing" ? (
             <>
               <Clock className="h-12 w-12 text-yellow-500 mb-4" />
-              <p className="text-gray-900 font-medium text-lg mb-2">
+            <p className="text-gray-900 font-medium text-lg mb-2">
                 No files currently processing
               </p>
               <p className="text-gray-500 text-sm max-w-md">
@@ -875,76 +880,87 @@ export default function ImageCollections() {
                 No files are currently processing or failed. Upload new files above, or head to the Collections page to browse your indexed media.
               </p>
             </>
-          )}
+            )}
         </div>
       ) : (
-<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+<div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
           {filteredFiles.map((file) => {
             const urlParts = file.url.split('/');
             const filename = urlParts[urlParts.length - 1].split('?')[0] || (file.type === "image" ? 'image.jpg' : 'video.mp4');
             const isFailed = file.status === "failed";
             const isProcessing = file.status === "processing";
             const isSelected = selectedFiles.has(file.id);
-            
-            return (
+              
+              return (
               <div
                 key={file.id}
                 onClick={isFailed ? () => toggleFileSelection(file.id) : undefined}
-                className={`flex items-center gap-4 p-4 bg-white border-2 rounded-2xl transition-all ${
+                className={`flex items-center gap-2 sm:gap-3 md:gap-4 p-3 sm:p-4 bg-white border-2 rounded-xl sm:rounded-2xl transition-all touch-manipulation ${
                   isSelected 
                     ? "border-purple-500 bg-purple-50/30" 
-                    : "border-gray-200 hover:border-purple-300 hover:shadow-md"
+                    : "border-gray-200 hover:border-purple-300 hover:shadow-md active:border-purple-400"
                 } ${isFailed ? "cursor-pointer" : ""}`}
               >
                 {/* Status Indicator / Selection */}
-                <div className={`flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-colors ${
+                <div className={`flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center transition-colors ${
                   isSelected 
                     ? "bg-purple-500" 
                     : isProcessing 
                       ? "bg-yellow-500" 
-                      : "bg-red-500 hover:bg-red-600"
+                      : "bg-red-500 hover:bg-red-600 active:bg-red-700"
                 }`}>
                   {isSelected ? (
-                    <CheckCircle2 className="h-4 w-4 text-white" />
+                    <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
                   ) : isProcessing ? (
-                    <Clock className="h-4 w-4 text-white animate-spin" />
+                    <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white animate-spin" />
                   ) : (
-                    <AlertCircle className="h-4 w-4 text-white" />
+                    <AlertCircle className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
                   )}
                 </div>
 
                 {/* Thumbnail */}
-                <div className="flex-shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-gray-100">
+                <div className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden bg-gray-100">
                   {file.type === "video" ? (
-                    <video src={file.url} className="w-full h-full object-cover" />
+                    <video
+                      src={file.url} 
+                      className="w-full h-full object-cover"
+                      playsInline
+                      preload="metadata"
+                      style={{ display: 'block' }}
+                      ref={(video) => {
+                        if (video) {
+                          video.setAttribute('webkit-playsinline', 'true');
+                        }
+                      }}
+                    />
                   ) : (
                   <Image
                       src={file.url} 
                       alt={file.description || "Uploaded file"} 
                       width={64} 
                       height={64} 
-                      className="w-full h-full object-cover" 
+                      className="w-full h-full object-cover"
                     unoptimized
                   />
                   )}
-                      </div>
+                        </div>
 
                 {/* File Info */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-base font-medium text-purple-600 truncate">
-                    {filename}
-                  </p>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm sm:text-base font-medium text-purple-600 truncate">
+                      {filename}
+                    </p>
+                  <p className="text-xs sm:text-sm text-gray-500">
                     {file.type === "video" ? "Video" : "Image"}
-                    {isFailed && <span className="text-red-500 ml-2">• Failed</span>}
-                    {file.status === "processing" && <span className="text-yellow-600 ml-2">• Processing</span>}
+                    {isFailed && <span className="text-red-500 ml-1 sm:ml-2">• Failed</span>}
+                    {file.status === "processing" && <span className="text-yellow-600 ml-1 sm:ml-2">• Processing</span>}
                   </p>
                   {file.status === "processing" && (
-                    <p className="text-xs text-gray-400 mt-1">
+                    <p className="text-xs text-gray-400 mt-1 hidden sm:block">
                       Indexing in progress — this may take up to a minute
-                    </p>
-                  )}
-                </div>
+                      </p>
+                    )}
+          </div>
 
                 {/* View Button */}
                 <button
@@ -952,21 +968,21 @@ export default function ImageCollections() {
                     e.stopPropagation();
                     window.open(file.url, '_blank');
                   }}
-                  className="flex-shrink-0 w-9 h-9 rounded-full bg-purple-100 hover:bg-purple-200 flex items-center justify-center transition-colors"
+                  className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-purple-100 hover:bg-purple-200 active:bg-purple-300 flex items-center justify-center transition-colors touch-manipulation"
                   title="Open in new tab"
                 >
-                  <ExternalLink className="h-4 w-4 text-purple-600" />
+                  <ExternalLink className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-600" />
                 </button>
               </div>
-            );
-          })}
+              );
+            })}
           </div>
       )}
 
       {/* Create Collection Modal */}
       {showCreateCollectionModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4 shadow-xl">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 w-full max-w-md shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">Create Collection</h2>
               <button 
@@ -995,15 +1011,15 @@ export default function ImageCollections() {
               }}
             />
             <div className="flex justify-end gap-2">
-              <Button 
-                variant="outline" 
+            <Button
+              variant="outline"
                 onClick={() => {
                   setShowCreateCollectionModal(false);
                   setNewCollectionName("");
                 }}
               >
                 Cancel
-              </Button>
+            </Button>
               <Button 
                 onClick={handleCreateCollection}
                 disabled={!newCollectionName.trim() || isCreatingCollection}
@@ -1012,9 +1028,9 @@ export default function ImageCollections() {
                 {isCreatingCollection ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                 Create
               </Button>
-            </div>
+                      </div>
+                      </div>
           </div>
-        </div>
       )}
     </div>
   );

@@ -569,7 +569,7 @@ export default function ImageSearch() {
   return (
     <div className="flex-1 flex flex-col h-full w-full overflow-hidden">
       {/* Header with Purple Gradient Background */}
-      <div className="sticky top-0 left-0 right-0 z-[200] pt-6 pb-6 px-6 flex-shrink-0 overflow-hidden">
+      <div className="sticky top-0 left-0 right-0 z-[200] pt-4 sm:pt-6 pb-4 sm:pb-6 px-4 sm:px-6 flex-shrink-0 overflow-hidden">
         {/* Gradient Background */}
         <div 
           className="absolute inset-0 pointer-events-none"
@@ -579,107 +579,113 @@ export default function ImageSearch() {
         />
         <div className="relative z-10">
             {/* Header with Title and Action Buttons */}
-            <div className="flex items-start justify-between mb-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-3">
         <div>
-                <h1 className="text-3xl font-bold text-gray-900 mb-2">Search</h1>
-                <p className="text-gray-600 text-sm">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">Search</h1>
+                <p className="text-gray-600 text-xs sm:text-sm">
                   Find specific moments in your media library instantly.
           </p>
         </div>
-              <div className="flex items-center gap-3">
-                <Button variant="outline" size="sm" className="flex items-center gap-2 bg-white border-gray-200 hover:bg-gray-50">
+              <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                <Button variant="outline" size="sm" className="flex items-center gap-2 bg-white border-gray-200 hover:bg-gray-50 flex-1 sm:flex-initial text-xs sm:text-sm">
                   <Filter className="h-4 w-4" />
-                  <span>Filters</span>
+                  <span className="hidden sm:inline">Filters</span>
             </Button>
-                <Button size="sm" className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white">
+                <Button size="sm" className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white flex-1 sm:flex-initial text-xs sm:text-sm">
                   <CloudUpload className="h-4 w-4" />
-                  <span>Upload Media</span>
+                  <span className="hidden sm:inline">Upload</span>
+                  <span className="sm:hidden">Upload</span>
             </Button>
           </div>
         </div>
 
         {/* Search Bar */}
-        <div className="relative w-full mb-5">
-          <div className="relative flex items-center bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4 shadow-sm hover:shadow-md hover:border-purple-200 transition-all">
-            <Sparkles className="h-5 w-5 text-purple-600 mr-4 flex-shrink-0" />
+        <div className="relative w-full mb-4 sm:mb-5">
+          <div className="relative flex items-center bg-gray-50 border border-gray-200 rounded-xl sm:rounded-2xl px-3 sm:px-5 py-3 sm:py-4 shadow-sm hover:shadow-md hover:border-purple-200 transition-all">
+            <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600 mr-2 sm:mr-4 flex-shrink-0" />
             <Input
               type="text"
               placeholder="snow weather"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={handleKeyPress}
-              className="flex-1 bg-transparent border-0 text-gray-900 placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-0 text-lg font-normal !h-auto py-1 px-0 shadow-none rounded-none"
+              className="flex-1 bg-transparent border-0 text-gray-900 placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-0 text-base sm:text-lg font-normal !h-auto py-1 px-0 shadow-none rounded-none"
             />
             <Button
               variant="ghost"
               size="icon"
-              className="h-10 w-10 bg-purple-100 hover:bg-purple-200 text-purple-600 rounded-xl ml-3 flex-shrink-0 transition-colors"
+              className="h-9 w-9 sm:h-10 sm:w-10 bg-purple-100 hover:bg-purple-200 text-purple-600 rounded-lg sm:rounded-xl ml-2 sm:ml-3 flex-shrink-0 transition-colors touch-manipulation"
               onClick={handleSearch}
               disabled={isSearching || !searchQuery.trim()}
             >
               {isSearching ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
+                <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
               ) : (
-                <ArrowRight className="h-5 w-5" />
+                <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5" />
               )}
             </Button>
           </div>
         </div>
 
             {/* Search Mode Buttons and Collection Selector - Same Row */}
-            <div className="flex items-center gap-3 mb-5">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 mb-4 sm:mb-5">
               {/* Mode Buttons */}
-              <Button
-                variant={mode === "video" ? "default" : "outline"}
-                onClick={() => {
-                  setMode("video");
-                  setImageResults([]);
-                  setVideoResults([]);
-                  setQueryInterpretation([]);
-                }}
-                disabled={isSearching}
-                className={`flex-shrink-0 ${
-                  mode === "video"
-                    ? "bg-purple-600 hover:bg-purple-700 text-white rounded-full px-5"
-                    : "border-gray-200 text-gray-700 hover:bg-gray-50 bg-white rounded-full px-5"
-                }`}
-              >
-                <Video className="h-4 w-4 mr-2" />
-                Search Videos
-              </Button>
-              <Button
-                variant={mode === "image" ? "default" : "outline"}
-                onClick={() => {
-                  setMode("image");
-                  setImageResults([]);
-                  setVideoResults([]);
-                  setQueryInterpretation([]);
-                }}
-                disabled={isSearching}
-                className={`flex-shrink-0 ${
-                  mode === "image"
-                    ? "bg-purple-600 hover:bg-purple-700 text-white rounded-full px-5"
-                    : "border-gray-200 text-gray-700 hover:bg-gray-50 bg-white rounded-full px-5"
-                }`}
-              >
-                <ImageIcon className="h-4 w-4 mr-2" />
-                Search Images
-              </Button>
+              <div className="flex items-center gap-2 sm:gap-3">
+                <Button
+                  variant={mode === "video" ? "default" : "outline"}
+              onClick={() => {
+                    setMode("video");
+                setImageResults([]);
+                setVideoResults([]);
+                setQueryInterpretation([]);
+              }}
+              disabled={isSearching}
+                  className={`flex-1 sm:flex-initial touch-manipulation ${
+                    mode === "video"
+                      ? "bg-purple-600 hover:bg-purple-700 text-white rounded-full px-4 sm:px-5 text-sm sm:text-base"
+                      : "border-gray-200 text-gray-700 hover:bg-gray-50 bg-white rounded-full px-4 sm:px-5 text-sm sm:text-base"
+                  }`}
+                >
+                  <Video className="h-4 w-4 mr-1.5 sm:mr-2" />
+                  <span className="hidden sm:inline">Search Videos</span>
+                  <span className="sm:hidden">Videos</span>
+            </Button>
+            <Button
+                  variant={mode === "image" ? "default" : "outline"}
+              onClick={() => {
+                    setMode("image");
+                setImageResults([]);
+                setVideoResults([]);
+                setQueryInterpretation([]);
+              }}
+              disabled={isSearching}
+                  className={`flex-1 sm:flex-initial touch-manipulation ${
+                    mode === "image"
+                      ? "bg-purple-600 hover:bg-purple-700 text-white rounded-full px-4 sm:px-5 text-sm sm:text-base"
+                      : "border-gray-200 text-gray-700 hover:bg-gray-50 bg-white rounded-full px-4 sm:px-5 text-sm sm:text-base"
+                  }`}
+                >
+                  <ImageIcon className="h-4 w-4 mr-1.5 sm:mr-2" />
+                  <span className="hidden sm:inline">Search Images</span>
+                  <span className="sm:hidden">Images</span>
+            </Button>
+          </div>
 
               {/* Divider */}
-              <div className="w-px h-8 bg-gray-200 flex-shrink-0" />
+              <div className="hidden sm:block w-px h-8 bg-gray-200 flex-shrink-0" />
 
               {/* Collection Chips - Horizontal Scrollable */}
-              <div className="flex items-center gap-2 flex-1 min-w-0">
+              <div className="flex items-center gap-2 flex-1 min-w-0 w-full sm:w-auto">
                 {/* Label */}
-                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider flex-shrink-0">
+                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider flex-shrink-0 hidden sm:inline">
                   in:
-                </span>
+            </span>
 
                 {/* Scroll Left Button */}
                 <button
                   onClick={() => scrollCollectionChips("left")}
-                  className="flex-shrink-0 w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                  className="flex-shrink-0 w-8 h-8 sm:w-7 sm:h-7 rounded-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 flex items-center justify-center transition-colors touch-manipulation"
+                  aria-label="Scroll left"
                 >
                   <ChevronLeft className="h-4 w-4 text-gray-600" />
                 </button>
@@ -693,10 +699,10 @@ export default function ImageSearch() {
                   {/* All Collections Chip */}
                   <button
                     onClick={() => toggleCollection("all")}
-                    className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    className={`flex-shrink-0 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all touch-manipulation ${
                       selectedCollections.includes("all")
                         ? "bg-purple-600 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300"
                     }`}
                   >
                     <span>All</span>
@@ -714,13 +720,13 @@ export default function ImageSearch() {
                     <button
                       key={collection.name}
                       onClick={() => toggleCollection(collection.name)}
-                      className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                      className={`flex-shrink-0 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all touch-manipulation ${
                         selectedCollections.includes(collection.name)
                           ? "bg-purple-600 text-white"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300"
                       }`}
                     >
-                      <span className="truncate max-w-[120px]">{collection.name}</span>
+                      <span className="truncate max-w-[100px] sm:max-w-[120px]">{collection.name}</span>
                       <span className={`text-xs px-1.5 py-0.5 rounded-full ${
                         selectedCollections.includes(collection.name)
                           ? "bg-purple-500 text-purple-100"
@@ -730,34 +736,35 @@ export default function ImageSearch() {
                       </span>
                     </button>
                   ))}
-                </div>
+                  </div>
 
                 {/* Scroll Right Button */}
                 <button
                   onClick={() => scrollCollectionChips("right")}
-                  className="flex-shrink-0 w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                  className="flex-shrink-0 w-8 h-8 sm:w-7 sm:h-7 rounded-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 flex items-center justify-center transition-colors touch-manipulation"
+                  aria-label="Scroll right"
                 >
                   <ChevronRight className="h-4 w-4 text-gray-600" />
                 </button>
 
                 {/* Selection Info */}
                 {!selectedCollections.includes("all") && selectedCollections.length > 0 && (
-                  <span className="flex-shrink-0 text-xs text-purple-600 font-medium whitespace-nowrap">
+                  <span className="flex-shrink-0 text-xs text-purple-600 font-medium whitespace-nowrap hidden sm:inline">
                     {selectedCollections.length}/3
                   </span>
                 )}
-              </div>
-            </div>
+        </div>
+      </div>
 
             {/* Trending Section */}
-            <div className="flex items-center gap-4 pb-4 border-b border-gray-100">
-              <span className="text-xs font-bold text-gray-500 tracking-wider uppercase">TRENDING:</span>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 pb-4 border-b border-gray-100">
+              <span className="text-xs font-bold text-gray-500 tracking-wider uppercase flex-shrink-0">TRENDING:</span>
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
                 {trendingTopics.map((topic, idx) => (
                 <button
                   key={idx}
                     onClick={() => handleExampleClick(topic)}
-                    className="px-4 py-1.5 text-sm bg-white border border-gray-200 hover:border-purple-400 hover:bg-purple-50 text-gray-700 rounded-full transition-all cursor-pointer"
+                    className="px-3 sm:px-4 py-1.5 text-xs sm:text-sm bg-white border border-gray-200 hover:border-purple-400 hover:bg-purple-50 active:bg-purple-100 text-gray-700 rounded-full transition-all cursor-pointer touch-manipulation"
                 >
                   {topic}
                 </button>
@@ -773,18 +780,19 @@ export default function ImageSearch() {
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           {/* Search Results Header - Sticky */}
         {!isSearching && hasResults && (
-            <div className="flex items-center justify-between py-4 bg-white sticky top-0 z-10 border-b border-gray-100 flex-shrink-0">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between py-3 sm:py-4 px-4 sm:px-6 bg-white sticky top-0 z-10 border-b border-gray-100 flex-shrink-0 gap-2 sm:gap-0">
               <div className="flex items-center gap-2">
-                <h2 className="text-xl font-bold text-gray-900">Results</h2>
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900">Results</h2>
                 <span className="w-6 h-6 rounded-full bg-purple-100 text-purple-700 text-xs font-bold flex items-center justify-center">
                   {mode === "image" ? imageResults.length : videoResults.length}
                 </span>
               </div>
-              <div className="flex items-center text-sm text-gray-500">
-                <span>Sort by:</span>
+              <div className="flex items-center text-xs sm:text-sm text-gray-500">
+                <span className="hidden sm:inline">Sort by:</span>
             <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-auto border-0 bg-transparent text-gray-900 hover:bg-gray-50 rounded-lg gap-1 pl-1 pr-0 h-auto py-0 font-medium">
-                    <span>Relevance</span>
+                  <SelectTrigger className="w-auto border-0 bg-transparent text-gray-900 hover:bg-gray-50 rounded-lg gap-1 pl-1 pr-0 h-auto py-0 font-medium text-xs sm:text-sm">
+                    <span className="hidden sm:inline">Relevance</span>
+                    <span className="sm:hidden">Sort</span>
               </SelectTrigger>
               <SelectContent>
                     <SelectItem value="relevance">Relevance</SelectItem>
@@ -799,7 +807,7 @@ export default function ImageSearch() {
         )}
 
           {/* Scrollable Results Container */}
-          <div className="flex-1 overflow-y-auto space-y-4 pt-4">
+          <div className="flex-1 overflow-y-auto space-y-3 sm:space-y-4 pt-3 sm:pt-4 px-4 sm:px-6">
         {/* Search Results */}
         {isSearching ? (
           <div className="flex items-center justify-center py-12">
@@ -807,7 +815,7 @@ export default function ImageSearch() {
           </div>
         ) : mode === "image" ? (
           imageResults.length > 0 ? (
-            <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 gap-4" : "space-y-4"}>
+            <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4" : "space-y-3 sm:space-y-4"}>
               {imageResults.map((result) => {
                 const matchPercentage = result.score ? getMatchPercentage(result.score) : 0;
                 const sceneSummary = result.description ? extractSceneSummary(result.description) : "Image";
@@ -817,11 +825,11 @@ export default function ImageSearch() {
                 return (
                 <Card
                   key={result.id}
-                    className={`bg-white border border-gray-200 hover:border-purple-200 hover:shadow-lg transition-all overflow-hidden rounded-2xl ${compactMode ? "p-3" : "p-4"}`}
+                    className={`bg-white border border-gray-200 hover:border-purple-200 hover:shadow-lg transition-all overflow-hidden rounded-xl sm:rounded-2xl ${compactMode ? "p-2 sm:p-3" : "p-3 sm:p-4"} touch-manipulation`}
                 >
-                    <div className={`flex ${viewMode === "grid" ? "flex-col" : "flex-row"} gap-5`}>
+                    <div className={`flex ${viewMode === "grid" ? "flex-col" : "flex-col sm:flex-row"} gap-3 sm:gap-5`}>
                       {/* Thumbnail */}
-                      <div className={`relative ${viewMode === "grid" ? "w-full aspect-square" : "w-32 h-32"} flex-shrink-0 rounded-xl overflow-hidden bg-gray-100`}>
+                      <div className={`relative ${viewMode === "grid" ? "w-full aspect-square" : "w-full sm:w-32 h-48 sm:h-32"} flex-shrink-0 rounded-lg sm:rounded-xl overflow-hidden bg-gray-100`}>
                         {viewMode === "list" ? (
                     <Image
                       src={result.imageUrl}
@@ -841,9 +849,9 @@ export default function ImageSearch() {
                           />
                         )}
                         {matchPercentage > 0 && (
-                          <div className="absolute top-2 left-2 bg-purple-600 text-white text-xs font-medium px-2 py-1 rounded-full flex items-center gap-1 group">
+                          <div className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 bg-purple-600 text-white text-xs font-medium px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full flex items-center gap-1 group">
                             {matchPercentage}% Match
-                            <div className="absolute left-0 top-6 w-48 p-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50">
+                            <div className="absolute left-0 top-6 w-48 p-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 hidden sm:block">
                               Semantic similarity score between your query and this image
                             </div>
                           </div>
@@ -853,12 +861,12 @@ export default function ImageSearch() {
                       {/* Content */}
                       <div className="flex-1 flex flex-col justify-between min-w-0">
                         <div>
-                          <h3 className="text-base font-semibold text-gray-900 mb-1.5">
+                          <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-1 sm:mb-1.5">
                             {sceneSummary}
                           </h3>
                           {!compactMode && (
                             <>
-                              <p className={`text-sm text-gray-600 ${isExpanded ? "" : "line-clamp-2"} mb-2 leading-snug`}>
+                              <p className={`text-xs sm:text-sm text-gray-600 ${isExpanded ? "" : "line-clamp-2"} mb-2 leading-snug`}>
                         {result.description}
                       </p>
                               {result.description && result.description.length > 80 && (
@@ -869,7 +877,7 @@ export default function ImageSearch() {
                                     e.stopPropagation();
                                     toggleDescription(result.id);
                                   }}
-                                  className="text-xs text-purple-600 hover:text-purple-700 mb-2 flex items-center gap-1 cursor-pointer"
+                                  className="text-xs text-purple-600 hover:text-purple-700 active:text-purple-800 mb-2 flex items-center gap-1 cursor-pointer touch-manipulation"
                                 >
                                   {isExpanded ? (
                                     <>Show less <ChevronUp className="h-3 w-3" /></>
@@ -944,7 +952,7 @@ export default function ImageSearch() {
           )
         ) : (
           videoResults.length > 0 ? (
-            <div className={viewMode === "grid" ? "grid grid-cols-1 md:grid-cols-2 gap-4" : "space-y-4"}>
+            <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4" : "space-y-3 sm:space-y-4"}>
               {/* Group results by video URL */}
               {(() => {
                 // Group video results by videoUrl
@@ -963,12 +971,13 @@ export default function ImageSearch() {
                   const videoName = videoUrl ? videoUrl.split('/').pop()?.split('?')[0] || 'Video' : 'Video';
                   
                   return (
-                    <div key={videoUrl || results[0].id} className="space-y-3">
+                    <div key={videoUrl || results[0].id} className="space-y-2 sm:space-y-3">
                       {isGrouped && (
-                        <div className="flex items-center gap-2 text-sm text-gray-700 font-medium">
-                          <Video className="h-4 w-4 text-purple-600" />
-                          <span>Video: {videoName}</span>
-                          <span className="text-xs text-gray-500 font-normal">({results.length} matching moments)</span>
+                        <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-700 font-medium px-1">
+                          <Video className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-600" />
+                          <span className="truncate">Video: {videoName}</span>
+                          <span className="text-xs text-gray-500 font-normal hidden sm:inline">({results.length} matching moments)</span>
+                          <span className="text-xs text-gray-500 font-normal sm:hidden">({results.length})</span>
                         </div>
                       )}
                       {results.map((result) => {
@@ -985,19 +994,19 @@ export default function ImageSearch() {
                 return (
                   <Card
                     key={result.id}
-                    className={`bg-white border border-gray-200 hover:border-purple-200 hover:shadow-lg transition-all overflow-hidden relative rounded-2xl ${compactMode ? "p-3" : "p-4"}`}
+                    className={`bg-white border border-gray-200 hover:border-purple-200 hover:shadow-lg transition-all overflow-hidden relative rounded-xl sm:rounded-2xl ${compactMode ? "p-2 sm:p-3" : "p-3 sm:p-4"} touch-manipulation`}
                   >
                     {/* Three dots menu - top right */}
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      className="absolute top-3 right-3 h-8 w-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full z-20"
+                      className="absolute top-2 right-2 sm:top-3 sm:right-3 h-7 w-7 sm:h-8 sm:w-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100 active:bg-gray-200 rounded-full z-20 touch-manipulation"
                     >
-                      <MoreVertical className="h-4 w-4" />
+                      <MoreVertical className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </Button>
-                    <div className={`flex ${viewMode === "grid" ? "flex-col" : "flex-row"} gap-5`}>
+                    <div className={`flex ${viewMode === "grid" ? "flex-col" : "flex-col sm:flex-row"} gap-3 sm:gap-5`}>
                       {/* Thumbnail */}
-                      <div className={`relative ${viewMode === "grid" ? "w-full aspect-video" : "w-[320px] h-[240px]"} flex-shrink-0 rounded-xl overflow-hidden bg-gray-100 group`}>
+                      <div className={`relative ${viewMode === "grid" ? "w-full aspect-video min-h-[200px] sm:min-h-0" : "w-full sm:w-[320px] h-48 sm:h-[240px] min-h-[192px]"} flex-shrink-0 rounded-lg sm:rounded-xl overflow-hidden bg-gray-100 group`}>
                         {result.videoUrl ? (
                           <>
                             <video
@@ -1007,6 +1016,12 @@ export default function ImageSearch() {
                               muted
                               playsInline
                               preload="metadata"
+                              style={{ display: 'block', minHeight: '200px' }}
+                              ref={(video) => {
+                                if (video) {
+                                  video.setAttribute('webkit-playsinline', 'true');
+                                }
+                              }}
                               onLoadedMetadata={(e) => {
                                 const video = e.currentTarget;
                                 // Set initial time to startTime
@@ -1113,14 +1128,14 @@ export default function ImageSearch() {
                       </div>
 
                       {/* Content */}
-                      <div className="flex-1 flex flex-col justify-between min-w-0 pr-8">
+                      <div className="flex-1 flex flex-col justify-between min-w-0 pr-6 sm:pr-8">
                         <div>
-                          <h3 className="text-lg font-bold text-gray-900 mb-2">
+                          <h3 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 mb-1.5 sm:mb-2">
                             {sceneSummary}
                           </h3>
                           {!compactMode && (
                             <>
-                              <p className={`text-sm text-gray-600 ${isExpanded ? "" : "line-clamp-3"} mb-3 leading-relaxed`}>
+                              <p className={`text-xs sm:text-sm text-gray-600 ${isExpanded ? "" : "line-clamp-3"} mb-2 sm:mb-3 leading-relaxed`}>
                                 {result.text}
                               </p>
                               {result.text && result.text.length > 120 && (
@@ -1131,7 +1146,7 @@ export default function ImageSearch() {
                                     e.stopPropagation();
                                     toggleDescription(result.id);
                                   }}
-                                  className="text-xs text-purple-600 hover:text-purple-700 mb-3 flex items-center gap-1 cursor-pointer font-medium"
+                                  className="text-xs text-purple-600 hover:text-purple-700 active:text-purple-800 mb-2 sm:mb-3 flex items-center gap-1 cursor-pointer font-medium touch-manipulation"
                                 >
                                   {isExpanded ? (
                                     <>Show less <ChevronUp className="h-3 w-3" /></>
@@ -1142,11 +1157,11 @@ export default function ImageSearch() {
                               )}
                               {/* Hashtags */}
                               {!compactMode && (
-                                <div className="flex flex-wrap gap-2 mb-4">
+                                <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3 sm:mb-4">
                                   {extractHashtags(result.text).map((tag, idx) => (
                                     <span
                                       key={idx}
-                                      className="px-3 py-1 text-xs border border-gray-200 text-gray-600 rounded-full hover:border-gray-300 transition-colors"
+                                      className="px-2 sm:px-3 py-0.5 sm:py-1 text-xs border border-gray-200 text-gray-600 rounded-full hover:border-gray-300 active:border-gray-400 transition-colors touch-manipulation"
                                     >
                                       {tag}
                                     </span>
@@ -1159,26 +1174,26 @@ export default function ImageSearch() {
                               </div>
                         
                         {/* Duration and Actions - Bottom aligned */}
-                        <div className="flex items-center justify-between mt-auto pt-3 border-t border-gray-100">
-                          <div className="flex items-center gap-2 text-sm text-gray-500">
-                            <Clock className="h-4 w-4 text-gray-400" />
+                        <div className="flex items-center justify-between mt-auto pt-2 sm:pt-3 border-t border-gray-100">
+                          <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-500">
+                            <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-400" />
                             <span>{formatTime(startTime)}</span>
                             <span className="text-gray-300">-</span>
                             <span>{formatTime(endTime)}</span>
                               </div>
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center gap-0.5 sm:gap-1">
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                              className="h-7 w-7 sm:h-8 sm:w-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100 active:bg-gray-200 rounded-lg touch-manipulation"
                               title="Add to playlist"
                             >
-                              <ListIcon className="h-4 w-4" />
+                              <ListIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                              className="h-7 w-7 sm:h-8 sm:w-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100 active:bg-gray-200 rounded-lg touch-manipulation"
                               onClick={() => {
                                 if (result.videoUrl && startTime >= 0 && endTime > startTime) {
                                   handleDownloadVideo(result.videoUrl, startTime, endTime);
@@ -1187,15 +1202,15 @@ export default function ImageSearch() {
                               disabled={!result.videoUrl || startTime < 0 || endTime <= startTime}
                               title="Download"
                             >
-                              <Download className="h-4 w-4" />
+                              <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-8 w-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg"
+                              className="h-7 w-7 sm:h-8 sm:w-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100 active:bg-gray-200 rounded-lg touch-manipulation"
                               title="Share"
                             >
-                              <Share2 className="h-4 w-4" />
+                              <Share2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                             </Button>
                           </div>
                         </div>

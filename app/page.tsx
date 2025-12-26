@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/appSidebar";
 import ImageSearch from "@/components/imageSearch";
 import ImageCollections from "@/components/imageCollections";
@@ -31,12 +31,23 @@ function HomeContent() {
   }, [searchParams]);
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={false}>
       <AppSidebar activeView={activeView} onViewChange={(view) => {
         setActiveView(view);
         router.push(`/?view=${view}`);
       }} />
       <SidebarInset className="bg-white">
+        {/* Mobile Header with Hamburger */}
+        <div className="lg:hidden sticky top-0 z-50 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3">
+          <SidebarTrigger className="lg:hidden" />
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <div className="w-8 h-8 rounded-lg bg-purple-600 flex items-center justify-center flex-shrink-0">
+              <span className="text-white font-bold text-lg">S</span>
+            </div>
+            <span className="font-semibold text-gray-900 truncate">Snoolink AI</span>
+          </div>
+        </div>
+        
         <div className="flex flex-col h-screen overflow-auto">
           {activeView === "search" ? (
             <ImageSearch />

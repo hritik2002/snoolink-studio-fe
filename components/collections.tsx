@@ -287,7 +287,7 @@ export default function Collections() {
   return (
     <div className="flex-1 flex flex-col h-full bg-white overflow-hidden">
       {/* Header with Gradient Background */}
-      <div className="sticky top-0 z-20 pt-6 pb-4 px-6 flex-shrink-0 overflow-hidden">
+      <div className="sticky top-0 z-20 pt-4 sm:pt-6 pb-4 px-4 sm:px-6 flex-shrink-0 overflow-hidden">
         {/* Gradient Background */}
         <div 
           className="absolute inset-0 pointer-events-none"
@@ -297,21 +297,22 @@ export default function Collections() {
         />
         <div className="relative z-10">
           {/* Header with Title and Action Buttons */}
-          <div className="flex items-start justify-between mb-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Collections</h1>
-              <p className="text-gray-600 text-sm">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">Collections</h1>
+              <p className="text-gray-600 text-xs sm:text-sm">
                 Browse and organize your indexed media library.
               </p>
             </div>
-            <div className="flex items-center gap-3">
-              <Button variant="outline" size="sm" className="flex items-center gap-2 bg-white border-gray-200 hover:bg-gray-50">
+            <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+              <Button variant="outline" size="sm" className="flex items-center gap-2 bg-white border-gray-200 hover:bg-gray-50 flex-1 sm:flex-initial text-xs sm:text-sm">
                 <Filter className="h-4 w-4" />
-                <span>Filters</span>
+                <span className="hidden sm:inline">Filters</span>
               </Button>
-              <Button size="sm" className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white">
+              <Button size="sm" className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white flex-1 sm:flex-initial text-xs sm:text-sm">
                 <CloudUpload className="h-4 w-4" />
-                <span>Upload Media</span>
+                <span className="hidden sm:inline">Upload Media</span>
+                <span className="sm:hidden">Upload</span>
               </Button>
             </div>
           </div>
@@ -319,12 +320,13 @@ export default function Collections() {
       </div>
 
       {/* Collection Chips Header */}
-      <div className="border-b border-gray-200 bg-white sticky top-[104px] z-10">
-        <div className="flex items-center gap-2 px-4 py-3">
+      <div className="border-b border-gray-200 bg-white sticky top-[80px] sm:top-[104px] z-10">
+        <div className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3">
           {/* Scroll Left Button */}
           <button
             onClick={() => scrollChips("left")}
-            className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+            className="flex-shrink-0 w-8 h-8 sm:w-8 sm:h-8 rounded-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 flex items-center justify-center transition-colors touch-manipulation"
+            aria-label="Scroll left"
           >
             <ChevronLeft className="h-4 w-4 text-gray-600" />
           </button>
@@ -339,13 +341,13 @@ export default function Collections() {
               <button
                 key={collection.id}
                 onClick={() => setSelectedCollection(collection.name)}
-                className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                className={`flex-shrink-0 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all touch-manipulation ${
                   selectedCollection === collection.name
                     ? "bg-gray-900 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300"
                 }`}
               >
-                <span className="truncate max-w-[150px]">{collection.name}</span>
+                <span className="truncate max-w-[120px] sm:max-w-[150px]">{collection.name}</span>
                 <span className={`text-xs px-1.5 py-0.5 rounded-full ${
                   selectedCollection === collection.name
                     ? "bg-gray-700 text-gray-300"
@@ -360,7 +362,8 @@ export default function Collections() {
           {/* Scroll Right Button */}
           <button
             onClick={() => scrollChips("right")}
-            className="flex-shrink-0 w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+            className="flex-shrink-0 w-8 h-8 sm:w-8 sm:h-8 rounded-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 flex items-center justify-center transition-colors touch-manipulation"
+            aria-label="Scroll right"
           >
             <ChevronRight className="h-4 w-4 text-gray-600" />
           </button>
@@ -372,10 +375,11 @@ export default function Collections() {
           <Button
             onClick={() => setShowCreateModal(true)}
             variant="outline"
-            className="flex-shrink-0 border-purple-300 text-purple-600 hover:bg-purple-50 hover:border-purple-400"
+            className="flex-shrink-0 border-purple-300 text-purple-600 hover:bg-purple-50 hover:border-purple-400 active:bg-purple-100 text-xs sm:text-sm touch-manipulation"
           >
-            <Plus className="h-4 w-4 mr-2" />
-            New Collection
+            <Plus className="h-4 w-4 mr-1 sm:mr-2" />
+            <span className="hidden sm:inline">New Collection</span>
+            <span className="sm:hidden">New</span>
           </Button>
 
           {/* Divider */}
@@ -443,24 +447,24 @@ export default function Collections() {
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
         {isLoadingItems ? (
           <div className="flex items-center justify-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
           </div>
         ) : sortedAndFilteredItems.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center py-16">
-            <div className="text-center max-w-md">
-              <div className="mx-auto mb-6 p-6 rounded-full bg-purple-50 w-fit">
-                <FolderOpen className="h-12 w-12 text-purple-400" />
+          <div className="flex-1 flex items-center justify-center py-12 sm:py-16">
+            <div className="text-center max-w-md px-4">
+              <div className="mx-auto mb-4 sm:mb-6 p-4 sm:p-6 rounded-full bg-purple-50 w-fit">
+                <FolderOpen className="h-10 w-10 sm:h-12 sm:w-12 text-purple-400" />
               </div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-2">
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
                 {items.length === 0 
                   ? (selectedCollection ? `No items in "${selectedCollection}"` : "No collection selected")
                   : "No items match your filters"
                 }
               </h2>
-              <p className="text-gray-500 text-sm">
+              <p className="text-gray-500 text-xs sm:text-sm">
                 {items.length === 0 
                   ? "Upload files to this collection to see them here"
                   : "Try changing your filter or sort options"
@@ -469,13 +473,25 @@ export default function Collections() {
             </div>
           </div>
         ) : viewMode === "grid" ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
             {sortedAndFilteredItems.map((item) => (
-              <div key={item.id} className="group border border-gray-200 rounded-xl p-3 hover:border-purple-300 hover:shadow-md transition-all bg-white">
+              <div key={item.id} className="group border border-gray-200 rounded-lg sm:rounded-xl p-2 sm:p-3 hover:border-purple-300 hover:shadow-md transition-all bg-white touch-manipulation">
                 {/* Thumbnail */}
-                <div className="relative aspect-video rounded-lg overflow-hidden bg-gray-100 mb-3">
+                <div className="relative aspect-video min-h-[120px] sm:min-h-0 rounded-lg overflow-hidden bg-gray-100 mb-3">
                   {item.type === "video" ? (
-                    <video src={item.url} className="w-full h-full object-cover" />
+                    <video 
+                      src={item.url} 
+                      className="w-full h-full object-cover" 
+                      playsInline
+                      controls
+                      preload="metadata"
+                      style={{ display: 'block', minHeight: '120px' }}
+                      ref={(video) => {
+                        if (video) {
+                          video.setAttribute('webkit-playsinline', 'true');
+                        }
+                      }}
+                    />
                   ) : (
                     <Image 
                       src={item.url} 
@@ -495,19 +511,19 @@ export default function Collections() {
                     )}
                   </div>
 
-                  {/* External link button - shows on hover */}
+                  {/* External link button - shows on hover/touch */}
                   <button
-                    onClick={() => window.open(item.url, '_blank')}
-                    className="absolute top-2 right-2 bg-white/90 hover:bg-white rounded-lg p-1.5 opacity-0 group-hover:opacity-100 transition-all shadow-sm hover:shadow-md"
+                    onClick={(e) => { e.stopPropagation(); window.open(item.url, '_blank'); }}
+                    className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 bg-white/90 hover:bg-white active:bg-white rounded-lg p-1.5 opacity-0 group-hover:opacity-100 sm:group-hover:opacity-100 active:opacity-100 transition-all shadow-sm hover:shadow-md touch-manipulation"
                     title="Open in new tab"
                   >
-                    <ExternalLink className="h-4 w-4 text-gray-700" />
+                    <ExternalLink className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-700" />
                   </button>
                 </div>
 
                 {/* Title */}
-                <div className="mb-2">
-                  <h3 className="text-sm font-medium text-gray-900 truncate">
+                <div className="mb-1 sm:mb-2">
+                  <h3 className="text-xs sm:text-sm font-medium text-gray-900 truncate">
                     {item.url.split('/').pop()?.split('?')[0] || "Untitled"}
                   </h3>
                 </div>
@@ -538,16 +554,27 @@ export default function Collections() {
             ))}
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             {sortedAndFilteredItems.map((item) => (
               <div 
                 key={item.id} 
-                className="flex items-center gap-4 p-4 bg-white border-2 border-gray-200 rounded-xl hover:border-purple-300 hover:shadow-md transition-all group"
+                className="flex items-center gap-2 sm:gap-4 p-3 sm:p-4 bg-white border-2 border-gray-200 rounded-lg sm:rounded-xl hover:border-purple-300 hover:shadow-md transition-all group touch-manipulation"
               >
                 {/* Thumbnail */}
-                <div className="flex-shrink-0 w-20 h-14 rounded-lg overflow-hidden bg-gray-100 relative">
+                <div className="flex-shrink-0 w-16 h-12 sm:w-20 sm:h-14 rounded-lg overflow-hidden bg-gray-100 relative">
                   {item.type === "video" ? (
-                    <video src={item.url} className="w-full h-full object-cover" />
+                    <video 
+                      src={item.url} 
+                      className="w-full h-full object-cover" 
+                      playsInline
+                      preload="metadata"
+                      style={{ display: 'block' }}
+                      ref={(video) => {
+                        if (video) {
+                          video.setAttribute('webkit-playsinline', 'true');
+                        }
+                      }}
+                    />
                   ) : (
                     <Image 
                       src={item.url} 
@@ -599,8 +626,8 @@ export default function Collections() {
 
                 {/* External Link */}
                 <button 
-                  onClick={() => window.open(item.url, '_blank')}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity p-2 hover:bg-purple-100 rounded-lg flex-shrink-0"
+                  onClick={(e) => { e.stopPropagation(); window.open(item.url, '_blank'); }}
+                  className="opacity-0 group-hover:opacity-100 active:opacity-100 sm:group-hover:opacity-100 transition-opacity p-1.5 sm:p-2 hover:bg-purple-100 active:bg-purple-100 rounded-lg flex-shrink-0 touch-manipulation"
                   title="Open in new tab"
                 >
                   <ExternalLink className="h-4 w-4 text-purple-600" />
