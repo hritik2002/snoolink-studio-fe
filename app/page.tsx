@@ -19,6 +19,7 @@ function HomeContent() {
   const [activeView, setActiveView] = useState<
     "search" | "uploads" | "collections" | "profile" | "history" | "analytics" | "settings" | "billing"
   >("search");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     const view = searchParams.get("view");
@@ -30,8 +31,30 @@ function HomeContent() {
     }
   }, [searchParams]);
 
+  // Keep sidebar always open on desktop, allow mobile toggle
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024) {
+        // Desktop: always open
+        setSidebarOpen(true);
+      }
+    };
+    
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
-    <SidebarProvider defaultOpen={false}>
+    <SidebarProvider open={sidebarOpen} onOpenChange={(open) => {
+      // Only allow closing on mobile
+      if (window.innerWidth < 1024) {
+        setSidebarOpen(open);
+      } else {
+        // Force open on desktop
+        setSidebarOpen(true);
+      }
+    }}>
       <AppSidebar activeView={activeView} onViewChange={(view) => {
         setActiveView(view);
         router.push(`/?view=${view}`);
