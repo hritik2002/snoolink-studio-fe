@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { 
   Search, Loader2, Image as ImageIcon, Video, Clock, Download, Share2, 
-  MoreVertical, Sparkles, ChevronDown, ChevronUp, ChevronRight, List as ListIcon, Play, Star, ArrowRight, Filter, Plus, Lightbulb, CloudUpload, Folder
+  MoreVertical, Sparkles, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, List as ListIcon, Play, Star, ArrowRight, Filter, Plus, Lightbulb, CloudUpload, Folder
 } from "lucide-react";
 import Image from "next/image";
 import { useToast } from "@/lib/hooks/use-toast";
@@ -202,6 +202,11 @@ const EXAMPLE_QUERIES = [
   "Car stopping at traffic light",
 ];
 
+interface CollectionOption {
+  name: string;
+  count: number;
+}
+
 export default function ImageSearch() {
   const [mode, setMode] = useState<SearchMode>("video");
   const [searchQuery, setSearchQuery] = useState("");
@@ -217,17 +222,99 @@ export default function ImageSearch() {
   const [playingVideos, setPlayingVideos] = useState<Set<string>>(new Set());
   const { toast } = useToast();
 
+  // Collection selection state
+  const [collections, setCollections] = useState<CollectionOption[]>([]);
+  const [selectedCollections, setSelectedCollections] = useState<string[]>(["all"]);
+  const [isLoadingCollections, setIsLoadingCollections] = useState(false);
+  const collectionScrollRef = useRef<HTMLDivElement>(null);
+
+  // Scroll collection chips
+  const scrollCollectionChips = (direction: "left" | "right") => {
+    if (collectionScrollRef.current) {
+      const scrollAmount = 200;
+      collectionScrollRef.current.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth"
+      });
+    }
+  };
+
+  // Fetch collections on mount
+  const fetchCollections = useCallback(async () => {
+    setIsLoadingCollections(true);
+    try {
+      const response = await fetch("/api/user-collections");
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data) {
+          setCollections(data.data.map((col: { name: string; imageCount: number; videoCount: number }) => ({
+            name: col.name,
+            count: col.imageCount + col.videoCount
+          })));
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching collections:", error);
+    } finally {
+      setIsLoadingCollections(false);
+    }
+  }, []);
+
+  // Load collections on mount
+  useEffect(() => {
+    fetchCollections();
+  }, [fetchCollections]);
+
+  // Handle collection selection
+  const toggleCollection = useCallback((collectionName: string) => {
+    setSelectedCollections(prev => {
+      if (collectionName === "all") {
+        // If selecting "all", clear other selections
+        return ["all"];
+      }
+      
+      // If "all" was selected, deselect it and select this collection instead
+      if (prev.includes("all")) {
+        return [collectionName];
+      }
+      
+      if (prev.includes(collectionName)) {
+        // Deselect this collection
+        const newSelection = prev.filter(c => c !== collectionName);
+        // If nothing selected, default to "all"
+        return newSelection.length === 0 ? ["all"] : newSelection;
+      } else {
+        // Select (max 3)
+        if (prev.length >= 3) {
+          toast({
+            title: "Maximum 3 collections",
+            description: "You can select up to 3 collections at once",
+            variant: "default"
+          });
+          return prev;
+        }
+        return [...prev, collectionName];
+      }
+    });
+  }, [toast]);
   const handleSearch = useCallback(async () => {
     if (!searchQuery.trim()) return;
 
     setIsSearching(true);
     setQueryInterpretation([]);
     
+    // Determine collections to search
+    const collectionsParam = selectedCollections.includes("all") 
+      ? "all" 
+      : selectedCollections.join(",");
+    
     try {
       if (mode === "image") {
-        const response = await fetch(`/api/images/search?query=${encodeURIComponent(searchQuery)}`, {
-        method: "GET",
-      });
+        // Use new multi-collection search API
+        const response = await fetch(
+          `/api/search?query=${encodeURIComponent(searchQuery)}&collections=${encodeURIComponent(collectionsParam)}&topK=10`,
+          { method: "GET" }
+        );
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -236,12 +323,13 @@ export default function ImageSearch() {
 
       const data = await response.json();
 
-      const results = data.data.map(
+        const results = (data.data?.results || []).map(
         (result: {
           id: string;
           text: string;
           score: number;
           imageUrl: string;
+            collectionName?: string;
         }) => ({
           id: result.id,
           imageUrl: result.imageUrl,
@@ -257,9 +345,11 @@ export default function ImageSearch() {
         const interpretation = generateQueryInterpretation(searchQuery);
         setQueryInterpretation(interpretation);
       } else {
-        const response = await fetch(`/api/videos/search?query=${encodeURIComponent(searchQuery)}`, {
-          method: "GET",
-        });
+        // Use multi-collection video search API
+        const response = await fetch(
+          `/api/videos/search-collections?query=${encodeURIComponent(searchQuery)}&collections=${encodeURIComponent(collectionsParam)}&topK=10`,
+          { method: "GET" }
+        );
 
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
@@ -268,7 +358,7 @@ export default function ImageSearch() {
 
         const data = await response.json();
 
-        const results = data.data.map(
+        const results = (data.data?.results || []).map(
           (result: {
             id: string;
             text: string;
@@ -276,6 +366,7 @@ export default function ImageSearch() {
             startTime?: string;
             endTime?: string;
             score: number;
+            collectionName?: string;
           }) => ({
             id: result.id,
             text: result.text,
@@ -303,7 +394,7 @@ export default function ImageSearch() {
     } finally {
       setIsSearching(false);
     }
-  }, [searchQuery, mode, toast]);
+  }, [searchQuery, mode, toast, selectedCollections]);
 
   const handleKeyPress = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -535,8 +626,9 @@ export default function ImageSearch() {
           </div>
         </div>
 
-            {/* Search Mode Buttons */}
-            <div className="flex gap-3 mb-5">
+            {/* Search Mode Buttons and Collection Selector - Same Row */}
+            <div className="flex items-center gap-3 mb-5">
+              {/* Mode Buttons */}
               <Button
                 variant={mode === "video" ? "default" : "outline"}
                 onClick={() => {
@@ -546,11 +638,11 @@ export default function ImageSearch() {
                   setQueryInterpretation([]);
                 }}
                 disabled={isSearching}
-                className={
+                className={`flex-shrink-0 ${
                   mode === "video"
                     ? "bg-purple-600 hover:bg-purple-700 text-white rounded-full px-5"
                     : "border-gray-200 text-gray-700 hover:bg-gray-50 bg-white rounded-full px-5"
-                }
+                }`}
               >
                 <Video className="h-4 w-4 mr-2" />
                 Search Videos
@@ -564,16 +656,98 @@ export default function ImageSearch() {
                   setQueryInterpretation([]);
                 }}
                 disabled={isSearching}
-                className={
+                className={`flex-shrink-0 ${
                   mode === "image"
                     ? "bg-purple-600 hover:bg-purple-700 text-white rounded-full px-5"
                     : "border-gray-200 text-gray-700 hover:bg-gray-50 bg-white rounded-full px-5"
-                }
+                }`}
               >
                 <ImageIcon className="h-4 w-4 mr-2" />
                 Search Images
               </Button>
-      </div>
+
+              {/* Divider */}
+              <div className="w-px h-8 bg-gray-200 flex-shrink-0" />
+
+              {/* Collection Chips - Horizontal Scrollable */}
+              <div className="flex items-center gap-2 flex-1 min-w-0">
+                {/* Label */}
+                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider flex-shrink-0">
+                  in:
+                </span>
+
+                {/* Scroll Left Button */}
+                <button
+                  onClick={() => scrollCollectionChips("left")}
+                  className="flex-shrink-0 w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                >
+                  <ChevronLeft className="h-4 w-4 text-gray-600" />
+                </button>
+
+                {/* Scrollable Collection Chips */}
+                <div 
+                  ref={collectionScrollRef}
+                  className="flex-1 flex items-center gap-2 overflow-x-auto scrollbar-hide scroll-smooth min-w-0"
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                >
+                  {/* All Collections Chip */}
+                  <button
+                    onClick={() => toggleCollection("all")}
+                    className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                      selectedCollections.includes("all")
+                        ? "bg-purple-600 text-white"
+                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    }`}
+                  >
+                    <span>All</span>
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                      selectedCollections.includes("all")
+                        ? "bg-purple-500 text-purple-100"
+                        : "bg-gray-200 text-gray-500"
+                    }`}>
+                      {collections.reduce((acc, c) => acc + c.count, 0)}
+                    </span>
+                  </button>
+
+                  {/* Individual Collection Chips */}
+                  {collections.map((collection) => (
+                    <button
+                      key={collection.name}
+                      onClick={() => toggleCollection(collection.name)}
+                      className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                        selectedCollections.includes(collection.name)
+                          ? "bg-purple-600 text-white"
+                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                      }`}
+                    >
+                      <span className="truncate max-w-[120px]">{collection.name}</span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                        selectedCollections.includes(collection.name)
+                          ? "bg-purple-500 text-purple-100"
+                          : "bg-gray-200 text-gray-500"
+                      }`}>
+                        {collection.count}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Scroll Right Button */}
+                <button
+                  onClick={() => scrollCollectionChips("right")}
+                  className="flex-shrink-0 w-7 h-7 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center transition-colors"
+                >
+                  <ChevronRight className="h-4 w-4 text-gray-600" />
+                </button>
+
+                {/* Selection Info */}
+                {!selectedCollections.includes("all") && selectedCollections.length > 0 && (
+                  <span className="flex-shrink-0 text-xs text-purple-600 font-medium whitespace-nowrap">
+                    {selectedCollections.length}/3
+                  </span>
+                )}
+              </div>
+            </div>
 
             {/* Trending Section */}
             <div className="flex items-center gap-4 pb-4 border-b border-gray-100">
@@ -590,8 +764,8 @@ export default function ImageSearch() {
               ))}
             </div>
         </div>
-        </div>
       </div>
+            </div>
 
       {/* Results Section with Sidebar */}
       <div className="flex gap-6 px-6 flex-1 min-h-0 overflow-hidden">
