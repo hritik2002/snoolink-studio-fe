@@ -31,12 +31,15 @@ interface CollectionItem {
   collectionName: string;
 }
 
+const ITEMS_PER_PAGE = 20;
+
 export default function Collections() {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [selectedCollection, setSelectedCollection] = useState<string | null>(null);
   const [items, setItems] = useState<CollectionItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingItems, setIsLoadingItems] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -45,7 +48,13 @@ export default function Collections() {
   const [sortBy, setSortBy] = useState<SortOption>("date-desc");
   const [filterType, setFilterType] = useState<FilterType>("all");
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  
+  // Pagination state
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [totalCount, setTotalCount] = useState(0);
 
   // Sort and filter items
   const sortedAndFilteredItems = items
@@ -69,108 +78,139 @@ export default function Collections() {
       }
     });
 
-  // Fetch all items (images and videos)
-  const fetchAllItems = useCallback(async () => {
-    const allItems: CollectionItem[] = [];
-
-    // Fetch images
-    const imagesResponse = await fetch(`/api/images/collections?type=image`);
-    if (imagesResponse.ok) {
-      const imagesData = await imagesResponse.json();
-      const images = (imagesData.data || []).map((img: { id: string; imageUrl: string; description?: string; createdAt?: string; uploadedAt?: string; collectionName?: string }) => ({
-        id: img.id,
-        url: img.imageUrl,
-        type: "image" as const,
-        description: img.description,
-        createdAt: img.createdAt || img.uploadedAt,
-        collectionName: img.collectionName || "Default"
-      }));
-      allItems.push(...images);
+  // Fetch paginated items
+  const fetchItems = useCallback(async (
+    collection: string | null, 
+    currentOffset: number, 
+    type: FilterType,
+    append: boolean = false
+  ) => {
+    if (!collection) return;
+    
+    if (append) {
+      setIsLoadingMore(true);
+    } else {
+      setIsLoadingItems(true);
     }
 
-    // Fetch videos
-    const videosResponse = await fetch(`/api/images/collections?type=video`);
-    if (videosResponse.ok) {
-      const videosData = await videosResponse.json();
-      const videos = (videosData.data || []).map((vid: { id: string; videoUrl: string; description?: string; createdAt?: string; collectionName?: string }) => ({
-        id: vid.id,
-        url: vid.videoUrl,
-        type: "video" as const,
-        description: vid.description,
-        createdAt: vid.createdAt,
-        collectionName: vid.collectionName || "Default"
-      }));
-      allItems.push(...videos);
-    }
+    try {
+      const params = new URLSearchParams();
+      params.append("collection", collection);
+      params.append("limit", ITEMS_PER_PAGE.toString());
+      params.append("offset", currentOffset.toString());
+      if (type !== "all") {
+        params.append("type", type);
+      }
 
-    return allItems;
+      const response = await fetch(`/api/resources?${params.toString()}`);
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          const newItems: CollectionItem[] = data.data.items.map((item: {
+            id: string;
+            url: string;
+            type: "image" | "video";
+            description?: string;
+            collectionName?: string;
+            createdAt?: string;
+          }) => ({
+            id: item.id,
+            url: item.url,
+            type: item.type,
+            description: item.description,
+            collectionName: item.collectionName || "Default",
+            createdAt: item.createdAt,
+          }));
+
+          if (append) {
+            setItems(prev => [...prev, ...newItems]);
+          } else {
+            setItems(newItems);
+          }
+          
+          setHasMore(data.data.hasMore);
+          setTotalCount(data.data.total);
+          setOffset(currentOffset + newItems.length);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching items:", error);
+    } finally {
+      setIsLoadingItems(false);
+      setIsLoadingMore(false);
+    }
   }, []);
 
-  // Fetch collections
+  // Fetch collections list
   const fetchCollections = useCallback(async () => {
     try {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const allItems = await fetchAllItems();
-        
-      // Group by collection and count
-      const collectionMap = new Map<string, number>();
-      allItems.forEach((item) => {
-        const name = item.collectionName || "Default";
-        collectionMap.set(name, (collectionMap.get(name) || 0) + 1);
-      });
+      // Use the user-collections API to get collection names with counts
+      const response = await fetch("/api/user-collections");
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.data) {
+          const collectionsList: Collection[] = data.data.map((col: { name: string; imageCount: number; videoCount: number }) => ({
+            id: col.name,
+            name: col.name,
+            count: col.imageCount + col.videoCount
+          }));
 
-      const collectionsList: Collection[] = Array.from(collectionMap.entries()).map(([name, count]) => ({
-        id: name,
-        name,
-        count
-      }));
-
-      setCollections(collectionsList);
-      
-      // Select first collection by default
-      if (collectionsList.length > 0 && !selectedCollection) {
-        setSelectedCollection(collectionsList[0].name);
+          setCollections(collectionsList);
+          
+          // Select first collection by default
+          if (collectionsList.length > 0 && !selectedCollection) {
+            setSelectedCollection(collectionsList[0].name);
+          }
+        }
       }
     } catch (error) {
       console.error("Error fetching collections:", error);
     } finally {
       setIsLoading(false);
     }
-  }, [selectedCollection, fetchAllItems]);
+  }, [selectedCollection]);
 
-  // Fetch items for selected collection
-  const fetchCollectionItems = useCallback(async () => {
-    if (!selectedCollection) return;
-    
-    setIsLoadingItems(true);
-    try {
-      const allItems = await fetchAllItems();
-      
-      // Filter by selected collection
-      const filteredItems = allItems.filter((item) => 
-        (item.collectionName || "Default") === selectedCollection
-      );
+  // Load more items (for infinite scroll)
+  const loadMoreItems = useCallback(() => {
+    if (isLoadingMore || !hasMore || !selectedCollection) return;
+    fetchItems(selectedCollection, offset, filterType, true);
+  }, [isLoadingMore, hasMore, selectedCollection, offset, filterType, fetchItems]);
 
-      setItems(filteredItems);
-    } catch (error) {
-      console.error("Error fetching collection items:", error);
-    } finally {
-      setIsLoadingItems(false);
+  // Reset and fetch when collection or filter changes
+  useEffect(() => {
+    if (selectedCollection) {
+      setItems([]);
+      setOffset(0);
+      setHasMore(true);
+      fetchItems(selectedCollection, 0, filterType, false);
     }
-  }, [selectedCollection, fetchAllItems]);
+  }, [selectedCollection, filterType, fetchItems]);
 
   useEffect(() => {
     fetchCollections();
   }, [fetchCollections]);
 
+  // Infinite scroll observer
   useEffect(() => {
-    if (selectedCollection) {
-      fetchCollectionItems();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore && !isLoadingItems) {
+          loadMoreItems();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
     }
-  }, [selectedCollection, fetchCollectionItems]);
+
+    return () => observer.disconnect();
+  }, [hasMore, isLoadingMore, isLoadingItems, loadMoreItems]);
 
   const copyDescription = async (id: string, text: string) => {
     try {
@@ -569,6 +609,21 @@ export default function Collections() {
             ))}
           </div>
         )}
+
+        {/* Infinite Scroll Trigger */}
+        <div ref={loadMoreRef} className="py-8 flex items-center justify-center">
+          {isLoadingMore && (
+            <div className="flex items-center gap-2 text-gray-500">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <span className="text-sm">Loading more...</span>
+            </div>
+          )}
+          {!hasMore && items.length > 0 && (
+            <p className="text-sm text-gray-400">
+              Showing all {totalCount} items
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Create Collection Modal */}
