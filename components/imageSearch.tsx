@@ -20,19 +20,29 @@ type CompactMode = boolean;
 interface ImageSearchResult {
   id: string;
   imageUrl: string;
-  description?: string;
   score?: number;
 }
 
-interface VideoSearchResult {
+interface VideoClip {
   id: string;
-  text: string;
-  videoUrl?: string;
-  startTime?: string;
-  endTime?: string;
-  score?: number;
-  videoDuration?: number; // Full video duration for timeline
+  score: number;
+  startTime: string;
+  endTime: string;
 }
+
+interface VideoSearchResult {
+  videoUrl: string;
+  videoId?: number;
+  title?: string;
+  duration?: number;
+  resolution?: string;
+  collectionName?: string;
+  clips: VideoClip[];
+  bestScore: number;
+}
+
+// Results are now an object with videoUrl as keys
+type VideoSearchResults = Record<string, VideoSearchResult>;
 
 // Helper function to format time
 const formatTime = (seconds: number): string => {
@@ -211,7 +221,7 @@ export default function ImageSearch() {
   const [mode, setMode] = useState<SearchMode>("video");
   const [searchQuery, setSearchQuery] = useState("");
   const [imageResults, setImageResults] = useState<ImageSearchResult[]>([]);
-  const [videoResults, setVideoResults] = useState<VideoSearchResult[]>([]);
+  const [videoResults, setVideoResults] = useState<VideoSearchResults>({});
   const [isSearching, setIsSearching] = useState(false);
   const [sortBy, setSortBy] = useState("relevance");
   const [viewMode, setViewMode] = useState<ViewMode>("list");
@@ -220,6 +230,9 @@ export default function ImageSearch() {
   const [queryInterpretation, setQueryInterpretation] = useState<string[]>([]);
   const [timelineHoverTime, setTimelineHoverTime] = useState<{ resultId: string; time: number } | null>(null);
   const [playingVideos, setPlayingVideos] = useState<Set<string>>(new Set());
+  const [selectedClips, setSelectedClips] = useState<Record<string, string>>({}); // videoUrl -> clipId
+  const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
+  const clipEndTimes = useRef<Record<string, number>>({}); // videoUrl -> endTime
   const { toast } = useToast();
 
   // Collection selection state
@@ -264,6 +277,80 @@ export default function ImageSearch() {
   useEffect(() => {
     fetchCollections();
   }, [fetchCollections]);
+
+  // Initialize first clip selection for each video when results change
+  useEffect(() => {
+    setSelectedClips(prev => {
+      const newSelectedClips: Record<string, string> = {};
+      Object.entries(videoResults).forEach(([videoUrl, videoResult]) => {
+        if (videoResult.clips && videoResult.clips.length > 0 && !prev[videoUrl]) {
+          newSelectedClips[videoUrl] = videoResult.clips[0].id;
+        }
+      });
+      if (Object.keys(newSelectedClips).length > 0) {
+        return { ...prev, ...newSelectedClips };
+      }
+      return prev;
+    });
+  }, [videoResults]);
+
+  // Set up timeupdate listeners for videos to stop at clip end_time
+  useEffect(() => {
+    const cleanupFunctions: (() => void)[] = [];
+
+    Object.entries(videoResults).forEach(([videoUrl, videoResult]) => {
+      const videoElement = videoRefs.current[videoUrl];
+      const selectedClipId = selectedClips[videoUrl];
+      
+      if (videoElement && selectedClipId && videoResult.clips) {
+        const selectedClip = videoResult.clips.find(clip => clip.id === selectedClipId);
+        
+        if (selectedClip) {
+          const endTime = parseFloat(selectedClip.endTime);
+          clipEndTimes.current[videoUrl] = endTime;
+          
+          const handleTimeUpdate = () => {
+            const currentEndTime = clipEndTimes.current[videoUrl];
+            if (currentEndTime && videoElement.currentTime >= currentEndTime) {
+              videoElement.pause();
+              videoElement.currentTime = currentEndTime;
+            }
+          };
+          
+          videoElement.addEventListener('timeupdate', handleTimeUpdate);
+          
+          cleanupFunctions.push(() => {
+            videoElement.removeEventListener('timeupdate', handleTimeUpdate);
+            delete clipEndTimes.current[videoUrl];
+          });
+        }
+      }
+    });
+
+    return () => {
+      cleanupFunctions.forEach(cleanup => cleanup());
+    };
+  }, [videoResults, selectedClips]);
+
+  // Handle clip click - seek video to clip start_time
+  const handleClipClick = useCallback((videoUrl: string, clipId: string, startTime: number, endTime: number) => {
+    // Update the end time ref immediately
+    clipEndTimes.current[videoUrl] = endTime;
+    
+    // Update selected clip state
+    setSelectedClips(prev => ({ ...prev, [videoUrl]: clipId }));
+    
+    const videoElement = videoRefs.current[videoUrl];
+    if (videoElement) {
+      // Seek to start time
+      videoElement.currentTime = startTime;
+      
+      // Play the video
+      videoElement.play().catch(err => {
+        console.error("Error playing video:", err);
+      });
+    }
+  }, []);
 
   // Handle collection selection
   const toggleCollection = useCallback((collectionName: string) => {
@@ -326,20 +413,18 @@ export default function ImageSearch() {
         const results = (data.data?.results || []).map(
         (result: {
           id: string;
-          text: string;
           score: number;
           imageUrl: string;
-            collectionName?: string;
+          collectionName?: string;
         }) => ({
           id: result.id,
           imageUrl: result.imageUrl,
-          description: result.text,
           score: result.score,
         })
       );
 
         setImageResults(results);
-        setVideoResults([]);
+        setVideoResults({});
         
         // Generate query interpretation (semantic decomposition)
         const interpretation = generateQueryInterpretation(searchQuery);
@@ -358,24 +443,8 @@ export default function ImageSearch() {
 
         const data = await response.json();
 
-        const results = (data.data?.results || []).map(
-          (result: {
-            id: string;
-            text: string;
-            videoUrl?: string;
-            startTime?: string;
-            endTime?: string;
-            score: number;
-            collectionName?: string;
-          }) => ({
-            id: result.id,
-            text: result.text,
-            videoUrl: result.videoUrl,
-            startTime: result.startTime,
-            endTime: result.endTime,
-            score: result.score,
-          })
-        );
+        // Results are now an object with videoUrl as keys
+        const results: VideoSearchResults = data.data?.results || {};
 
         setVideoResults(results);
         setImageResults([]);
@@ -551,12 +620,11 @@ export default function ImageSearch() {
   );
 
   // Calculate average confidence
-  const avgConfidence = 
-    (mode === "image" ? imageResults : videoResults)
-      .reduce((sum, r) => sum + (r.score ? getMatchPercentage(r.score) : 0), 0) /
-    Math.max((mode === "image" ? imageResults : videoResults).length, 1);
+  const avgConfidence = mode === "image"
+    ? imageResults.reduce((sum, r) => sum + (r.score ? getMatchPercentage(r.score) : 0), 0) / Math.max(imageResults.length, 1)
+    : Object.values(videoResults).reduce((sum, r) => sum + (r.bestScore ? getMatchPercentage(r.bestScore) : 0), 0) / Math.max(Object.keys(videoResults).length, 1);
 
-  const hasResults = (mode === "image" ? imageResults.length : videoResults.length) > 0;
+  const hasResults = (mode === "image" ? imageResults.length : Object.keys(videoResults).length) > 0;
 
   // Trending topics
   const trendingTopics = [
@@ -636,7 +704,7 @@ export default function ImageSearch() {
               onClick={() => {
                     setMode("video");
                 setImageResults([]);
-                setVideoResults([]);
+                setVideoResults({});
                 setQueryInterpretation([]);
               }}
               disabled={isSearching}
@@ -655,7 +723,7 @@ export default function ImageSearch() {
               onClick={() => {
                     setMode("image");
                 setImageResults([]);
-                setVideoResults([]);
+                setVideoResults({});
                 setQueryInterpretation([]);
               }}
               disabled={isSearching}
@@ -784,7 +852,7 @@ export default function ImageSearch() {
               <div className="flex items-center gap-2">
                 <h2 className="text-lg sm:text-xl font-bold text-gray-900">Results</h2>
                 <span className="w-6 h-6 rounded-full bg-purple-100 text-purple-700 text-xs font-bold flex items-center justify-center">
-                  {mode === "image" ? imageResults.length : videoResults.length}
+                  {mode === "image" ? imageResults.length : Object.keys(videoResults).length}
                 </span>
               </div>
               <div className="flex items-center text-xs sm:text-sm text-gray-500">
@@ -818,9 +886,9 @@ export default function ImageSearch() {
             <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4" : "space-y-3 sm:space-y-4"}>
               {imageResults.map((result) => {
                 const matchPercentage = result.score ? getMatchPercentage(result.score) : 0;
-                const sceneSummary = result.description ? extractSceneSummary(result.description) : "Image";
+                const sceneSummary = "Image";
                 const isExpanded = expandedDescriptions.has(result.id);
-                const matchReasons = result.description ? extractMatchReasons(result.description, searchQuery) : { matched: [], additional: [] };
+                const matchReasons = { matched: [], additional: [] };
                 
                 return (
                 <Card
@@ -866,26 +934,6 @@ export default function ImageSearch() {
                           </h3>
                           {!compactMode && (
                             <>
-                              <p className={`text-xs sm:text-sm text-gray-600 ${isExpanded ? "" : "line-clamp-2"} mb-2 leading-snug`}>
-                        {result.description}
-                      </p>
-                              {result.description && result.description.length > 80 && (
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    toggleDescription(result.id);
-                                  }}
-                                  className="text-xs text-purple-600 hover:text-purple-700 active:text-purple-800 mb-2 flex items-center gap-1 cursor-pointer touch-manipulation"
-                                >
-                                  {isExpanded ? (
-                                    <>Show less <ChevronUp className="h-3 w-3" /></>
-                                  ) : (
-                                    <>Show more <ChevronDown className="h-3 w-3" /></>
-                                  )}
-                                </button>
-                              )}
                               {matchReasons.matched.length > 0 && (
                                 <div className="mb-3 p-2 bg-gray-50 rounded border border-gray-200">
                                   <p className="text-xs font-medium text-gray-700 mb-1.5">Why this matched:</p>
@@ -921,7 +969,7 @@ export default function ImageSearch() {
                               variant="ghost"
                               size="sm"
                               className="h-8 text-xs text-gray-600 hover:text-gray-900"
-                              onClick={() => handleDownloadImage(result.imageUrl, result.description)}
+                              onClick={() => handleDownloadImage(result.imageUrl)}
                             >
                               <Download className="h-3.5 w-3.5 mr-1.5" />
                               Download
@@ -951,172 +999,76 @@ export default function ImageSearch() {
             </div>
           )
         ) : (
-          videoResults.length > 0 ? (
+          Object.keys(videoResults).length > 0 ? (
             <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4" : "space-y-3 sm:space-y-4"}>
-              {/* Group results by video URL */}
-              {(() => {
-                // Group video results by videoUrl
-                const groupedResults = videoResults.reduce((acc, result) => {
-                  const key = result.videoUrl || result.id;
-                  if (!acc[key]) {
-                    acc[key] = [];
-                  }
-                  acc[key].push(result);
-                  return acc;
-                }, {} as Record<string, typeof videoResults>);
-
-                return Object.entries(groupedResults).map(([videoUrl, results]) => {
-                  // If multiple moments from same video, show grouped header
-                  const isGrouped = results.length > 1;
-                  const videoName = videoUrl ? videoUrl.split('/').pop()?.split('?')[0] || 'Video' : 'Video';
-                  
-                  return (
-                    <div key={videoUrl || results[0].id} className="space-y-2 sm:space-y-3">
-                      {isGrouped && (
-                        <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-700 font-medium px-1">
-                          <Video className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-600" />
-                          <span className="truncate">Video: {videoName}</span>
-                          <span className="text-xs text-gray-500 font-normal hidden sm:inline">({results.length} matching moments)</span>
-                          <span className="text-xs text-gray-500 font-normal sm:hidden">({results.length})</span>
-                        </div>
-                      )}
-                      {results.map((result) => {
-                const matchPercentage = result.score ? getMatchPercentage(result.score) : 0;
-                const sceneSummary = extractSceneSummary(result.text);
-                const startTime = result.startTime ? parseFloat(result.startTime) : 0;
-                const endTime = result.endTime ? parseFloat(result.endTime) : 0;
-                const duration = endTime - startTime;
-                const isExpanded = expandedDescriptions.has(result.id);
-                const matchReasons = extractMatchReasons(result.text, searchQuery);
-                const videoDuration = result.videoDuration || endTime; // Fallback to endTime if duration not available
-                const positionPercent = videoDuration > 0 ? (startTime / videoDuration) * 100 : 0;
+              {Object.entries(videoResults).map(([videoUrl, videoResult]) => {
+                const matchPercentage = videoResult.bestScore ? getMatchPercentage(videoResult.bestScore) : 0;
+                const videoTitle = videoResult.title || videoResult.videoUrl.split('/').pop()?.split('?')[0] || 'Video';
+                const videoDuration = videoResult.duration || 0;
+                const clips = videoResult.clips || [];
                 
+                // Calculate progress bar segments
+                const progressSegments = clips.map(clip => {
+                  const start = parseFloat(clip.startTime);
+                  const end = parseFloat(clip.endTime);
+                  const startPercent = videoDuration > 0 ? (start / videoDuration) * 100 : 0;
+                  const widthPercent = videoDuration > 0 ? ((end - start) / videoDuration) * 100 : 0;
+                  return { startPercent, widthPercent, clip };
+                });
+
                 return (
                   <Card
-                    key={result.id}
-                    className={`bg-white border border-gray-200 hover:border-purple-200 hover:shadow-lg transition-all overflow-hidden relative rounded-xl sm:rounded-2xl ${compactMode ? "p-2 sm:p-3" : "p-3 sm:p-4"} touch-manipulation`}
+                    key={videoResult.videoUrl}
+                    className="bg-white border border-gray-200 hover:border-purple-300 hover:shadow-xl transition-all duration-200 overflow-hidden relative rounded-xl sm:rounded-2xl p-3 sm:p-4 touch-manipulation group"
                   >
-                    {/* Three dots menu - top right */}
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="absolute top-2 right-2 sm:top-3 sm:right-3 h-7 w-7 sm:h-8 sm:w-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100 active:bg-gray-200 rounded-full z-20 touch-manipulation"
-                    >
-                      <MoreVertical className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                    </Button>
                     <div className={`flex ${viewMode === "grid" ? "flex-col" : "flex-col sm:flex-row"} gap-3 sm:gap-5`}>
                       {/* Thumbnail */}
-                      <div className={`relative ${viewMode === "grid" ? "w-full aspect-video min-h-[200px] sm:min-h-0" : "w-full sm:w-[320px] h-48 sm:h-[240px] min-h-[192px]"} flex-shrink-0 rounded-lg sm:rounded-xl overflow-hidden bg-gray-100 group`}>
-                        {result.videoUrl ? (
+                      <div className="relative w-[300px] h-[250px] flex-shrink-0 rounded-lg sm:rounded-xl overflow-hidden bg-gray-900 flex items-center justify-center shadow-lg border border-gray-200 transition-all duration-200 group-hover:shadow-2xl group-hover:border-purple-200">
+                        {videoResult.videoUrl ? (
                           <>
                             <video
-                              src={result.videoUrl}
-                              className="w-full h-full object-cover cursor-pointer relative z-0"
+                              src={videoResult.videoUrl}
+                              className="w-full h-full object-contain cursor-pointer relative z-0 rounded-lg"
                               controls
+                              controlsList="nodownload"
                               muted
                               playsInline
                               preload="metadata"
-                              style={{ display: 'block', minHeight: '200px' }}
-                              ref={(video) => {
-                                if (video) {
-                                  video.setAttribute('webkit-playsinline', 'true');
-                                }
+                              style={{
+                                backgroundColor: '#000',
                               }}
                               onLoadedMetadata={(e) => {
                                 const video = e.currentTarget;
-                                // Set initial time to startTime
-                                if (startTime > 0 && startTime < video.duration) {
-                                  video.currentTime = startTime;
-                                }
-                              }}
-                              onPlay={(e) => {
-                                const video = e.currentTarget;
-                                // Ensure video starts from startTime when play is clicked
-                                if (video.currentTime < startTime || video.currentTime > endTime) {
-                                  video.currentTime = startTime;
-                                }
-                                setPlayingVideos(prev => new Set(prev).add(result.id));
-                              }}
-                              onPause={(e) => {
-                                setPlayingVideos(prev => {
-                                  const next = new Set(prev);
-                                  next.delete(result.id);
-                                  return next;
-                                });
-                              }}
-                              onTimeUpdate={(e) => {
-                                const video = e.currentTarget;
-                                // Loop playback between startTime and endTime
-                                if (endTime > startTime && video.currentTime >= endTime) {
-                                  video.pause();
-                                  video.currentTime = startTime; // Reset to start for replay
-                                  setPlayingVideos(prev => {
-                                    const next = new Set(prev);
-                                    next.delete(result.id);
-                                    return next;
-                                  });
-                                }
-                              }}
-                              onClick={(e) => {
-                                // Only handle clicks on the video itself (not controls)
-                                const video = e.currentTarget;
-                                const target = e.target as HTMLElement;
-                                // Check if click is on video element itself, not controls
-                                if (target === video || target.tagName === 'VIDEO') {
-                                  if (video.paused) {
-                                    video.currentTime = startTime;
-                                    video.play().catch((err) => {
-                                      console.error("Error playing video:", err);
-                                    });
+                                const selectedClipId = selectedClips[videoResult.videoUrl];
+                                if (selectedClipId && clips.length > 0) {
+                                  const clip = clips.find(c => c.id === selectedClipId) || clips[0];
+                                  if (clip) {
+                                    const startTime = parseFloat(clip.startTime);
+                                    if (startTime >= 0 && startTime < video.duration) {
+                                      video.currentTime = startTime;
+                                    }
                                   }
+                                }
+                              }}
+                              ref={(video) => {
+                                if (video) {
+                                  video.setAttribute('webkit-playsinline', 'true');
+                                  videoRefs.current[videoResult.videoUrl] = video;
+                                } else {
+                                  delete videoRefs.current[videoResult.videoUrl];
                                 }
                               }}
                             />
-                            {/* Match badge - green pill */}
+                            {/* Match badge */}
                             {matchPercentage > 0 && (
-                              <div className="absolute top-3 left-3 bg-emerald-500 text-white text-xs font-semibold px-2.5 py-1 rounded-md flex items-center gap-1 z-10 pointer-events-none shadow-sm">
+                              <div className="absolute top-3 left-3 bg-purple-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg z-10 pointer-events-none shadow-lg backdrop-blur-sm border border-purple-500/30">
                                 {matchPercentage}% Match
                               </div>
                             )}
-                            {/* Duration badge - bottom right of thumbnail */}
-                            {startTime >= 0 && (
-                              <div className="absolute bottom-3 right-3 bg-black/75 text-white text-xs font-medium px-2 py-1 rounded-md z-10 pointer-events-none">
-                                {formatTime(endTime > 0 ? endTime : startTime)}
-                              </div>
-                            )}
-                            {/* Play overlay - only appears on hover when paused, below everything */}
-                            {!playingVideos.has(result.id) && (
-                              <div 
-                                className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer z-[1] pointer-events-none"
-                                style={{ zIndex: 1 }}
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  const video = e.currentTarget.parentElement?.querySelector('video') as HTMLVideoElement;
-                                  if (video && video.paused) {
-                                    video.currentTime = startTime;
-                                    video.play().catch((err) => {
-                                      console.error("Error playing video:", err);
-                                    });
-                                    setPlayingVideos(prev => new Set(prev).add(result.id));
-                                  }
-                                }}
-                                onMouseEnter={(e) => {
-                                  const video = e.currentTarget.parentElement?.querySelector('video') as HTMLVideoElement;
-                                  // Only enable if video is paused
-                                  if (video && video.paused) {
-                                    e.currentTarget.style.pointerEvents = 'auto';
-                                    e.currentTarget.style.zIndex = '10';
-                                  }
-                                }}
-                                onMouseLeave={(e) => {
-                                  e.currentTarget.style.pointerEvents = 'none';
-                                  e.currentTarget.style.zIndex = '10';
-                                }}
-                              >
-                                <div className="bg-purple-600/90 rounded-full p-3 hover:bg-purple-700/90 transition-colors pointer-events-auto">
-                                  <Play className="h-6 w-6 text-white fill-white" />
-                                </div>
+                            {/* Duration badge */}
+                            {videoDuration > 0 && (
+                              <div className="absolute bottom-3 right-3 bg-black/80 backdrop-blur-sm text-white text-xs font-medium px-2.5 py-1.5 rounded-lg z-10 pointer-events-none shadow-lg border border-white/10">
+                                {formatTime(videoDuration)}
                               </div>
                             )}
                           </>
@@ -1130,99 +1082,112 @@ export default function ImageSearch() {
                       {/* Content */}
                       <div className="flex-1 flex flex-col justify-between min-w-0 pr-6 sm:pr-8">
                         <div>
-                          <h3 className="text-sm sm:text-base md:text-lg font-bold text-gray-900 mb-1.5 sm:mb-2">
-                            {sceneSummary}
-                          </h3>
-                          {!compactMode && (
-                            <>
-                              <p className={`text-xs sm:text-sm text-gray-600 ${isExpanded ? "" : "line-clamp-3"} mb-2 sm:mb-3 leading-relaxed`}>
-                                {result.text}
+                          <div className="flex flex-col mb-1.5 sm:mb-2">
+                            <h3 className="text-sm sm:text-base md:text-lg font-bold text-gray-900">
+                              {videoTitle}
+                            </h3>
+                            {videoDuration > 0 && (
+                              <p className="text-xs text-gray-500 mt-0.5">
+                                Duration: {formatTime(videoDuration)}
                               </p>
-                              {result.text && result.text.length > 120 && (
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    toggleDescription(result.id);
-                                  }}
-                                  className="text-xs text-purple-600 hover:text-purple-700 active:text-purple-800 mb-2 sm:mb-3 flex items-center gap-1 cursor-pointer font-medium touch-manipulation"
-                                >
-                                  {isExpanded ? (
-                                    <>Show less <ChevronUp className="h-3 w-3" /></>
-                                  ) : (
-                                    <>Show more <ChevronDown className="h-3 w-3" /></>
-                                  )}
-                                </button>
-                              )}
-                              {/* Hashtags */}
-                              {!compactMode && (
-                                <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-3 sm:mb-4">
-                                  {extractHashtags(result.text).map((tag, idx) => (
-                                    <span
+                            )}
+                          </div>
+                          
+                          {/* Matches Section */}
+                          {clips.length > 0 && (
+                            <div className="mt-3 sm:mt-4 space-y-3">
+                              <div className="flex items-center gap-2">
+                                <span className="bg-purple-50 border border-purple-200 text-purple-700 rounded-full px-3 py-1 text-xs font-medium">
+                                  {clips.length} Matches
+                                </span>
+                                <span className="text-xs text-gray-600 font-medium">Found in this video</span>
+                              </div>
+                              
+                              {/* Progress Bar */}
+                              {videoDuration > 0 && (
+                                <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
+                                  {progressSegments.map((segment, idx) => (
+                                    <div
                                       key={idx}
-                                      className="px-2 sm:px-3 py-0.5 sm:py-1 text-xs border border-gray-200 text-gray-600 rounded-full hover:border-gray-300 active:border-gray-400 transition-colors touch-manipulation"
-                                    >
-                                      {tag}
-                                    </span>
+                                      className="absolute h-full bg-purple-600 rounded-full"
+                                      style={{
+                                        left: `${segment.startPercent}%`,
+                                        width: `${segment.widthPercent}%`,
+                                      }}
+                                    />
                                   ))}
                                 </div>
                               )}
-                            </>
+                              
+                              {/* Match Entries - Scrollable */}
+                              <div className="space-y-2 max-h-[150px] overflow-y-auto pr-2">
+                                {clips.map((clip, idx) => {
+                                  const startTime = parseFloat(clip.startTime);
+                                  const endTime = parseFloat(clip.endTime);
+                                  const clipScore = getMatchPercentage(clip.score);
+                                  const isSelected = selectedClips[videoResult.videoUrl] === clip.id;
+                                  
+                                  return (
+                                    <div 
+                                      key={clip.id} 
+                                      className={`flex items-start gap-2 p-2 rounded-lg transition-all duration-200 cursor-pointer group ${
+                                        isSelected 
+                                          ? 'bg-purple-50 border border-purple-200 hover:bg-purple-100 hover:border-purple-400 hover:shadow-md hover:scale-[1.02]' 
+                                          : 'bg-white border border-transparent hover:bg-purple-50 hover:border-purple-200 hover:shadow-md hover:scale-[1.02]'
+                                      }`}
+                                      onClick={() => handleClipClick(videoResult.videoUrl, clip.id, startTime, endTime)}
+                                    >
+                                      <div className="w-12 h-12 rounded-full bg-gray-200 flex-shrink-0 overflow-hidden">
+                                        <video
+                                          src={videoResult.videoUrl}
+                                          className="w-full h-full object-cover"
+                                          preload="metadata"
+                                          onLoadedMetadata={(e) => {
+                                            const video = e.currentTarget;
+                                            if (startTime > 0 && startTime < video.duration) {
+                                              video.currentTime = startTime;
+                                            }
+                                          }}
+                                        />
+                                      </div>
+                                      <div className="flex-1 min-w-0 flex items-center justify-between gap-2">
+                                        <div className="flex flex-col flex-1 min-w-0 gap-0.5">
+                                          <div className="flex items-center gap-2">
+                                            <Clock className={`h-3 w-3 flex-shrink-0 transition-colors duration-200 ${isSelected ? 'text-purple-600' : 'text-gray-400'}`} />
+                                            <span className={`text-xs font-medium transition-colors duration-200 ${isSelected ? 'text-purple-700' : 'text-gray-600'}`}>
+                                              {formatTime(startTime)} - {formatTime(endTime)}
+                                            </span>
+                                          </div>
+                                          <span className={`text-xs truncate transition-colors duration-200 ${isSelected ? 'text-purple-600' : 'text-gray-500'}`} title={videoTitle}>
+                                            {videoTitle}
+                                          </span>
+                                        </div>
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          className="h-7 w-7 flex-shrink-0 text-gray-500 hover:text-purple-600 hover:bg-purple-50 transition-all duration-200"
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (videoResult.videoUrl && startTime >= 0 && endTime > startTime) {
+                                              handleDownloadVideo(videoResult.videoUrl, startTime, endTime);
+                                            }
+                                          }}
+                                        >
+                                          <Download className="h-4 w-4" />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
                           )}
-                          
-                              </div>
-                        
-                        {/* Duration and Actions - Bottom aligned */}
-                        <div className="flex items-center justify-between mt-auto pt-2 sm:pt-3 border-t border-gray-100">
-                          <div className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-500">
-                            <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-400" />
-                            <span>{formatTime(startTime)}</span>
-                            <span className="text-gray-300">-</span>
-                            <span>{formatTime(endTime)}</span>
-                              </div>
-                          <div className="flex items-center gap-0.5 sm:gap-1">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 sm:h-8 sm:w-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100 active:bg-gray-200 rounded-lg touch-manipulation"
-                              title="Add to playlist"
-                            >
-                              <ListIcon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 sm:h-8 sm:w-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100 active:bg-gray-200 rounded-lg touch-manipulation"
-                              onClick={() => {
-                                if (result.videoUrl && startTime >= 0 && endTime > startTime) {
-                                  handleDownloadVideo(result.videoUrl, startTime, endTime);
-                                }
-                              }}
-                              disabled={!result.videoUrl || startTime < 0 || endTime <= startTime}
-                              title="Download"
-                            >
-                              <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 sm:h-8 sm:w-8 text-gray-400 hover:text-gray-600 hover:bg-gray-100 active:bg-gray-200 rounded-lg touch-manipulation"
-                              title="Share"
-                            >
-                              <Share2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                            </Button>
-                          </div>
                         </div>
                       </div>
                     </div>
-                </Card>
-                      );
-                    })}
-              </div>
-                  );
-                });
-              })()}
+                  </Card>
+                );
+              })}
             </div>
           ) : (
             <div className="text-center text-gray-400 py-12">
@@ -1232,7 +1197,7 @@ export default function ImageSearch() {
         )}
 
             {/* Load More Button */}
-            {hasResults && (mode === "video" ? videoResults.length > 0 : imageResults.length > 0) && (
+            {hasResults && (mode === "video" ? Object.keys(videoResults).length > 0 : imageResults.length > 0) && (
               <div className="py-8 flex justify-center">
                 <Button
                   variant="outline"
@@ -1260,7 +1225,7 @@ export default function ImageSearch() {
                 <div className="bg-gray-50 rounded-lg p-3">
                   <p className="text-xs text-gray-500 mb-1">Total Hits</p>
                   <p className="text-2xl font-bold text-gray-900">
-                    {(mode === "image" ? imageResults.length : videoResults.length).toLocaleString()}
+                    {(mode === "image" ? imageResults.length : Object.keys(videoResults).length).toLocaleString()}
                   </p>
                 </div>
                 <div className="bg-gray-50 rounded-lg p-3">
