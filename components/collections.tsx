@@ -29,6 +29,8 @@ interface CollectionItem {
   description?: string;
   createdAt?: string;
   collectionName: string;
+  duration?: number;
+  resolution?: string;
 }
 
 const ITEMS_PER_PAGE = 20;
@@ -113,6 +115,8 @@ export default function Collections() {
             description?: string;
             collectionName?: string;
             createdAt?: string;
+            duration?: number;
+            resolution?: string;
           }) => ({
             id: item.id,
             url: item.url,
@@ -120,6 +124,8 @@ export default function Collections() {
             description: item.description,
             collectionName: item.collectionName || "Default",
             createdAt: item.createdAt,
+            duration: item.duration,
+            resolution: item.resolution,
           }));
 
           if (append) {
@@ -274,6 +280,32 @@ export default function Collections() {
   const getFileExtension = (url: string) => {
     const ext = url.split('.').pop()?.split('?')[0]?.toUpperCase();
     return ext || "FILE";
+  };
+
+  const formatDuration = (seconds?: number): string => {
+    if (!seconds) return "N/A";
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const formatDate = (dateString?: string): string => {
+    if (!dateString) return "N/A";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch {
+      return "N/A";
+    }
+  };
+
+  const getFileType = (url: string, type: "image" | "video"): string => {
+    const ext = url.split('.').pop()?.split('?')[0]?.toLowerCase() || "";
+    const extUpper = ext.toUpperCase();
+    if (type === "video") {
+      return `Video (.${ext})`;
+    }
+    return `Image (.${ext})`;
   };
 
   if (isLoading) {
@@ -534,6 +566,36 @@ export default function Collections() {
                   <span className="text-xs text-purple-600 font-medium">{getFileExtension(item.url)}</span>
                 </div>
 
+                {/* Video Metadata Panel */}
+                {item.type === "video" && (item.duration || item.resolution) && (
+                  <div className="mb-2 p-2 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div>
+                        <span className="text-gray-500">File Type:</span>
+                        <div className="text-purple-600 font-medium">{getFileType(item.url, item.type)}</div>
+                      </div>
+                      {item.duration && (
+                        <div>
+                          <span className="text-gray-500">Duration:</span>
+                          <div className="text-purple-600 font-medium">{formatDuration(item.duration)}</div>
+                        </div>
+                      )}
+                      {item.resolution && (
+                        <div>
+                          <span className="text-gray-500">Resolution:</span>
+                          <div className="text-purple-600 font-medium">{item.resolution.replace('x', '×')}</div>
+                        </div>
+                      )}
+                      {item.createdAt && (
+                        <div>
+                          <span className="text-gray-500">Upload Date:</span>
+                          <div className="text-purple-600 font-medium">{formatDate(item.createdAt)}</div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* Description with copy */}
                 {item.description && (
                   <button
@@ -607,6 +669,37 @@ export default function Collections() {
                     <span className="text-gray-300">•</span>
                     <span>{item.type === "video" ? "Video" : "Image"}</span>
                   </div>
+                  
+                  {/* Video Metadata Panel */}
+                  {item.type === "video" && (item.duration || item.resolution) && (
+                    <div className="mb-2 p-2 bg-gray-50 rounded-lg border border-gray-200">
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <span className="text-gray-500">File Type:</span>
+                          <div className="text-purple-600 font-medium">{getFileType(item.url, item.type)}</div>
+                        </div>
+                        {item.duration && (
+                          <div>
+                            <span className="text-gray-500">Duration:</span>
+                            <div className="text-purple-600 font-medium">{formatDuration(item.duration)}</div>
+                          </div>
+                        )}
+                        {item.resolution && (
+                          <div>
+                            <span className="text-gray-500">Resolution:</span>
+                            <div className="text-purple-600 font-medium">{item.resolution.replace('x', '×')}</div>
+                          </div>
+                        )}
+                        {item.createdAt && (
+                          <div>
+                            <span className="text-gray-500">Upload Date:</span>
+                            <div className="text-purple-600 font-medium">{formatDate(item.createdAt)}</div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   {item.description && (
                     <button
                       onClick={() => copyDescription(item.id, item.description!)}
