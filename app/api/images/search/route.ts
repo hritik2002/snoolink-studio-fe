@@ -5,6 +5,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get("query");
+    const collection = searchParams.get("collection"); // Get collection parameter
 
     if (!query || typeof query !== "string" || !query.trim()) {
       return NextResponse.json(
@@ -22,10 +23,17 @@ export async function GET(request: NextRequest) {
     }
 
     const backendUrl =
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+
+    // Build query string with optional collection parameter
+    const params = new URLSearchParams();
+    params.append("query", query);
+    if (collection) {
+      params.append("collection", collection);
+    }
 
     const response = await fetch(
-      `${backendUrl}/api/media/search-images?query=${encodeURIComponent(query)}`,
+      `${backendUrl}/api/media/search-images?${params.toString()}`,
       {
         method: "GET",
         headers: {
