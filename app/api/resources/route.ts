@@ -13,14 +13,14 @@ export async function GET(request: NextRequest) {
 
     // Get query params
     const searchParams = request.nextUrl.searchParams;
-    const collection = searchParams.get("collection");
+    const collection = searchParams.get("collections");
     const type = searchParams.get("type");
     const limit = searchParams.get("limit") || "20";
     const offset = searchParams.get("offset") || "0";
 
     // Build query string
     const params = new URLSearchParams();
-    if (collection) params.append("collection", collection);
+    if (collection) params.append("collections", collection);
     if (type) params.append("type", type);
     params.append("limit", limit);
     params.append("offset", offset);

@@ -5,7 +5,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const query = searchParams.get("query");
-    const collection = searchParams.get("collection"); // Get collection parameter
+    const collection = searchParams.get("collections"); // Get collection parameter
 
     if (!query || typeof query !== "string" || !query.trim()) {
       return NextResponse.json(
@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
     const params = new URLSearchParams();
     params.append("query", query);
     if (collection) {
-      params.append("collection", collection);
+      params.append("collections", collection);
     }
 
     const response = await fetch(
