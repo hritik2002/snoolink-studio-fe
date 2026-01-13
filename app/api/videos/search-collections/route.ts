@@ -56,7 +56,6 @@ export async function GET(request: NextRequest) {
     const data = await response.json();
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Error in video search collections route:", error);
     return NextResponse.json(
       { success: false, error: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }

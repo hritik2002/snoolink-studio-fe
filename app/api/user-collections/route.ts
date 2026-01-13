@@ -27,7 +27,6 @@ export async function GET() {
     const data = await response.json();
     return NextResponse.json(data);
   } catch (error) {
-    console.error("Error fetching user collections:", error);
     return NextResponse.json(
       { success: false, error: error instanceof Error ? error.message : "Unknown error" },
       { status: 500 }

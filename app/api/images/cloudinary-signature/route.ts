@@ -9,7 +9,6 @@ cloudinary.config({
 });
 
 export async function POST(request: Request) {
-  console.log("request", request);
   const token = await getAuthToken();
   if (!token) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
