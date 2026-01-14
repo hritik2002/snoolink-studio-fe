@@ -97,7 +97,7 @@ export default function Collections() {
 
     try {
       const params = new URLSearchParams();
-      params.append("collection", collection);
+      params.append("collections", collection);
       params.append("limit", ITEMS_PER_PAGE.toString());
       params.append("offset", currentOffset.toString());
       if (type !== "all") {
