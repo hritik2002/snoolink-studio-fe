@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Loader2, Save, User as UserIcon } from "lucide-react";
+import { ProfileSkeleton } from "@/components/skeletons";
 
 interface UserProfile {
   name?: string;
@@ -89,33 +90,29 @@ export default function Profile() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <Loader2 className="h-8 w-8 animate-spin text-white/60" />
-      </div>
-    );
+    return <ProfileSkeleton />;
   }
 
   return (
     <div className="flex-1 flex flex-col h-full w-full max-w-2xl mx-auto py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-light text-white mb-2">Profile</h1>
-        <p className="text-white/60 text-sm">
+        <h1 className="text-3xl font-light text-gray-900 mb-2">Profile</h1>
+        <p className="text-gray-600 text-sm">
           Manage your account information
         </p>
       </div>
 
-      <Card className="bg-[#1a1a1a] border-white/10 p-6">
+      <Card className="bg-white border border-gray-200 p-6 shadow-sm">
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="flex items-center gap-4 mb-6 pb-6 border-b border-white/10">
-            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-white/10">
-              <UserIcon className="h-8 w-8 text-white/80" />
+          <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-200">
+            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-purple-100">
+              <UserIcon className="h-8 w-8 text-purple-600" />
             </div>
             <div>
-              <h2 className="text-xl font-medium text-white">
+              <h2 className="text-xl font-medium text-gray-900">
                 {profile.name || user?.email?.split("@")[0] || "User"}
               </h2>
-              <p className="text-sm text-white/60">{user?.email}</p>
+              <p className="text-sm text-gray-500">{user?.email}</p>
             </div>
           </div>
 
@@ -123,7 +120,7 @@ export default function Profile() {
             <div className="space-y-2">
               <label
                 htmlFor="name"
-                className="text-sm font-medium text-white/80"
+                className="text-sm font-medium text-gray-700"
               >
                 Full Name
               </label>
@@ -135,14 +132,14 @@ export default function Profile() {
                 onChange={(e) =>
                   setProfile((prev) => ({ ...prev, name: e.target.value }))
                 }
-                className="bg-white/5 border-white/10 text-white"
+                className="bg-gray-50 border-gray-200 text-gray-900"
               />
             </div>
 
             <div className="space-y-2">
               <label
                 htmlFor="email"
-                className="text-sm font-medium text-white/80"
+                className="text-sm font-medium text-gray-700"
               >
                 Email
               </label>
@@ -154,24 +151,23 @@ export default function Profile() {
                 onChange={(e) =>
                   setProfile((prev) => ({ ...prev, email: e.target.value }))
                 }
-                className="bg-white/5 border-white/10 text-white"
+                className="bg-gray-50 border-gray-200 text-gray-500"
                 disabled
               />
-              <p className="text-xs text-white/40">
-                Email cannot be changed. Contact support if you need to update
-                it.
+              <p className="text-xs text-gray-500">
+                Managed via Google. Email cannot be changed here.
               </p>
             </div>
           </div>
 
           {error && (
-            <div className="text-red-400 text-sm bg-red-500/10 border border-red-500/20 rounded-md p-3">
+            <div className="text-red-700 text-sm bg-red-50 border border-red-200 rounded-md p-3">
               {error}
             </div>
           )}
 
           {success && (
-            <div className="text-green-400 text-sm bg-green-500/10 border border-green-500/20 rounded-md p-3">
+            <div className="text-green-700 text-sm bg-green-50 border border-green-200 rounded-md p-3">
               {success}
             </div>
           )}
@@ -179,7 +175,7 @@ export default function Profile() {
           <Button
             type="submit"
             disabled={saving}
-            className="w-full bg-white text-black hover:bg-white/90"
+            className="w-full bg-purple-600 hover:bg-purple-700 text-white"
           >
             {saving ? (
               <>

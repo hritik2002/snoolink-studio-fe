@@ -33,7 +33,9 @@ export async function GET(request: Request) {
     }
   }
 
-  // URL to redirect to after sign in process completes
-  return NextResponse.redirect(`${origin}/`);
+  // Redirect to ?next= when provided (e.g. /upload, /?view=collections) so deep links work
+  const next = requestUrl.searchParams.get("next") || requestUrl.searchParams.get("redirect");
+  const dest = next && next.startsWith("/") ? `${origin}${next}` : `${origin}/`;
+  return NextResponse.redirect(dest);
 }
 

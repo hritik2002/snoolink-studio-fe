@@ -13,7 +13,12 @@ export function LoginForm() {
     setError(null);
 
     try {
-      const redirectTo = `${window.location.origin}/auth/callback`;
+      const next = typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("next") || new URLSearchParams(window.location.search).get("redirect") || ""
+        : "";
+      const redirectTo = next && next.startsWith("/")
+        ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`
+        : `${window.location.origin}/auth/callback`;
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",

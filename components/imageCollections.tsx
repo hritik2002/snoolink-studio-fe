@@ -1,15 +1,20 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { 
-  Upload, Loader2, Video, CloudUpload, Folder, 
+  Loader2, Video, CloudUpload, Folder, 
   CheckCircle2, Clock, AlertCircle, ChevronRight, X,
-  Filter, CheckSquare, Square, Trash2, RotateCcw, FileUp, ExternalLink, Plus
+  Filter, CheckSquare, Square, Trash2, RotateCcw, FileUp, ExternalLink, Plus,
+  Camera, FolderUp, Sparkles, Play
 } from "lucide-react";
+import { UploadsListSkeleton } from "@/components/skeletons";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
 import { useToast } from "@/lib/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 import { createClient } from "@/lib/supabase/client";
 import axios from "axios";
 import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
@@ -40,6 +45,23 @@ interface UserCollection {
 
 type FilterStatus = "all" | "processing" | "failed";
 
+function suggestCollectionForFiles(files: File[], collections: UserCollection[]): string | null {
+  if (files.length === 0 || collections.length === 0) return null;
+  const names = files.map((f) => f.name.replace(/\.[^/.]+$/, "").toLowerCase().split(/[\s_\-.,]+/)).flat();
+  const seen = new Set<string>();
+  for (const c of collections) {
+    const tokens = c.name.toLowerCase().split(/[\s_\-.,]+/);
+    for (const t of tokens) {
+      if (t.length < 3) continue;
+      if (names.some((n) => n.includes(t) || t.includes(n))) {
+        seen.add(c.name);
+        break;
+      }
+    }
+  }
+  return seen.size > 0 ? Array.from(seen)[0] : null;
+}
+
 export default function ImageCollections() {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -51,6 +73,9 @@ export default function ImageCollections() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set());
+  const [selectedFileCount, setSelectedFileCount] = useState(0);
+  const [showPulse, setShowPulse] = useState(true);
+  const dropZoneRef = useRef<HTMLDivElement>(null);
   const [isProcessingAction, setIsProcessingAction] = useState(false);
   const [collections, setCollections] = useState<UserCollection[]>([]);
   const [selectedCollection, setSelectedCollection] = useState<string>("Default");
@@ -58,8 +83,34 @@ export default function ImageCollections() {
   const [showCreateCollectionModal, setShowCreateCollectionModal] = useState(false);
   const [newCollectionName, setNewCollectionName] = useState("");
   const [isCreatingCollection, setIsCreatingCollection] = useState(false);
+  const [tourStep, setTourStep] = useState<number | null>(null);
+  const [suggestedCollection, setSuggestedCollection] = useState<string | null>(null);
+  const [recentUploads, setRecentUploads] = useState<{ url: string; collectionName: string; type: string }[]>([]);
+  const [uploadProgress, setUploadProgress] = useState<{
+    files: { id: string; name: string; type: string; previewUrl: string; status: "pending" | "uploading" | "embedding" | "queuing" | "done" | "failed"; progress: number; error?: string }[];
+    phase: "uploading" | "embedding" | "queuing" | "done";
+    done: number;
+    total: number;
+    failed: number;
+    failedFiles: File[];
+    isPaused: boolean;
+  } | null>(null);
+  const isPausedRef = useRef(false);
+  const folderInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const [supportsFolderUpload, setSupportsFolderUpload] = useState(false);
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
   const hasAssets = files.length > 0;
+
+  // Pre-select collection when arriving via ?collection= (e.g. from Collections "Upload to X")
+  useEffect(() => {
+    const c = searchParams.get("collection");
+    if (c && collections.some((col) => col.name === c)) {
+      setSelectedCollection(c);
+    }
+  }, [searchParams, collections]);
 
   // Fetch user collections for the dropdown
   const fetchUserCollections = useCallback(async () => {
@@ -73,6 +124,26 @@ export default function ImageCollections() {
           // If no collections exist, Default will be used
           if (data.data.length === 0) {
             setCollections([{ name: "Default", imageCount: 0, videoCount: 0 }]);
+          }
+          
+          // Fetch recent uploads from the first non-empty collection for teaser
+          const nonEmptyCollection = data.data.find((c: UserCollection) => (c.imageCount + c.videoCount) > 0);
+          if (nonEmptyCollection) {
+            try {
+              const recentResponse = await fetch(`/api/collections/${encodeURIComponent(nonEmptyCollection.name)}/resources?limit=4`);
+              if (recentResponse.ok) {
+                const recentData = await recentResponse.json();
+                if (recentData.success && recentData.data.length > 0) {
+                  setRecentUploads(recentData.data.slice(0, 4).map((item: any) => ({
+                    url: item.url,
+                    collectionName: nonEmptyCollection.name,
+                    type: item.type || 'image'
+                  })));
+                }
+              }
+            } catch (err) {
+              console.error("Error fetching recent uploads:", err);
+            }
           }
         }
       }
@@ -194,11 +265,41 @@ export default function ImageCollections() {
     fetchUserCollections();
   }, [fetchCollections, fetchUserCollections]);
 
+  useEffect(() => {
+    setSupportsFolderUpload(typeof document !== "undefined" && "webkitdirectory" in document.createElement("input"));
+    
+    // Stop pulse after 6 seconds (3 cycles)
+    const timer = setTimeout(() => setShowPulse(false), 6000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Confetti animation
+  const triggerConfetti = useCallback(() => {
+    const colors = ["#a855f7", "#9333ea", "#7e22ce", "#6b21a8", "#581c87"];
+    const confettiCount = 50;
+    
+    for (let i = 0; i < confettiCount; i++) {
+      const confetti = document.createElement("div");
+      confetti.className = "confetti-piece";
+      confetti.style.left = `${Math.random() * 100}%`;
+      confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+      confetti.style.animationDelay = `${Math.random() * 0.5}s`;
+      confetti.style.animationDuration = `${2 + Math.random() * 2}s`;
+      document.body.appendChild(confetti);
+      
+      setTimeout(() => confetti.remove(), 4000);
+    }
+  }, []);
+
   // Image upload handler
   const handleImageUpload = useCallback(
-    async (imageFiles: File[]) => {
+    async (
+      imageFiles: File[],
+      onProgress?: (p: { phase: string; done: number; total: number; failed: number; failedFiles?: File[] }) => void
+    ) => {
       const imageCount = imageFiles.length;
       setIsUploading(true);
+      const failedFilesList: File[] = [];
 
       const processingToast = toast({
         title: "Uploading images",
@@ -305,7 +406,11 @@ export default function ImageCollections() {
         };
 
         for (let i = 0; i < imageFiles.length; i += BATCH_SIZE) {
+          while (isPausedRef.current) {
+            await new Promise((r) => setTimeout(r, 300));
+          }
           const batch = imageFiles.slice(i, i + BATCH_SIZE);
+          onProgress?.({ phase: "uploading", done: uploadedCount, total: imageCount, failed: errors.length });
           processingToast.update({
             title: "Uploading images",
             description: `${uploadedCount}/${imageCount} images uploaded...`,
@@ -313,29 +418,49 @@ export default function ImageCollections() {
 
           const batchResults = await Promise.allSettled(batch.map((file) => uploadSingleFile(file)));
           batchResults.forEach((result, index) => {
-            if (result.status === "fulfilled") { urls.push(result.value); uploadedCount++; }
-            else { errors.push(`${batch[index].name}: ${result.reason instanceof Error ? result.reason.message : String(result.reason)}`); }
+            if (result.status === "fulfilled") {
+              urls.push(result.value);
+              uploadedCount++;
+            } else {
+              errors.push(`${batch[index].name}: ${result.reason instanceof Error ? result.reason.message : String(result.reason)}`);
+              failedFilesList.push(batch[index]);
+            }
           });
+          onProgress?.({ phase: "uploading", done: uploadedCount, total: imageCount, failed: errors.length, failedFiles: failedFilesList });
 
           if (i + BATCH_SIZE < imageFiles.length) await new Promise((resolve) => setTimeout(resolve, 500));
         }
 
         if (urls.length > 0) {
+          onProgress?.({ phase: "embedding", done: 0, total: urls.length, failed: errors.length });
           processingToast.update({ title: "Processing images", description: `Embedding ${urls.length} images...` });
           for (let i = 0; i < urls.length; i += EMBED_BATCH_SIZE) {
             const urlBatch = urls.slice(i, i + EMBED_BATCH_SIZE);
             await axios.post("/api/images/embed", { urls: urlBatch, collectionName: selectedCollection });
+            onProgress?.({ phase: "embedding", done: Math.min(i + EMBED_BATCH_SIZE, urls.length), total: urls.length, failed: errors.length });
             if (i + EMBED_BATCH_SIZE < urls.length) await new Promise((resolve) => setTimeout(resolve, 300));
           }
         }
 
+        onProgress?.({ phase: "done", done: uploadedCount, total: imageCount, failed: errors.length, failedFiles: failedFilesList });
         processingToast.dismiss();
         if (errors.length > 0 && urls.length === 0) {
           toast({ title: "Upload failed", description: "All images failed to upload.", variant: "destructive" });
         } else if (errors.length > 0) {
-          toast({ title: "Partial success", description: `${urls.length} images uploaded. ${errors.length} failed.`, variant: "default" });
+          toast({
+            title: "Partial success",
+            description: `${urls.length} images uploaded. ${errors.length} failed.`,
+            variant: "default",
+            action: <ToastAction altText="Try searching" onClick={() => router.push("/?view=search")}>Try searching →</ToastAction>,
+          });
         } else {
-          toast({ title: "Images uploaded", description: `Successfully uploaded ${urls.length} image${urls.length !== 1 ? "s" : ""}`, variant: "success" });
+          triggerConfetti();
+          toast({
+            title: "Images uploaded",
+            description: "Searchable in a moment. Try searching.",
+            variant: "success",
+            action: <ToastAction altText="Try searching" onClick={() => router.push("/?view=search")}>Try searching →</ToastAction>,
+          });
         }
       } catch (error) {
         console.error("Error uploading images:", error);
@@ -348,8 +473,12 @@ export default function ImageCollections() {
 
   // Video upload handler
   const handleVideoUpload = useCallback(
-    async (videoFiles: File[]) => {
+    async (
+      videoFiles: File[],
+      onProgress?: (p: { phase: string; done: number; total: number; failed: number; failedFiles?: File[] }) => void
+    ) => {
       const totalVideos = videoFiles.length;
+      onProgress?.({ phase: "uploading", done: 0, total: totalVideos, failed: 0 });
 
       const processingToast = toast({
         title: "Uploading videos",
@@ -405,9 +534,14 @@ export default function ImageCollections() {
         const uploadResults = await Promise.all(uploadPromises);
         const successfulUploads = uploadResults.filter((r) => r.success);
         const failedUploads = uploadResults.filter((r) => !r.success);
+        const failedFilesList = failedUploads
+          .map((fu) => videoFiles.find((vf) => vf.name === fu.fileName))
+          .filter((f): f is File => !!f);
+        onProgress?.({ phase: "uploading", done: successfulUploads.length, total: totalVideos, failed: failedUploads.length, failedFiles: failedFilesList });
 
         if (successfulUploads.length === 0) throw new Error("All video uploads failed");
 
+        onProgress?.({ phase: "queuing", done: successfulUploads.length, total: totalVideos, failed: failedUploads.length });
         processingToast.update({ title: "Queueing videos", description: `Queueing ${successfulUploads.length} video(s) for processing...` });
 
         const processPromises = successfulUploads.map(async (uploadResult) => {
@@ -426,13 +560,35 @@ export default function ImageCollections() {
 
         const processResults = await Promise.all(processPromises);
         const successfulProcesses = processResults.filter((r) => r.success);
+        const processFailedFiles = processResults
+          .filter((r) => !r.success)
+          .map((r) => videoFiles.find((vf) => vf.name === (r as { fileName?: string }).fileName))
+          .filter((f): f is File => !!f);
         const totalFailed = failedUploads.length + processResults.filter((r) => !r.success).length;
+        onProgress?.({
+          phase: "done",
+          done: successfulProcesses.length,
+          total: totalVideos,
+          failed: totalFailed,
+          failedFiles: [...failedFilesList, ...processFailedFiles],
+        });
 
         processingToast.dismiss();
         if (totalFailed === 0) {
-          toast({ title: "Videos queued!", description: `${successfulProcesses.length} video(s) queued for processing`, variant: "success" });
+          triggerConfetti();
+          toast({
+            title: "Videos queued",
+            description: "Searchable in ~1 min. Try searching →",
+            variant: "success",
+            action: <ToastAction altText="Try searching" onClick={() => router.push("/?view=search")}>Try searching →</ToastAction>,
+          });
         } else if (successfulProcesses.length > 0) {
-          toast({ title: "Partial success", description: `${successfulProcesses.length} video(s) queued. ${totalFailed} failed.`, variant: "default" });
+          toast({
+            title: "Partial success",
+            description: `${successfulProcesses.length} video(s) queued. ${totalFailed} failed.`,
+            variant: "default",
+            action: <ToastAction altText="Try searching" onClick={() => router.push("/?view=search")}>Try searching →</ToastAction>,
+          });
         }
 
         if (fileInputRef.current) fileInputRef.current.value = "";
@@ -447,10 +603,10 @@ export default function ImageCollections() {
 
   // Unified file upload handler - automatically detects file type
   const handleFileUpload = useCallback(
-    async (fileList: FileList | File[]) => {
+    async (fileList: FileList | File[], forRetry?: boolean) => {
       const allFiles = Array.from(fileList);
-      const imageFiles = allFiles.filter((file) => file.type.startsWith("image/"));
-      const videoFiles = allFiles.filter((file) => file.type.startsWith("video/"));
+      const imageFiles = allFiles.filter((f) => f.type.startsWith("image/"));
+      const videoFiles = allFiles.filter((f) => f.type.startsWith("video/"));
 
       if (imageFiles.length === 0 && videoFiles.length === 0) {
         toast({
@@ -461,27 +617,86 @@ export default function ImageCollections() {
         return;
       }
 
-      setIsUploading(true);
-      try {
-        // Upload images and videos in parallel
-        const uploadPromises: Promise<void>[] = [];
-        
-        if (imageFiles.length > 0) {
-          uploadPromises.push(handleImageUpload(imageFiles));
-        }
-        
-        if (videoFiles.length > 0) {
-          uploadPromises.push(handleVideoUpload(videoFiles));
-        }
+      if (!forRetry) {
+        const sug = suggestCollectionForFiles(allFiles, collections);
+        setSuggestedCollection(sug);
+      }
 
-        await Promise.all(uploadPromises);
+      const total = imageFiles.length + videoFiles.length;
+      const previewFiles = allFiles.map((f, i) => ({
+        id: `up-${Date.now()}-${i}`,
+        name: f.name,
+        type: f.type,
+        previewUrl: URL.createObjectURL(f),
+        status: "pending" as const,
+        progress: 0,
+      }));
+      setUploadProgress({
+        files: previewFiles,
+        phase: "uploading",
+        done: 0,
+        total,
+        failed: 0,
+        failedFiles: [],
+        isPaused: false,
+      });
+      setIsUploading(true);
+      isPausedRef.current = false;
+
+      const onProgressImage = (p: { phase: string; done: number; total: number; failed: number; failedFiles?: File[] }) => {
+        setUploadProgress((prev) => {
+          if (!prev) return null;
+          const merged = [...prev.failedFiles, ...(p.failedFiles || [])];
+          return {
+            ...prev,
+            phase: p.phase as "uploading" | "embedding" | "queuing" | "done",
+            done: p.done,
+            total,
+            failed: merged.length,
+            failedFiles: merged,
+          };
+        });
+      };
+      const onProgressVideo = (p: { phase: string; done: number; total: number; failed: number; failedFiles?: File[] }) => {
+        setUploadProgress((prev) => {
+          if (!prev) return null;
+          const merged = [...prev.failedFiles, ...(p.failedFiles || [])];
+          return {
+            ...prev,
+            phase: (p.phase === "queuing" ? "queuing" : p.phase) as "uploading" | "embedding" | "queuing" | "done",
+            done: imageFiles.length + p.done,
+            total,
+            failed: merged.length,
+            failedFiles: merged,
+          };
+        });
+      };
+
+      try {
+        if (imageFiles.length > 0) {
+          await handleImageUpload(imageFiles, onProgressImage);
+        }
+        if (videoFiles.length > 0) {
+          await handleVideoUpload(videoFiles, onProgressVideo);
+        }
       } finally {
         setIsUploading(false);
         fetchCollections();
+        setUploadProgress((prev) => (prev ? { ...prev, phase: "done" } : null));
+        setTimeout(() => {
+          setUploadProgress(null);
+          previewFiles.forEach((f) => URL.revokeObjectURL(f.previewUrl));
+        }, 2500);
       }
     },
-    [handleImageUpload, handleVideoUpload, toast, fetchCollections]
+    [handleImageUpload, handleVideoUpload, toast, fetchCollections, collections]
   );
+
+  const handleRetryFromProgress = useCallback(() => {
+    const failed = uploadProgress?.failedFiles ?? [];
+    setUploadProgress(null);
+    if (failed.length > 0) handleFileUpload(failed, true);
+  }, [uploadProgress?.failedFiles, handleFileUpload]);
 
   const handleDrop = useCallback(
     (e: React.DragEvent<HTMLDivElement>) => {
@@ -508,10 +723,48 @@ export default function ImageCollections() {
   const handleFileSelect = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       e.preventDefault();
-      const selectedFiles = e.target.files;
-      if (selectedFiles && selectedFiles.length > 0) {
-        handleFileUpload(selectedFiles);
+      const selected = e.target.files;
+      if (selected && selected.length > 0) {
+        setSelectedFileCount(selected.length);
+        setTimeout(() => setSelectedFileCount(0), 3000);
+        handleFileUpload(selected);
       }
+      e.target.value = "";
+    },
+    [handleFileUpload]
+  );
+
+  const handleFolderSelect = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      e.preventDefault();
+      const selected = e.target.files;
+      if (selected && selected.length > 0) {
+        const arr = Array.from(selected).filter(
+          (f) => f.type.startsWith("image/") || f.type.startsWith("video/")
+        );
+        if (arr.length > 0) {
+          setSelectedFileCount(arr.length);
+          setTimeout(() => setSelectedFileCount(0), 3000);
+          handleFileUpload(arr);
+        } else {
+          toast({ title: "No media in folder", description: "Select a folder with images or videos.", variant: "destructive" });
+        }
+      }
+      e.target.value = "";
+    },
+    [handleFileUpload, toast]
+  );
+
+  const handleCameraSelect = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      e.preventDefault();
+      const selected = e.target.files;
+      if (selected && selected.length > 0) {
+        setSelectedFileCount(selected.length);
+        setTimeout(() => setSelectedFileCount(0), 3000);
+        handleFileUpload(selected);
+      }
+      e.target.value = "";
     },
     [handleFileUpload]
   );
@@ -653,7 +906,11 @@ export default function ImageCollections() {
               </div>
             ) : (
               <p className="text-gray-600 text-xs sm:text-sm md:text-base">
-                Upload new files or monitor processing status. Completed files appear in Collections.
+                Processing and failed jobs. Ready files appear in{" "}
+                <Link href="/?view=collections" className="text-purple-600 hover:text-purple-700 font-medium underline underline-offset-2">
+                  Collections
+                </Link>
+                .
               </p>
             )}
       </div>
@@ -664,28 +921,72 @@ export default function ImageCollections() {
       {(!hasAssets || showUploadZone) && (
         <div className="mb-4 sm:mb-6">
           <div
-            className={`p-4 sm:p-6 md:p-8 border-2 border-dashed rounded-lg sm:rounded-xl transition-all ${
+            ref={dropZoneRef}
+            className={`relative p-4 sm:p-6 md:p-8 border-2 border-dashed rounded-lg sm:rounded-xl transition-all ${
               isDragActive
-                ? "border-purple-500 bg-purple-50 border-solid scale-[1.01]"
-                : "border-gray-300 bg-gray-50 hover:border-purple-400 hover:bg-purple-50/30"
-            }`}
-        onDrop={handleDrop}
-        onDragOver={handleDragOver}
+                ? "border-purple-500 bg-purple-50 border-solid scale-[1.01] ring-4 ring-purple-400/40 dropzone-active"
+                : `border-purple-400 bg-gray-50/50 hover:border-purple-500 hover:bg-purple-50/40 hover:ring-2 hover:ring-purple-300/50 ${showPulse ? "dropzone-pulse" : ""}`
+            } focus-within:ring-2 focus-within:ring-purple-400 focus-within:border-purple-500`}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
-      >
-        <div className="flex flex-col items-center justify-center text-center">
-              <div className={`mb-2 sm:mb-3 p-2 sm:p-3 rounded-full bg-purple-100 transition-transform ${isDragActive ? "scale-110" : ""}`}>
-                <FileUp className={`h-6 w-6 sm:h-8 sm:w-8 text-purple-600 ${isDragActive ? "animate-bounce" : ""}`} />
+            tabIndex={0}
+            role="button"
+            aria-label="Upload files by clicking or dragging them here"
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                fileInputRef.current?.click();
+              }
+            }}
+          >
+            {/* Drop here overlay */}
+            {isDragActive && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-purple-100/90 backdrop-blur-sm rounded-lg sm:rounded-xl">
+                <div className="text-center">
+                  <FileUp className="h-16 w-16 text-purple-600 mx-auto mb-3 animate-bounce" />
+                  <p className="text-xl sm:text-2xl font-bold text-purple-900">Drop here!</p>
+                  <p className="text-sm text-purple-700 mt-1">Release to upload files</p>
+                </div>
               </div>
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-1">
+            )}
+        <div className="flex flex-col items-center justify-center text-center">
+              <div className={`mb-2 sm:mb-3 p-3 sm:p-4 rounded-full bg-purple-100 transition-transform ${isDragActive ? "scale-110" : ""}`}>
+                <FileUp className={`h-7 w-7 sm:h-9 sm:w-9 text-purple-600 ${isDragActive ? "animate-bounce" : ""}`} />
+              </div>
+              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
                 Upload Files
           </h3>
-              <p className="text-gray-600 text-xs sm:text-sm mb-1 max-w-md px-2">
+              <p className="text-gray-700 text-sm sm:text-base mb-2 max-w-md px-2 font-medium">
                 Drag and drop images or videos here, or click to select from your computer.
               </p>
-              <p className="text-xs text-gray-500 mb-3 sm:mb-4 px-2">
-                Supports JPG, PNG, HEIC, MP4, MOV, AVI · Auto-indexed for semantic search
-              </p>
+              
+              {/* File restrictions */}
+              <div className="mb-3 px-3 py-2 bg-white border border-purple-200 rounded-lg max-w-md">
+                <p className="text-xs text-gray-600 mb-1">
+                  <span className="font-semibold text-purple-700">Accepted:</span> JPG, PNG, HEIC, WebP, MP4, MOV, AVI, WebM
+                </p>
+                <p className="text-xs text-gray-500">
+                  <span className="font-semibold">Max size:</span> 100MB per file · <span className="font-semibold">Auto-indexed</span> for semantic search
+                </p>
+              </div>
+              
+              {/* Selected file count indicator */}
+              {selectedFileCount > 0 && (
+                <div className="mb-3 px-4 py-2 bg-purple-600 text-white rounded-full text-sm font-semibold animate-in fade-in slide-in-from-bottom-2">
+                  {selectedFileCount} file{selectedFileCount !== 1 ? "s" : ""} selected
+                </div>
+              )}
+              {suggestedCollection && (
+                <button
+                  type="button"
+                  onClick={() => { setSelectedCollection(suggestedCollection); setSuggestedCollection(null); }}
+                  className="mb-3 sm:mb-4 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Suggested: {suggestedCollection}
+                </button>
+              )}
 
               {/* Collection Selector */}
               <div className="flex flex-col sm:flex-row items-center gap-2 mb-3 sm:mb-4 w-full sm:w-auto">
@@ -739,70 +1040,321 @@ export default function ImageCollections() {
                   </SelectContent>
                 </Select>
               </div>
+              {(collections.length === 0 || (collections.length === 1 && collections[0].name === "Default")) && (
+                <p className="text-xs text-gray-500 mb-3 text-center">Default is a catch‑all when you have no collections. Create one to organize.</p>
+              )}
 
-          <Button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading}
-                className="bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white w-full sm:w-auto touch-manipulation"
-          >
-            {isUploading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    <span className="hidden sm:inline">Uploading...</span>
-                    <span className="sm:hidden">Uploading</span>
-              </>
-            ) : (
-              <>
-                      <Folder className="h-4 w-4 mr-2" />
-                    Select Files
-              </>
-            )}
-          </Button>
-          <input
-            ref={fileInputRef}
-            type="file"
+              <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+                <Button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  size="lg"
+                  className="bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white touch-manipulation font-semibold text-base px-6 py-3 h-12"
+                >
+                  {isUploading ? (
+                    <>
+                      <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+                      <span className="hidden sm:inline">Uploading...</span>
+                      <span className="sm:hidden">Uploading</span>
+                    </>
+                  ) : (
+                    <>
+                      <Folder className="h-5 w-5 mr-2" />
+                      Select Files
+                    </>
+                  )}
+                </Button>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-500 hidden sm:inline font-medium">Also:</span>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => folderInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="border-gray-300 touch-manipulation h-10 w-10"
+                    title="Upload a whole folder (supported in Chrome, Edge)"
+                    aria-label="Upload folder"
+                  >
+                    <FolderUp className="h-5 w-5 text-purple-600" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    onClick={() => cameraInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="border-gray-300 touch-manipulation h-10 w-10"
+                    title="Take photo or record video (mobile)"
+                    aria-label="Take photo or record video"
+                  >
+                    <Camera className="h-5 w-5 text-purple-600" />
+                  </Button>
+                </div>
+              </div>
+              <input
+                ref={fileInputRef}
+                type="file"
                 accept="image/*,video/*"
-            multiple
-            className="hidden"
-            onChange={handleFileSelect}
-          />
-        </div>
-      </div>
+                multiple
+                className="hidden"
+                onChange={handleFileSelect}
+              />
+              <input
+                ref={folderInputRef}
+                type="file"
+                multiple
+                className="hidden"
+                onChange={handleFolderSelect}
+                {...(supportsFolderUpload ? { webkitDirectory: true } : {})}
+              />
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*,video/*"
+                capture="environment"
+                className="hidden"
+                onChange={handleCameraSelect}
+              />
+            </div>
+          </div>
         </div>
       )}
 
-      {/* Filters - Always visible */}
-      <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      {/* Upload progress panel */}
+      {uploadProgress && (
+        <div className="mb-4 sm:mb-6 p-4 rounded-xl border border-purple-200 bg-purple-50/50">
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <span className="text-sm font-medium text-gray-900">
+              {uploadProgress.phase === "embedding"
+                ? "Indexing for search…"
+                : uploadProgress.phase === "queuing"
+                  ? "Queueing videos…"
+                  : uploadProgress.phase === "done"
+                    ? "Done"
+                    : "Uploading…"}
+            </span>
+            <span className="text-xs text-gray-600">
+              {uploadProgress.done}/{uploadProgress.total}
+              {uploadProgress.failed > 0 && ` · ${uploadProgress.failed} failed`}
+            </span>
+          </div>
+          {(uploadProgress.phase === "embedding" || uploadProgress.phase === "queuing") && (
+            <p className="text-xs text-gray-500 mb-2">Usually ready in under a minute.</p>
+          )}
+          <div className="h-2 rounded-full bg-gray-200 overflow-hidden mb-3">
+            <div
+              className="h-full bg-purple-600 rounded-full transition-all duration-300"
+              style={{ width: `${uploadProgress.total ? (uploadProgress.done / uploadProgress.total) * 100 : 0}%` }}
+            />
+          </div>
+          <div className="flex flex-wrap gap-1.5 mb-2 max-h-24 overflow-y-auto">
+            {uploadProgress.files.slice(0, 12).map((f) => (
+              <div
+                key={f.id}
+                className="w-10 h-10 rounded overflow-hidden bg-gray-200 flex-shrink-0 border border-gray-300"
+              >
+                {f.type.startsWith("image/") ? (
+                  <img src={f.previewUrl} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Video className="h-4 w-4 text-gray-500" />
+                  </div>
+                )}
+              </div>
+            ))}
+            {uploadProgress.files.length > 12 && (
+              <span className="self-center text-xs text-gray-500">+{uploadProgress.files.length - 12}</span>
+            )}
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            {uploadProgress.phase === "uploading" && (
+              <>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => { isPausedRef.current = true; setUploadProgress((p) => (p ? { ...p, isPaused: true } : null)); }}
+                  className="text-xs"
+                >
+                  Pause
+                </Button>
+                {uploadProgress.isPaused && (
+                  <Button
+                    size="sm"
+                    onClick={() => { isPausedRef.current = false; setUploadProgress((p) => (p ? { ...p, isPaused: false } : null)); }}
+                    className="text-xs bg-purple-600"
+                  >
+                    Resume
+                  </Button>
+                )}
+              </>
+            )}
+            {uploadProgress.phase === "done" && uploadProgress.failedFiles.length > 0 && (
+              <Button size="sm" onClick={handleRetryFromProgress} className="text-xs bg-purple-600">
+                <RotateCcw className="h-3 w-3 mr-1" />
+                Retry {uploadProgress.failedFiles.length} failed
+              </Button>
+            )}
+            <span className="text-xs text-gray-500 ml-auto">Adding to {selectedCollection}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Interactive Tour overlay with highlights */}
+      {tourStep !== null && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm">
+          {/* Spotlight effect on targeted element */}
+          <div 
+            className="absolute pointer-events-none transition-all duration-500"
+            style={{
+              top: tourStep === 1 && dropZoneRef.current ? `${dropZoneRef.current.getBoundingClientRect().top - 8}px` : '0',
+              left: tourStep === 1 && dropZoneRef.current ? `${dropZoneRef.current.getBoundingClientRect().left - 8}px` : '0',
+              width: tourStep === 1 && dropZoneRef.current ? `${dropZoneRef.current.getBoundingClientRect().width + 16}px` : '0',
+              height: tourStep === 1 && dropZoneRef.current ? `${dropZoneRef.current.getBoundingClientRect().height + 16}px` : '0',
+              boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.6), 0 0 20px 4px rgba(168, 85, 247, 0.5)',
+              borderRadius: '16px',
+            }}
+          />
+          
+          <div className="fixed bottom-8 left-1/2 -translate-x-1/2 max-w-md w-full mx-4">
+            <div className="bg-white rounded-2xl shadow-2xl p-6 flex flex-col gap-4 animate-in slide-in-from-bottom-4">
+              {tourStep === 1 && (
+                <>
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-purple-100 rounded-full">
+                        <FileUp className="h-6 w-6 text-purple-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900">Step 1: Add files</h3>
+                        <p className="text-xs text-gray-500">1 of 3</p>
+                      </div>
+                    </div>
+                    <button onClick={() => setTourStep(null)} className="text-gray-400 hover:text-gray-600">
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+                  <p className="text-gray-600 text-sm">Drag and drop images or videos, or tap <strong>Select Files</strong>. You can also upload a folder or use your camera on mobile.</p>
+                </>
+              )}
+              {tourStep === 2 && (
+                <>
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-purple-100 rounded-full">
+                        <Folder className="h-6 w-6 text-purple-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900">Step 2: Choose a collection</h3>
+                        <p className="text-xs text-gray-500">2 of 3</p>
+                      </div>
+                    </div>
+                    <button onClick={() => setTourStep(null)} className="text-gray-400 hover:text-gray-600">
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+                  <p className="text-gray-600 text-sm">Pick which collection to add uploads to. We'll suggest one when your filenames match (e.g. <strong>&quot;mumbai-travel&quot;</strong>).</p>
+                </>
+              )}
+              {tourStep === 3 && (
+                <>
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-purple-100 rounded-full">
+                        <Sparkles className="h-6 w-6 text-purple-600" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-gray-900">Step 3: Search by meaning</h3>
+                        <p className="text-xs text-gray-500">3 of 3</p>
+                      </div>
+                    </div>
+                    <button onClick={() => setTourStep(null)} className="text-gray-400 hover:text-gray-600">
+                      <X className="h-5 w-5" />
+                    </button>
+                  </div>
+                  <p className="text-gray-600 text-sm">Once indexed, search in <strong>Search</strong> by meaning (e.g. <strong>&quot;person walking at sunset&quot;</strong>). Images are ready in seconds; videos in ~1 minute.</p>
+                </>
+              )}
+              <div className="flex justify-between items-center gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => tourStep > 1 ? setTourStep((s) => (s ?? 2) - 1) : setTourStep(null)}
+                  className="text-gray-600"
+                >
+                  {tourStep > 1 ? "Back" : "Skip"}
+                </Button>
+                <div className="flex gap-1">
+                  {[1, 2, 3].map((step) => (
+                    <div 
+                      key={step} 
+                      className={`h-1.5 w-8 rounded-full transition-colors ${step === tourStep ? "bg-purple-600" : "bg-gray-300"}`}
+                    />
+                  ))}
+                </div>
+                <Button 
+                  size="sm"
+                  onClick={() => tourStep < 3 ? setTourStep((s) => (s ?? 1) + 1) : setTourStep(null)} 
+                  className="bg-purple-600 hover:bg-purple-700"
+                >
+                  {tourStep < 3 ? "Next" : "Got it"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Filters - Sticky and always visible */}
+      <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm py-3 mb-4 sm:mb-6 -mx-3 sm:-mx-4 px-3 sm:px-4 border-b border-gray-200">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-            <span className="text-xs sm:text-sm text-gray-600 font-medium flex items-center gap-1.5">
-              <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <span className="text-xs sm:text-sm text-gray-700 font-semibold flex items-center gap-1.5">
+              <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-600" />
               <span className="hidden sm:inline">Filter:</span>
             </span>
-          {(["all", "processing", "failed"] as FilterStatus[]).map((status) => (
+          {(["all", "processing", "failed"] as FilterStatus[]).map((status) => {
+            const count = status === "all" 
+              ? files.length 
+              : files.filter(f => f.status === status).length;
+            const isDisabled = files.length === 0;
+            
+            return (
               <button
                 key={status}
-                onClick={() => setFilterStatus(status)}
-                className={`px-2.5 sm:px-3 py-1.5 text-xs font-medium rounded-full transition-colors cursor-pointer touch-manipulation ${
-                  filterStatus === status
-                    ? "bg-purple-600 text-white active:bg-purple-700"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300"
+                onClick={() => !isDisabled && setFilterStatus(status)}
+                disabled={isDisabled}
+                title={isDisabled ? "Upload files to use filters" : undefined}
+                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-full transition-all cursor-pointer touch-manipulation ${
+                  isDisabled
+                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    : filterStatus === status
+                      ? "bg-purple-600 text-white shadow-md active:bg-purple-700"
+                      : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300"
                 }`}
               >
                 {status === "all" ? "All" : status.charAt(0).toUpperCase() + status.slice(1)}
+                {!isDisabled && <span className="ml-1.5 text-xs">({count})</span>}
               </button>
-            ))}
+            );
+          })}
           </div>
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-full sm:w-[180px] border-gray-300 bg-white text-gray-700 text-xs sm:text-sm">
-            <span className="hidden sm:inline">SORT BY: </span>
-            <span>{sortBy === "date" ? "Date Added" : "Name"}</span>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="date">Date Added</SelectItem>
-            <SelectItem value="name">Name</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className={files.length === 0 ? "opacity-50 pointer-events-none" : ""}>
+            <Select value={sortBy} onValueChange={setSortBy}>
+              <SelectTrigger className="w-full sm:w-[200px] border-gray-300 bg-white text-gray-700 text-xs sm:text-sm">
+              <span className="hidden sm:inline font-medium">SORT: </span>
+              <span>{sortBy === "date" ? "Date Added" : sortBy === "name" ? "Name" : sortBy === "type" ? "Type" : "Size"}</span>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="date">Date Added</SelectItem>
+              <SelectItem value="name">Name</SelectItem>
+              <SelectItem value="type">Type</SelectItem>
+              <SelectItem value="size">Size</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
+      </div>
 
       {/* Selection Bar for Failed Files */}
       {failedFiles.length > 0 && (
@@ -845,9 +1397,7 @@ export default function ImageCollections() {
 
       {/* Files List */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-        </div>
+        <UploadsListSkeleton />
       ) : filteredFiles.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50">
           {filterStatus === "processing" ? (
@@ -873,12 +1423,58 @@ export default function ImageCollections() {
           ) : (
             <>
               <CheckCircle2 className="h-12 w-12 text-green-500 mb-4" />
-              <p className="text-gray-900 font-medium text-lg mb-2">
+              <p className="text-gray-900 font-bold text-xl mb-2">
                 All caught up!
               </p>
-              <p className="text-gray-500 text-sm max-w-md">
-                No files are currently processing or failed. Upload new files above, or head to the Collections page to browse your indexed media.
+              <p className="text-gray-600 text-sm sm:text-base max-w-md mb-4">
+                Upload files above to get started. Once indexed, search by meaning in Search.
               </p>
+              
+              {/* Recent uploads teaser */}
+              {recentUploads.length > 0 && (
+                <div className="mb-6 w-full max-w-2xl">
+                  <p className="text-sm font-semibold text-gray-700 mb-3">Recent from {recentUploads[0].collectionName}:</p>
+                  <div className="grid grid-cols-4 gap-2 mb-3">
+                    {recentUploads.map((upload, idx) => (
+                      <div key={idx} className="aspect-square rounded-lg overflow-hidden border-2 border-gray-200 hover:border-purple-400 transition-colors">
+                        <Image 
+                          src={upload.url} 
+                          alt="Recent upload" 
+                          width={120} 
+                          height={120} 
+                          className="w-full h-full object-cover" 
+                          unoptimized 
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  <Link href={`/?view=collections`}>
+                    <Button variant="link" size="sm" className="text-purple-600">
+                      Continue uploading to {recentUploads[0].collectionName}? →
+                    </Button>
+                  </Link>
+                </div>
+              )}
+              
+              <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
+                <Button
+                  size="default"
+                  className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Folder className="h-4 w-4 mr-2" />
+                  Select files
+                </Button>
+                <Link href="/?view=collections">
+                  <Button variant="outline" size="default" className="border-gray-300 text-gray-700 hover:bg-gray-50">
+                    Browse Collections
+                  </Button>
+                </Link>
+                <Button variant="ghost" size="default" className="text-gray-600 hover:text-purple-600" onClick={() => setTourStep(1)}>
+                  <Play className="h-4 w-4 mr-2" />
+                  Take a quick tour
+                </Button>
+              </div>
             </>
             )}
         </div>
@@ -958,8 +1554,13 @@ export default function ImageCollections() {
                   {file.status === "processing" && (
                     <p className="text-xs text-gray-400 mt-1 hidden sm:block">
                       Indexing in progress — this may take up to a minute
-                      </p>
-                    )}
+                    </p>
+                  )}
+                  {isFailed && file.description && (
+                    <p className="text-xs text-red-600 mt-1" title={file.description}>
+                      {file.description}
+                    </p>
+                  )}
           </div>
 
                 {/* View Button */}

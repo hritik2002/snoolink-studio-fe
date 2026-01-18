@@ -1,17 +1,20 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { 
   Search, Loader2, Image as ImageIcon, Video, Clock, Download, Share2, 
-  MoreVertical, Sparkles, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, List as ListIcon, Play, Star, ArrowRight, Filter, Plus, Lightbulb, CloudUpload, Folder
+  MoreVertical, Sparkles, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, List as ListIcon, Play, Star, ArrowRight, Plus, Lightbulb, CloudUpload, Folder
 } from "lucide-react";
 import Image from "next/image";
 import { useToast } from "@/lib/hooks/use-toast";
 import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
 import { createClient } from "@/lib/supabase/client";
+import { SearchResultsSkeleton } from "@/components/skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type SearchMode = "image" | "video";
 type ViewMode = "grid" | "list";
@@ -234,6 +237,7 @@ export default function ImageSearch() {
   const videoRefs = useRef<Record<string, HTMLVideoElement | null>>({});
   const clipEndTimes = useRef<Record<string, number>>({}); // videoUrl -> endTime
   const { toast } = useToast();
+  const router = useRouter();
 
   // Collection selection state
   const [collections, setCollections] = useState<CollectionOption[]>([]);
@@ -384,74 +388,53 @@ export default function ImageSearch() {
       }
     });
   }, [toast]);
-  const handleSearch = useCallback(async () => {
-    if (!searchQuery.trim()) return;
+  const handleSearch = useCallback(async (override?: string) => {
+    const q = (override ?? searchQuery).trim();
+    if (!q) return;
 
     setIsSearching(true);
     setQueryInterpretation([]);
-    
-    // Determine collections to search
-    const collectionsParam = selectedCollections.includes("all") 
-      ? "all" 
+    if (override) setSearchQuery(override);
+
+    const collectionsParam = selectedCollections.includes("all")
+      ? "all"
       : selectedCollections.join(",");
-    
+
     try {
       if (mode === "image") {
-        // Use new multi-collection search API
         const response = await fetch(
-          `/api/search?query=${encodeURIComponent(searchQuery)}&collections=${encodeURIComponent(collectionsParam)}&topK=10`,
+          `/api/search?query=${encodeURIComponent(q)}&collections=${encodeURIComponent(collectionsParam)}&topK=10`,
           { method: "GET" }
         );
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "Search failed");
-      }
-
-      const data = await response.json();
-
-        const results = (data.data?.results || []).map(
-        (result: {
-          id: string;
-          score: number;
-          imageUrl: string;
-          collectionName?: string;
-        }) => ({
-          id: result.id,
-          imageUrl: result.imageUrl,
-          score: result.score,
-        })
-      );
-
-        setImageResults(results);
-        setVideoResults({});
-        
-        // Generate query interpretation (semantic decomposition)
-        const interpretation = generateQueryInterpretation(searchQuery);
-        setQueryInterpretation(interpretation);
-      } else {
-        // Use multi-collection video search API
-        const response = await fetch(
-          `/api/videos/search-collections?query=${encodeURIComponent(searchQuery)}&collections=${encodeURIComponent(collectionsParam)}&topK=10`,
-          { method: "GET" }
-        );
-
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           throw new Error(errorData.error || "Search failed");
         }
-
         const data = await response.json();
-
-        // Results are now an object with videoUrl as keys
+        const results = (data.data?.results || []).map(
+          (result: { id: string; score: number; imageUrl: string; collectionName?: string }) => ({
+            id: result.id,
+            imageUrl: result.imageUrl,
+            score: result.score,
+          })
+        );
+        setImageResults(results);
+        setVideoResults({});
+        setQueryInterpretation(generateQueryInterpretation(q));
+      } else {
+        const response = await fetch(
+          `/api/videos/search-collections?query=${encodeURIComponent(q)}&collections=${encodeURIComponent(collectionsParam)}&topK=10`,
+          { method: "GET" }
+        );
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || "Search failed");
+        }
+        const data = await response.json();
         const results: VideoSearchResults = data.data?.results || {};
-
         setVideoResults(results);
         setImageResults([]);
-        
-        // Generate query interpretation (semantic decomposition, not echoing raw text)
-        const interpretation = generateQueryInterpretation(searchQuery);
-        setQueryInterpretation(interpretation);
+        setQueryInterpretation(generateQueryInterpretation(q));
       }
     } catch (error) {
       console.error("Error searching:", error);
@@ -626,13 +609,8 @@ export default function ImageSearch() {
 
   const hasResults = (mode === "image" ? imageResults.length : Object.keys(videoResults).length) > 0;
 
-  // Trending topics
-  const trendingTopics = [
-    "Mountain landscapes",
-    "Drone footage",
-    "City time-lapse",
-    "People talking"
-  ];
+  // Example queries (replaces placeholder "Trending" with real, clickable examples)
+  const exampleQueries = EXAMPLE_QUERIES;
 
   return (
     <div className="flex-1 flex flex-col h-full w-full overflow-hidden">
@@ -652,19 +630,32 @@ export default function ImageSearch() {
                 <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">Search</h1>
                 <p className="text-gray-600 text-xs sm:text-sm">
                   Find specific moments in your media library instantly.
-          </p>
+                </p>
+                {collections.reduce((a, c) => a + c.count, 0) === 0 && (
+                  <p className="text-sm text-purple-600 mt-2">
+                    <button
+                      type="button"
+                      onClick={() => router.push("/?view=uploads")}
+                      className="font-medium hover:underline"
+                    >
+                      Upload your first files
+                    </button>
+                    {" "}to get started, then search by meaning here.
+                  </p>
+                )}
         </div>
               <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-                <Button variant="outline" size="sm" className="flex items-center gap-2 bg-white border-gray-200 hover:bg-gray-50 flex-1 sm:flex-initial text-xs sm:text-sm">
-                  <Filter className="h-4 w-4" />
-                  <span className="hidden sm:inline">Filters</span>
-            </Button>
-                <Button size="sm" className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white flex-1 sm:flex-initial text-xs sm:text-sm">
+                <Button
+                  size="sm"
+                  className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white flex-1 sm:flex-initial text-xs sm:text-sm"
+                  onClick={() => router.push("/?view=uploads")}
+                  aria-label="Go to Uploads to add media"
+                >
                   <CloudUpload className="h-4 w-4" />
                   <span className="hidden sm:inline">Upload</span>
                   <span className="sm:hidden">Upload</span>
-            </Button>
-          </div>
+                </Button>
+              </div>
         </div>
 
         {/* Search Bar */}
@@ -673,18 +664,21 @@ export default function ImageSearch() {
             <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600 mr-2 sm:mr-4 flex-shrink-0" />
             <Input
               type="text"
-              placeholder="snow weather"
+              placeholder="e.g. person walking at sunset"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyPress={handleKeyPress}
               className="flex-1 bg-transparent border-0 text-gray-900 placeholder:text-gray-400 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-0 text-base sm:text-lg font-normal !h-auto py-1 px-0 shadow-none rounded-none"
+              aria-label="Search by meaning, e.g. person walking at sunset"
             />
             <Button
               variant="ghost"
               size="icon"
               className="h-9 w-9 sm:h-10 sm:w-10 bg-purple-100 hover:bg-purple-200 text-purple-600 rounded-lg sm:rounded-xl ml-2 sm:ml-3 flex-shrink-0 transition-colors touch-manipulation"
-              onClick={handleSearch}
+              onClick={() => handleSearch()}
               disabled={isSearching || !searchQuery.trim()}
+              aria-label="Run search"
+              aria-busy={isSearching}
             >
               {isSearching ? (
                 <Loader2 className="h-4 w-4 sm:h-5 sm:w-5 animate-spin" />
@@ -764,46 +758,57 @@ export default function ImageSearch() {
                   className="flex-1 flex items-center gap-2 overflow-x-auto scrollbar-hide scroll-smooth min-w-0"
                   style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                 >
-                  {/* All Collections Chip */}
-                  <button
-                    onClick={() => toggleCollection("all")}
-                    className={`flex-shrink-0 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all touch-manipulation ${
-                      selectedCollections.includes("all")
-                        ? "bg-purple-600 text-white"
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300"
-                    }`}
-                  >
-                    <span>All</span>
-                    <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                      selectedCollections.includes("all")
-                        ? "bg-purple-500 text-purple-100"
-                        : "bg-gray-200 text-gray-500"
-                    }`}>
-                      {collections.reduce((acc, c) => acc + c.count, 0)}
-                    </span>
-                  </button>
+                  {isLoadingCollections ? (
+                    /* Collection Chips Skeleton */
+                    <>
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <Skeleton key={i} className="flex-shrink-0 h-9 w-24 rounded-full" />
+                      ))}
+                    </>
+                  ) : (
+                    <>
+                      {/* All Collections Chip */}
+                      <button
+                        onClick={() => toggleCollection("all")}
+                        className={`flex-shrink-0 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all touch-manipulation ${
+                          selectedCollections.includes("all")
+                            ? "bg-purple-600 text-white"
+                            : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300"
+                        }`}
+                      >
+                        <span>All</span>
+                        <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                          selectedCollections.includes("all")
+                            ? "bg-purple-500 text-purple-100"
+                            : "bg-gray-200 text-gray-500"
+                        }`}>
+                          {collections.reduce((acc, c) => acc + c.count, 0)}
+                        </span>
+                      </button>
 
-                  {/* Individual Collection Chips */}
-                  {collections.map((collection) => (
-                    <button
-                      key={collection.name}
-                      onClick={() => toggleCollection(collection.name)}
-                      className={`flex-shrink-0 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all touch-manipulation ${
-                        selectedCollections.includes(collection.name)
-                          ? "bg-purple-600 text-white"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300"
-                      }`}
-                    >
-                      <span className="truncate max-w-[100px] sm:max-w-[120px]">{collection.name}</span>
-                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                        selectedCollections.includes(collection.name)
-                          ? "bg-purple-500 text-purple-100"
-                          : "bg-gray-200 text-gray-500"
-                      }`}>
-                        {collection.count}
-                      </span>
-                    </button>
-                  ))}
+                      {/* Individual Collection Chips */}
+                      {collections.map((collection) => (
+                        <button
+                          key={collection.name}
+                          onClick={() => toggleCollection(collection.name)}
+                          className={`flex-shrink-0 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all touch-manipulation ${
+                            selectedCollections.includes(collection.name)
+                              ? "bg-purple-600 text-white"
+                              : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300"
+                          }`}
+                        >
+                          <span className="truncate max-w-[100px] sm:max-w-[120px]">{collection.name}</span>
+                          <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                            selectedCollections.includes(collection.name)
+                              ? "bg-purple-500 text-purple-100"
+                              : "bg-gray-200 text-gray-500"
+                          }`}>
+                            {collection.count}
+                          </span>
+                        </button>
+                      ))}
+                    </>
+                  )}
                   </div>
 
                 {/* Scroll Right Button */}
@@ -824,21 +829,23 @@ export default function ImageSearch() {
         </div>
       </div>
 
-            {/* Trending Section */}
+            {/* Example queries / zero-query prompt */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 pb-4 border-b border-gray-100">
-              <span className="text-xs font-bold text-gray-500 tracking-wider uppercase flex-shrink-0">TRENDING:</span>
-            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-                {trendingTopics.map((topic, idx) => (
-                <button
-                  key={idx}
-                    onClick={() => handleExampleClick(topic)}
+              <span className="text-xs font-bold text-gray-500 tracking-wider uppercase flex-shrink-0">
+                {!searchQuery.trim() ? "Describe what you're looking for" : "Try:"}
+              </span>
+              <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                {exampleQueries.map((q, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleSearch(q)}
                     className="px-3 sm:px-4 py-1.5 text-xs sm:text-sm bg-white border border-gray-200 hover:border-purple-400 hover:bg-purple-50 active:bg-purple-100 text-gray-700 rounded-full transition-all cursor-pointer touch-manipulation"
-                >
-                  {topic}
-                </button>
-              ))}
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
             </div>
-        </div>
       </div>
             </div>
 
@@ -878,9 +885,7 @@ export default function ImageSearch() {
           <div className="flex-1 overflow-y-auto space-y-3 sm:space-y-4 pt-3 sm:pt-4 px-4 sm:px-6">
         {/* Search Results */}
         {isSearching ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-          </div>
+          <SearchResultsSkeleton />
         ) : mode === "image" ? (
           imageResults.length > 0 ? (
             <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4" : "space-y-3 sm:space-y-4"}>
@@ -994,8 +999,21 @@ export default function ImageSearch() {
               })}
             </div>
           ) : (
-            <div className="text-center text-gray-400 py-12">
-              <p>No results found. Try a different search query.</p>
+            <div className="text-center text-gray-500 py-12">
+              <p className="mb-1 font-medium text-gray-700">No results found.</p>
+              <p className="mb-3 text-sm">Try broader terms or a different query.</p>
+              <div className="flex flex-wrap justify-center gap-2">
+                {exampleQueries.slice(0, 3).map((q) => (
+                  <button
+                    key={q}
+                    type="button"
+                    onClick={() => handleSearch(q)}
+                    className="px-3 py-1.5 text-sm bg-white border border-gray-200 hover:border-purple-300 rounded-full text-gray-700"
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
             </div>
           )
         ) : (
@@ -1190,23 +1208,25 @@ export default function ImageSearch() {
               })}
             </div>
           ) : (
-            <div className="text-center text-gray-400 py-12">
-              <p>No results found. Try a different search query.</p>
+            <div className="text-center text-gray-500 py-12">
+              <p className="mb-1 font-medium text-gray-700">No results found.</p>
+              <p className="mb-3 text-sm">Try broader terms or a different query.</p>
+              <div className="flex flex-wrap justify-center gap-2">
+                {exampleQueries.slice(0, 3).map((q) => (
+                  <button
+                    key={q}
+                    type="button"
+                    onClick={() => handleSearch(q)}
+                    className="px-3 py-1.5 text-sm bg-white border border-gray-200 hover:border-purple-300 rounded-full text-gray-700"
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
             </div>
           )
         )}
 
-            {/* Load More Button */}
-            {hasResults && (mode === "video" ? Object.keys(videoResults).length > 0 : imageResults.length > 0) && (
-              <div className="py-8 flex justify-center">
-                <Button
-                  variant="outline"
-                  className="border-gray-200 text-gray-700 hover:bg-gray-50 rounded-full px-8 py-2 shadow-sm"
-                >
-                  Load More Results
-                </Button>
-              </div>
-            )}
           </div>
         </div>
 
@@ -1250,41 +1270,44 @@ export default function ImageSearch() {
               </div>
             </Card>
 
-            {/* Related Collections */}
-            <Card className="p-4 bg-white border border-gray-200 rounded-xl shadow-sm">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold text-gray-900">Related Collections</h3>
-                <button className="text-xs text-purple-600 hover:text-purple-700 font-medium">View all</button>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between cursor-pointer hover:bg-gray-50 -mx-2 px-2 py-2 rounded-lg transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                      <Folder className="h-4 w-4 text-purple-600" />
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium text-gray-800">Winter B-Roll</span>
-                      <p className="text-xs text-gray-500">142 items</p>
-                    </div>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-gray-400" />
+            {/* Your collections (real data) */}
+            {collections.length > 0 && (
+              <Card className="p-4 bg-white border border-gray-200 rounded-xl shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-semibold text-gray-900">Your collections</h3>
+                  <button
+                    type="button"
+                    onClick={() => router.push("/?view=collections")}
+                    className="text-xs text-purple-600 hover:text-purple-700 font-medium"
+                  >
+                    View all
+                  </button>
                 </div>
-                <div className="flex items-center justify-between cursor-pointer hover:bg-gray-50 -mx-2 px-2 py-2 rounded-lg transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-teal-100 rounded-lg flex items-center justify-center">
-                      <Folder className="h-4 w-4 text-teal-600" />
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium text-gray-800">Travel 2023</span>
-                      <p className="text-xs text-gray-500">89 items</p>
-                    </div>
-                  </div>
-                  <ChevronRight className="h-4 w-4 text-gray-400" />
+                <div className="space-y-2">
+                  {collections.slice(0, 4).map((col) => (
+                    <button
+                      key={col.name}
+                      type="button"
+                      onClick={() => toggleCollection(col.name)}
+                      className="w-full flex items-center justify-between cursor-pointer hover:bg-gray-50 -mx-2 px-2 py-2 rounded-lg transition-colors text-left"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                          <Folder className="h-4 w-4 text-purple-600" />
+                        </div>
+                        <div>
+                          <span className="text-sm font-medium text-gray-800">{col.name}</span>
+                          <p className="text-xs text-gray-500">{col.count} items</p>
+                        </div>
+                      </div>
+                      <ChevronRight className="h-4 w-4 text-gray-400" />
+                    </button>
+                  ))}
                 </div>
-              </div>
-            </Card>
+              </Card>
+            )}
 
-            {/* Refine your search */}
+            {/* Search tips */}
             <Card className="p-4 bg-purple-50 border border-purple-100 rounded-xl relative overflow-hidden">
               <div className="flex items-start gap-3">
                 <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
@@ -1292,16 +1315,23 @@ export default function ImageSearch() {
                 </div>
                 <div className="flex-1 pr-8">
                   <h4 className="text-sm font-semibold text-gray-900 mb-1">Refine your search</h4>
-                  <p className="text-sm text-gray-600 mb-3">
-                    Try adding emotional descriptors like &quot;serene&quot; or &quot;dramatic&quot; to filter by mood.
+                  <p className="text-sm text-gray-600 mb-2">
+                    Try: broader terms, emotions, or actions.
                   </p>
-                  <button className="text-sm text-purple-600 hover:text-purple-700 font-medium">
-                    Learn syntax
-                  </button>
+                  <div className="flex flex-wrap gap-1.5">
+                    {["person walking", "sunset landscape", "dramatic sky"].map((ex) => (
+                      <button
+                        key={ex}
+                        type="button"
+                        onClick={() => handleExampleClick(ex)}
+                        className="text-xs px-2.5 py-1 bg-white/80 hover:bg-white border border-purple-200 rounded-full text-purple-700 font-medium"
+                      >
+                        {ex}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
-              {/* Moon decoration */}
-              <div className="absolute bottom-2 right-2 w-8 h-8 bg-purple-400 rounded-full opacity-80" />
             </Card>
           </div>
         )}

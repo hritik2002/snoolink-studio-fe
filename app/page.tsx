@@ -7,9 +7,10 @@ import ImageSearch from "@/components/imageSearch";
 import ImageCollections from "@/components/imageCollections";
 import Collections from "@/components/collections";
 import Profile from "@/components/profile";
+import { BottomNav } from "@/components/BottomNav";
 import { HistoryPage, AnalyticsPage, SettingsPage, BillingPage } from "@/components/comingSoon";
 import { useAuth } from "@/contexts/AuthContext";
-import { Loader2 } from "lucide-react";
+import { AppShellSkeleton } from "@/components/skeletons";
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
 
@@ -59,25 +60,25 @@ function HomeContent() {
         setActiveView(view);
         router.push(`/?view=${view}`);
       }} />
-      <SidebarInset className="bg-white">
+      <SidebarInset className="bg-background">
         {/* Mobile Header with Hamburger */}
-        <div className="lg:hidden sticky top-0 z-50 bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3">
-          <SidebarTrigger className="lg:hidden" />
+        <div className="lg:hidden sticky top-0 z-50 bg-background border-b border-border px-4 py-3 flex items-center gap-3">
+          <SidebarTrigger className="lg:hidden" aria-label="Open menu" />
           <div className="flex items-center gap-2 flex-1 min-w-0">
             <div className="w-8 h-8 rounded-lg bg-purple-600 flex items-center justify-center flex-shrink-0">
               <span className="text-white font-bold text-lg">S</span>
             </div>
-            <span className="font-semibold text-gray-900 truncate">Snoolink AI</span>
+            <span className="font-semibold text-foreground truncate">Snoolink Studio</span>
           </div>
         </div>
-        
-        <div className="flex flex-col h-screen overflow-auto">
+
+        <main id="main" className="flex flex-col h-screen overflow-auto pb-16 md:pb-0" tabIndex={-1}>
           {activeView === "search" ? (
             <ImageSearch />
-          ) : activeView === "uploads" ? (
-            <ImageCollections />
           ) : activeView === "collections" ? (
             <Collections />
+          ) : activeView === "uploads" ? (
+            <ImageCollections />
           ) : activeView === "profile" ? (
             <Profile />
           ) : activeView === "history" ? (
@@ -91,8 +92,9 @@ function HomeContent() {
           ) : (
             <ImageSearch />
           )}
-        </div>
+        </main>
       </SidebarInset>
+      <BottomNav />
     </SidebarProvider>
   );
 }
@@ -101,21 +103,11 @@ export default function Home() {
   const { loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-      </div>
-    );
+    return <AppShellSkeleton />;
   }
 
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a]">
-          <Loader2 className="h-8 w-8 animate-spin text-white/60" />
-        </div>
-      }
-    >
+    <Suspense fallback={<AppShellSkeleton />}>
       <HomeContent />
     </Suspense>
   );

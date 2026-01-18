@@ -37,22 +37,29 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // If user is authenticated and on login page, redirect to home
+  // If user is authenticated and on login page, redirect to ?next= or home
   if (user && request.nextUrl.pathname.startsWith("/login")) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/";
-    return NextResponse.redirect(url);
+    const next = request.nextUrl.searchParams.get("next") || request.nextUrl.searchParams.get("redirect");
+    const target =
+      next && next.startsWith("/")
+        ? new URL(next, request.nextUrl.origin)
+        : new URL("/", request.nextUrl.origin);
+    return NextResponse.redirect(target);
   }
 
   // If user is not authenticated and not on login page, redirect to login
+  // with ?next= so we can restore destination after sign-in
   if (
     !user &&
     !request.nextUrl.pathname.startsWith("/login")
   ) {
-    // no user, potentially respond by redirecting to /login
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/login";
+    const next = request.nextUrl.pathname + request.nextUrl.search;
+    if (next && next !== "/") {
+      loginUrl.searchParams.set("next", next);
+    }
+    return NextResponse.redirect(loginUrl);
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're

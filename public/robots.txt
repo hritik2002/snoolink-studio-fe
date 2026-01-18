@@ -1,0 +1,26 @@
+# https://app.snoolink.com/robots.txt
+
+# Allow all search engines to crawl the site
+User-agent: *
+Allow: /
+Allow: /login
+Disallow: /api/
+Disallow: /auth/
+
+# Sitemap location
+Sitemap: https://app.snoolink.com/sitemap.xml
+
+# Crawl-delay for polite bots (optional, adjust as needed)
+# Crawl-delay: 1
+
+# Google-specific rules
+User-agent: Googlebot
+Allow: /
+Disallow: /api/
+Disallow: /auth/
+
+# Bing-specific rules
+User-agent: Bingbot
+Allow: /
+Disallow: /api/
+Disallow: /auth/

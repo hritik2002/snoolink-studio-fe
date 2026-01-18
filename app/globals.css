@@ -137,4 +137,50 @@
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
+
+  /* Drop zone glow on drag */
+  @keyframes dropzone-glow {
+    0%, 100% { box-shadow: 0 0 20px rgba(168, 85, 247, 0.25); }
+    50% { box-shadow: 0 0 32px rgba(168, 85, 247, 0.45); }
+  }
+  .dropzone-active {
+    animation: dropzone-glow 1.2s ease-in-out infinite;
+  }
+
+  /* Pulse border for initial attention */
+  @keyframes pulse-border {
+    0%, 100% {
+      border-color: rgb(168, 85, 247);
+      box-shadow: 0 0 0 0 rgba(168, 85, 247, 0.4);
+    }
+    50% {
+      border-color: rgb(147, 51, 234);
+      box-shadow: 0 0 0 8px rgba(168, 85, 247, 0);
+    }
+  }
+  
+  .dropzone-pulse {
+    animation: pulse-border 2s ease-in-out 3;
+  }
+
+  /* Confetti animation */
+  @keyframes confetti-fall {
+    0% {
+      transform: translateY(-100vh) rotate(0deg);
+      opacity: 1;
+    }
+    100% {
+      transform: translateY(100vh) rotate(720deg);
+      opacity: 0;
+    }
+  }
+  
+  .confetti-piece {
+    position: fixed;
+    width: 10px;
+    height: 10px;
+    z-index: 9999;
+    pointer-events: none;
+    animation: confetti-fall 3s ease-in forwards;
+  }
 }

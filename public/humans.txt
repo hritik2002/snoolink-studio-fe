@@ -1,0 +1,19 @@
+# humanstxt.org/
+# The humans responsible & technology colophon
+
+/* TEAM */
+Team: Snoolink Studio
+Site: https://app.snoolink.com
+Location: Global
+
+/* THANKS */
+To all our users and the open-source community
+
+/* SITE */
+Last update: 2024
+Language: English
+Standards: HTML5, CSS3, ES6+
+Components: React, Next.js, TypeScript
+Backend: Node.js, Supabase
+AI/ML: Semantic Search, Computer Vision
+IDE: VSCode, Cursor

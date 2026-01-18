@@ -1,20 +1,26 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { 
   FolderOpen, Plus, Copy, Check, Grid3X3, List,
   Video, Image as ImageIcon, ChevronLeft, ChevronRight, Loader2, X,
-  SlidersHorizontal, ArrowUpDown, ExternalLink, CloudUpload, Filter
+  SlidersHorizontal, ArrowUpDown, ExternalLink, CloudUpload,
+  CheckSquare, Square, FolderInput, Trash2, Share2, Tag, Sparkles, Clock,
+  ZoomIn, ZoomOut, Maximize2, Download
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 
-type SortOption = "date-desc" | "date-asc" | "name-asc" | "name-desc";
+type SortOption = "date-desc" | "date-asc" | "name-asc" | "name-desc" | "viewCount-desc" | "relevance";
 type FilterType = "all" | "image" | "video";
+type DateFilter = "all" | "7d" | "30d" | "year";
 import Image from "next/image";
 import { useToast } from "@/lib/hooks/use-toast";
 import { createClient } from "@/lib/supabase/client";
+import { CollectionsPageSkeleton, CollectionsItemsSkeleton } from "@/components/skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Collection {
   id: string;
@@ -49,32 +55,63 @@ export default function Collections() {
   const [isCreating, setIsCreating] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>("date-desc");
   const [filterType, setFilterType] = useState<FilterType>("all");
+  const [dateFilter, setDateFilter] = useState<DateFilter>("all");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [detailItem, setDetailItem] = useState<CollectionItem | null>(null);
+  const [showMoveModal, setShowMoveModal] = useState(false);
+  const [moveTarget, setMoveTarget] = useState<string>("");
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [showSmartModal, setShowSmartModal] = useState(false);
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(false);
+  const [isBulkActioning, setIsBulkActioning] = useState(false);
+  const [imageZoom, setImageZoom] = useState(1);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const hoverPreviewTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const detailVideoRef = useRef<HTMLVideoElement>(null);
   const { toast } = useToast();
+  const router = useRouter();
   
   // Pagination state
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
 
+  const toId = (item: CollectionItem) => String(item.id);
+
+  // Date filter
+  const inDateRange = (createdAt?: string) => {
+    if (dateFilter === "all" || !createdAt) return true;
+    const t = new Date(createdAt).getTime();
+    const now = Date.now();
+    if (dateFilter === "7d") return now - t <= 7 * 24 * 60 * 60 * 1000;
+    if (dateFilter === "30d") return now - t <= 30 * 24 * 60 * 60 * 1000;
+    if (dateFilter === "year") return new Date(createdAt).getFullYear() === new Date().getFullYear();
+    return true;
+  };
+
   // Sort and filter items
   const sortedAndFilteredItems = items
-    .filter(item => filterType === "all" || item.type === filterType)
+    .filter((item) => (filterType === "all" || item.type === filterType) && inDateRange(item.createdAt))
     .sort((a, b) => {
       switch (sortBy) {
         case "date-desc":
           return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
         case "date-asc":
           return new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime();
-        case "name-asc":
-          const nameA = a.url.split('/').pop()?.split('?')[0] || "";
-          const nameB = b.url.split('/').pop()?.split('?')[0] || "";
-          return nameA.localeCompare(nameB);
-        case "name-desc":
-          const nameA2 = a.url.split('/').pop()?.split('?')[0] || "";
-          const nameB2 = b.url.split('/').pop()?.split('?')[0] || "";
-          return nameB2.localeCompare(nameA2);
+        case "name-asc": {
+          const na = a.url.split("/").pop()?.split("?")[0] || "";
+          const nb = b.url.split("/").pop()?.split("?")[0] || "";
+          return na.localeCompare(nb);
+        }
+        case "name-desc": {
+          const na2 = a.url.split("/").pop()?.split("?")[0] || "";
+          const nb2 = b.url.split("/").pop()?.split("?")[0] || "";
+          return nb2.localeCompare(na2);
+        }
+        case "viewCount-desc":
+        case "relevance":
+          return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
         default:
           return 0;
       }
@@ -218,6 +255,16 @@ export default function Collections() {
     return () => observer.disconnect();
   }, [hasMore, isLoadingMore, isLoadingItems, loadMoreItems]);
 
+  useEffect(() => {
+    if (!detailItem) return;
+    setImageZoom(1);
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setDetailItem(null);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [detailItem]);
+
   const copyDescription = async (id: string, text: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -300,20 +347,126 @@ export default function Collections() {
   };
 
   const getFileType = (url: string, type: "image" | "video"): string => {
-    const ext = url.split('.').pop()?.split('?')[0]?.toLowerCase() || "";
-    const extUpper = ext.toUpperCase();
-    if (type === "video") {
-      return `Video (.${ext})`;
-    }
+    const ext = url.split(".").pop()?.split("?")[0]?.toLowerCase() || "";
+    if (type === "video") return `Video (.${ext})`;
     return `Image (.${ext})`;
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex-1 flex items-center justify-center h-full bg-white">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
-      </div>
+  const toggleSelect = (id: string) => {
+    setSelectedIds((s) => {
+      const n = new Set(s);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
+      return n;
+    });
+  };
+
+  const selectAllOnPage = () => {
+    const onPage = sortedAndFilteredItems.map(toId);
+    const all = onPage.every((id) => selectedIds.has(id));
+    setSelectedIds((s) => {
+      const n = new Set(s);
+      if (all) onPage.forEach((id) => n.delete(id));
+      else onPage.forEach((id) => n.add(id));
+      return n;
+    });
+  };
+
+  const handleMove = async () => {
+    if (!moveTarget || selectedIds.size === 0) return;
+    setIsBulkActioning(true);
+    try {
+      const res = await fetch(`/api/collections/${encodeURIComponent(moveTarget)}/resources`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          resourceIds: Array.from(selectedIds).map((id) => Number(id)),
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Move failed");
+      toast({ title: "Moved", description: `${selectedIds.size} item(s) moved to ${moveTarget}` });
+      setShowMoveModal(false);
+      setMoveTarget("");
+      setSelectedIds(new Set());
+      if (selectedCollection) {
+        setItems([]);
+        setOffset(0);
+        setHasMore(true);
+        fetchItems(selectedCollection, 0, filterType, false);
+      }
+      fetchCollections();
+    } catch (e) {
+      toast({ title: "Error", description: e instanceof Error ? e.message : "Move failed", variant: "destructive" });
+    } finally {
+      setIsBulkActioning(false);
+    }
+  };
+
+  const handleRemoveFromCollection = async () => {
+    if (!selectedCollection || selectedIds.size === 0) return;
+    setShowRemoveConfirm(false);
+    const ids = Array.from(selectedIds);
+    setIsBulkActioning(true);
+    try {
+      const res = await fetch(`/api/collections/${encodeURIComponent(selectedCollection)}/resources`, {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resourceIds: ids.map((id) => Number(id)) }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Remove failed");
+      toast({ title: "Removed", description: `${ids.length} item(s) removed from collection` });
+      setSelectedIds(new Set());
+      if (selectedCollection) {
+        setItems([]);
+        setOffset(0);
+        setHasMore(true);
+        fetchItems(selectedCollection, 0, filterType, false);
+      }
+      fetchCollections();
+    } catch (e) {
+      toast({ title: "Error", description: e instanceof Error ? e.message : "Remove failed", variant: "destructive" });
+    } finally {
+      setIsBulkActioning(false);
+    }
+  };
+
+  const handleDetailDownload = (item: CollectionItem) => {
+    const name = item.url.split("/").pop()?.split("?")[0] || (item.type === "image" ? "image.jpg" : "video.mp4");
+    const a = document.createElement("a");
+    a.href = item.url;
+    a.download = name;
+    a.target = "_blank";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    toast({ title: "Download started", description: "If it opened in a new tab, use the browser’s save option." });
+  };
+
+  const handleDetailCopyLink = (url: string) => {
+    navigator.clipboard.writeText(url).then(
+      () => toast({ title: "Link copied", description: "Paste anywhere to share." }),
+      () => toast({ title: "Couldn’t copy", variant: "destructive" })
     );
+  };
+
+  const handleDetailShare = async (item: CollectionItem) => {
+    const name = item.url.split("/").pop()?.split("?")[0] || "Media";
+    if (typeof navigator.share === "function") {
+      try {
+        await navigator.share({ title: name, url: item.url });
+        toast({ title: "Shared" });
+      } catch (e) {
+        if ((e as Error).name !== "AbortError") handleDetailCopyLink(item.url);
+      }
+    } else {
+      handleDetailCopyLink(item.url);
+    }
+  };
+
+  if (isLoading) {
+    return <CollectionsPageSkeleton />;
   }
 
   return (
@@ -333,15 +486,34 @@ export default function Collections() {
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">Collections</h1>
               <p className="text-gray-600 text-xs sm:text-sm">
-                Browse and organize your indexed media library.
+                Indexed media you can search.
               </p>
             </div>
             <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-              <Button variant="outline" size="sm" className="flex items-center gap-2 bg-white border-gray-200 hover:bg-gray-50 flex-1 sm:flex-initial text-xs sm:text-sm">
-                <Filter className="h-4 w-4" />
-                <span className="hidden sm:inline">Filters</span>
-              </Button>
-              <Button size="sm" className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white flex-1 sm:flex-initial text-xs sm:text-sm">
+              {selectedCollection && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="flex items-center gap-2 border-gray-300"
+                  onClick={() => setShowShareModal(true)}
+                  aria-label="Share collection"
+                >
+                  <Share2 className="h-4 w-4" />
+                  <span className="hidden sm:inline">Share</span>
+                </Button>
+              )}
+              <Button
+                size="sm"
+                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white flex-1 sm:flex-initial text-xs sm:text-sm"
+                onClick={() =>
+                  router.push(
+                    selectedCollection
+                      ? `/?view=uploads&collection=${encodeURIComponent(selectedCollection)}`
+                      : "/?view=uploads"
+                  )
+                }
+                aria-label="Upload media to this collection"
+              >
                 <CloudUpload className="h-4 w-4" />
                 <span className="hidden sm:inline">Upload Media</span>
                 <span className="sm:hidden">Upload</span>
@@ -413,6 +585,14 @@ export default function Collections() {
             <span className="hidden sm:inline">New Collection</span>
             <span className="sm:hidden">New</span>
           </Button>
+          <button
+            type="button"
+            onClick={() => toast({ title: "Coming soon", description: "AI grouping (e.g. by scene, faces) will be available soon." })}
+            className="flex-shrink-0 flex items-center gap-1 px-2 py-1.5 text-xs text-muted-foreground hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+            title="Create from AI"
+          >
+            <Sparkles className="h-3.5 w-3.5" /> <span className="hidden sm:inline">From AI</span>
+          </button>
 
           {/* Divider */}
           <div className="w-px h-8 bg-gray-200 flex-shrink-0" />
@@ -432,16 +612,34 @@ export default function Collections() {
             </Select>
           </div>
 
+          {/* Date facet */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <Clock className="h-4 w-4 text-gray-400" />
+            {(["all", "7d", "30d", "year"] as DateFilter[]).map((d) => (
+              <button
+                key={d}
+                onClick={() => setDateFilter(d)}
+                className={`px-2 py-1 text-xs font-medium rounded-full ${
+                  dateFilter === d ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                {d === "all" ? "All" : d === "7d" ? "7d" : d === "30d" ? "30d" : "Year"}
+              </button>
+            ))}
+          </div>
+
           {/* Sort By */}
           <div className="flex items-center gap-1 flex-shrink-0">
             <ArrowUpDown className="h-4 w-4 text-gray-400" />
             <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
-              <SelectTrigger className="w-[140px] h-8 text-xs border-gray-200">
+              <SelectTrigger className="w-[160px] h-8 text-xs border-gray-200">
                 <span>
                   {sortBy === "date-desc" && "Newest First"}
                   {sortBy === "date-asc" && "Oldest First"}
                   {sortBy === "name-asc" && "Name A-Z"}
                   {sortBy === "name-desc" && "Name Z-A"}
+                  {sortBy === "viewCount-desc" && "Most Viewed"}
+                  {sortBy === "relevance" && "AI Relevance"}
                 </span>
               </SelectTrigger>
               <SelectContent>
@@ -449,6 +647,8 @@ export default function Collections() {
                 <SelectItem value="date-asc">Oldest First</SelectItem>
                 <SelectItem value="name-asc">Name A-Z</SelectItem>
                 <SelectItem value="name-desc">Name Z-A</SelectItem>
+                <SelectItem value="viewCount-desc">Most Viewed</SelectItem>
+                <SelectItem value="relevance">AI Relevance</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -478,12 +678,43 @@ export default function Collections() {
         </div>
       </div>
 
+      {/* Bulk actions bar */}
+      {selectedIds.size > 0 && (
+        <div className="sticky top-[132px] sm:top-[156px] z-10 flex items-center justify-between gap-2 px-3 sm:px-4 py-2 bg-purple-50 border-b border-purple-200">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-medium text-gray-900">{selectedIds.size} selected</span>
+            <button
+              type="button"
+              onClick={selectAllOnPage}
+              className="text-xs text-purple-600 hover:underline"
+            >
+              {sortedAndFilteredItems.every((i) => selectedIds.has(toId(i))) ? "Deselect page" : "Select page"}
+            </button>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <Button size="sm" variant="outline" onClick={() => { setMoveTarget(""); setShowMoveModal(true); }} disabled={isBulkActioning} className="gap-1">
+              <FolderInput className="h-3.5 w-3.5" /> Move
+            </Button>
+            <Button size="sm" variant="outline" onClick={() => setShowRemoveConfirm(true)} disabled={isBulkActioning} className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50">
+              <Trash2 className="h-3.5 w-3.5" /> Remove
+            </Button>
+            <button
+              type="button"
+              onClick={() => toast({ title: "Coming soon", description: "Bulk tagging will be available soon." })}
+              className="px-2 py-1 text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1"
+              title="Coming soon"
+            >
+              <Tag className="h-3.5 w-3.5" /> Tag (soon)
+            </button>
+            <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>Clear</Button>
+          </div>
+        </div>
+      )}
+
       {/* Content Area */}
       <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
         {isLoadingItems ? (
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
-          </div>
+          <CollectionsItemsSkeleton />
         ) : sortedAndFilteredItems.length === 0 ? (
           <div className="flex-1 flex items-center justify-center py-12 sm:py-16">
             <div className="text-center max-w-md px-4">
@@ -496,120 +727,116 @@ export default function Collections() {
                   : "No items match your filters"
                 }
               </h2>
-              <p className="text-gray-500 text-xs sm:text-sm">
+              <p className="text-gray-500 text-xs sm:text-sm mb-4">
                 {items.length === 0 
                   ? "Upload files to this collection to see them here"
                   : "Try changing your filter or sort options"
                 }
               </p>
+              {items.length === 0 && selectedCollection && (
+                <Button
+                  size="sm"
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                  onClick={() => router.push(`/?view=uploads&collection=${encodeURIComponent(selectedCollection)}`)}
+                >
+                  <CloudUpload className="h-4 w-4 mr-2" />
+                  Upload to {selectedCollection}
+                </Button>
+              )}
             </div>
           </div>
         ) : viewMode === "grid" ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
             {sortedAndFilteredItems.map((item) => (
-              <div key={item.id} className="group border border-gray-200 rounded-lg sm:rounded-xl p-2 sm:p-3 hover:border-purple-300 hover:shadow-md transition-all bg-white touch-manipulation">
-                {/* Thumbnail */}
-                <div className="relative aspect-video min-h-[120px] sm:min-h-0 rounded-lg overflow-hidden bg-gray-100 mb-3">
+              <div
+                key={item.id}
+                onClick={() => setDetailItem(item)}
+                className="group border border-gray-200 rounded-lg sm:rounded-xl p-2 sm:p-3 hover:border-purple-300 hover:shadow-md transition-all bg-white touch-manipulation cursor-pointer"
+              >
+                <div
+                  className="relative aspect-video min-h-[160px] sm:min-h-[180px] rounded-lg overflow-hidden bg-muted mb-3"
+                  onMouseEnter={(e) => {
+                    const v = e.currentTarget.querySelector("video");
+                    if (v) {
+                      if (hoverPreviewTimeout.current) {
+                        clearTimeout(hoverPreviewTimeout.current);
+                        hoverPreviewTimeout.current = null;
+                      }
+                      v.muted = true;
+                      v.currentTime = 0;
+                      v.play().catch(() => {});
+                      hoverPreviewTimeout.current = setTimeout(() => {
+                        v.pause();
+                        hoverPreviewTimeout.current = null;
+                      }, 2500);
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (hoverPreviewTimeout.current) {
+                      clearTimeout(hoverPreviewTimeout.current);
+                      hoverPreviewTimeout.current = null;
+                    }
+                    const v = e.currentTarget.querySelector("video");
+                    if (v) {
+                      v.pause();
+                      v.currentTime = 0;
+                    }
+                  }}
+                >
                   {item.type === "video" ? (
-                    <video 
-                      src={item.url} 
-                      className="w-full h-full object-cover" 
+                    <video
+                      src={item.url}
+                      className="w-full h-full object-cover"
                       playsInline
                       controls
                       preload="metadata"
-                      style={{ display: 'block', minHeight: '120px' }}
-                      ref={(video) => {
-                        if (video) {
-                          video.setAttribute('webkit-playsinline', 'true');
-                        }
-                      }}
+                      style={{ display: "block", minHeight: "160px" }}
+                      ref={(el) => el?.setAttribute("webkit-playsinline", "true")}
                     />
                   ) : (
-                    <Image 
-                      src={item.url} 
-                      alt={item.description || "Collection item"} 
-                      fill 
-                      className="object-cover" 
-                      unoptimized 
-                    />
+                    <Image src={item.url} alt={item.description || "Collection item"} fill className="object-cover" unoptimized />
                   )}
-
-                  {/* Type indicator */}
-                  <div className="absolute top-2 left-2 bg-black/50 rounded-md p-1">
-                    {item.type === "video" ? (
-                      <Video className="h-3.5 w-3.5 text-white" />
-                    ) : (
-                      <ImageIcon className="h-3.5 w-3.5 text-white" />
-                    )}
+                  <div className="absolute top-2 left-2 flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); toggleSelect(toId(item)); }}
+                      className="p-0.5 rounded bg-white/90 hover:bg-white text-gray-700"
+                      aria-label={selectedIds.has(toId(item)) ? "Deselect" : "Select"}
+                    >
+                      {selectedIds.has(toId(item)) ? <CheckSquare className="h-4 w-4 text-purple-600" /> : <Square className="h-4 w-4" />}
+                    </button>
+                    <div className="bg-black/50 rounded-md p-1">
+                      {item.type === "video" ? <Video className="h-3.5 w-3.5 text-white" /> : <ImageIcon className="h-3.5 w-3.5 text-white" />}
+                    </div>
                   </div>
-
-                  {/* External link button - shows on hover/touch */}
                   <button
-                    onClick={(e) => { e.stopPropagation(); window.open(item.url, '_blank'); }}
+                    onClick={(e) => { e.stopPropagation(); window.open(item.url, "_blank"); }}
                     className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 bg-white/90 hover:bg-white active:bg-white rounded-lg p-1.5 opacity-0 group-hover:opacity-100 sm:group-hover:opacity-100 active:opacity-100 transition-all shadow-sm hover:shadow-md touch-manipulation"
                     title="Open in new tab"
+                    aria-label="Open in new tab"
                   >
                     <ExternalLink className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-700" />
                   </button>
                 </div>
-
-                {/* Title */}
                 <div className="mb-1 sm:mb-2">
-                  <h3 className="text-xs sm:text-sm font-medium text-gray-900 truncate">
-                    {item.url.split('/').pop()?.split('?')[0] || "Untitled"}
-                  </h3>
+                  <h3 className="text-xs sm:text-sm font-medium text-foreground truncate">{item.url.split("/").pop()?.split("?")[0] || "Untitled"}</h3>
                 </div>
-
-                {/* Tags */}
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs text-gray-500">{item.collectionName}</span>
+                  <span className="text-xs text-muted-foreground">{item.collectionName}</span>
                   <span className="text-xs text-purple-600 font-medium">{getFileExtension(item.url)}</span>
                 </div>
-
-                {/* Video Metadata Panel */}
                 {item.type === "video" && (item.duration || item.resolution) && (
-                  <div className="mb-2 p-2 bg-gray-50 rounded-lg border border-gray-200">
-                    <div className="grid grid-cols-2 gap-2 text-xs">
-                      <div>
-                        <span className="text-gray-500">File Type:</span>
-                        <div className="text-purple-600 font-medium">{getFileType(item.url, item.type)}</div>
-                      </div>
-                      {item.duration && (
-                        <div>
-                          <span className="text-gray-500">Duration:</span>
-                          <div className="text-purple-600 font-medium">{formatDuration(item.duration)}</div>
-                        </div>
-                      )}
-                      {item.resolution && (
-                        <div>
-                          <span className="text-gray-500">Resolution:</span>
-                          <div className="text-purple-600 font-medium">{item.resolution.replace('x', '×')}</div>
-                        </div>
-                      )}
-                      {item.createdAt && (
-                        <div>
-                          <span className="text-gray-500">Upload Date:</span>
-                          <div className="text-purple-600 font-medium">{formatDate(item.createdAt)}</div>
-                        </div>
-                      )}
-                    </div>
+                  <div className="mb-2 p-2 bg-muted rounded-lg border border-border text-xs grid grid-cols-2 gap-2">
+                    <div><span className="text-muted-foreground">File Type:</span><div className="text-purple-600 font-medium">{getFileType(item.url, item.type)}</div></div>
+                    {item.duration && <div><span className="text-muted-foreground">Duration:</span><div className="font-medium">{formatDuration(item.duration)}</div></div>}
+                    {item.resolution && <div><span className="text-muted-foreground">Resolution:</span><div className="font-medium">{item.resolution.replace("x", "×")}</div></div>}
+                    {item.createdAt && <div><span className="text-muted-foreground">Upload Date:</span><div className="font-medium">{formatDate(item.createdAt)}</div></div>}
                   </div>
                 )}
-
-                {/* Description with copy */}
                 {item.description && (
-                  <button
-                    onClick={() => copyDescription(item.id, item.description!)}
-                    className="w-full flex items-center gap-1 text-left group/desc"
-                  >
-                    <p className="text-xs text-gray-500 truncate flex-1">
-                      {item.description}
-                    </p>
-                    {copiedId === item.id ? (
-                      <Check className="h-3 w-3 text-green-500 flex-shrink-0" />
-                    ) : (
-                      <Copy className="h-3 w-3 text-gray-400 opacity-0 group-hover/desc:opacity-100 flex-shrink-0 transition-opacity" />
-                    )}
+                  <button onClick={() => copyDescription(item.id, item.description!)} className="w-full flex items-center gap-1 text-left group/desc">
+                    <p className="text-xs text-muted-foreground truncate flex-1">{item.description}</p>
+                    {copiedId === item.id ? <Check className="h-3 w-3 text-green-500 flex-shrink-0" /> : <Copy className="h-3 w-3 text-muted-foreground opacity-0 group-hover/desc:opacity-100 flex-shrink-0 transition-opacity" />}
                   </button>
                 )}
               </div>
@@ -618,111 +845,53 @@ export default function Collections() {
         ) : (
           <div className="space-y-2 sm:space-y-3">
             {sortedAndFilteredItems.map((item) => (
-              <div 
-                key={item.id} 
-                className="flex items-center gap-2 sm:gap-4 p-3 sm:p-4 bg-white border-2 border-gray-200 rounded-lg sm:rounded-xl hover:border-purple-300 hover:shadow-md transition-all group touch-manipulation"
+              <div
+                key={item.id}
+                onClick={() => setDetailItem(item)}
+                className="flex items-center gap-2 sm:gap-4 p-3 sm:p-4 bg-white border-2 border-gray-200 rounded-lg sm:rounded-xl hover:border-purple-300 hover:shadow-md transition-all group touch-manipulation cursor-pointer"
               >
-                {/* Thumbnail */}
-                <div className="flex-shrink-0 w-16 h-12 sm:w-20 sm:h-14 rounded-lg overflow-hidden bg-gray-100 relative">
+                <button
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); toggleSelect(toId(item)); }}
+                  className="p-1 rounded flex-shrink-0 text-gray-600 hover:bg-gray-100"
+                  aria-label={selectedIds.has(toId(item)) ? "Deselect" : "Select"}
+                >
+                  {selectedIds.has(toId(item)) ? <CheckSquare className="h-5 w-5 text-purple-600" /> : <Square className="h-5 w-5" />}
+                </button>
+                <div className="flex-shrink-0 w-16 h-12 sm:w-20 sm:h-14 rounded-lg overflow-hidden bg-muted relative">
                   {item.type === "video" ? (
-                    <video 
-                      src={item.url} 
-                      className="w-full h-full object-cover" 
-                      playsInline
-                      preload="metadata"
-                      style={{ display: 'block' }}
-                      ref={(video) => {
-                        if (video) {
-                          video.setAttribute('webkit-playsinline', 'true');
-                        }
-                      }}
-                    />
+                    <video src={item.url} className="w-full h-full object-cover" playsInline preload="metadata" style={{ display: "block" }} ref={(el) => el?.setAttribute("webkit-playsinline", "true")} />
                   ) : (
-                    <Image 
-                      src={item.url} 
-                      alt={item.description || "Collection item"} 
-                      fill 
-                      className="object-cover" 
-                      unoptimized 
-                    />
+                    <Image src={item.url} alt={item.description || "Collection item"} fill className="object-cover" unoptimized />
                   )}
-                  {/* Type indicator */}
                   <div className="absolute top-1 left-1 bg-black/50 rounded p-0.5">
-                    {item.type === "video" ? (
-                      <Video className="h-3 w-3 text-white" />
-                    ) : (
-                      <ImageIcon className="h-3 w-3 text-white" />
-                    )}
+                    {item.type === "video" ? <Video className="h-3 w-3 text-white" /> : <ImageIcon className="h-3 w-3 text-white" />}
                   </div>
                 </div>
-
-                {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <h3 className="text-sm font-medium text-gray-900 truncate">
-                      {item.url.split('/').pop()?.split('?')[0] || "Untitled"}
-                    </h3>
+                    <h3 className="text-sm font-medium text-foreground truncate">{item.url.split("/").pop()?.split("?")[0] || "Untitled"}</h3>
                     <span className="text-xs text-purple-600 font-medium">{getFileExtension(item.url)}</span>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-gray-500 mb-1">
-                    <span>{item.collectionName}</span>
-                    <span className="text-gray-300">•</span>
-                    <span>{item.type === "video" ? "Video" : "Image"}</span>
+                  <div className="flex items-center gap-3 text-xs text-muted-foreground mb-1">
+                    <span>{item.collectionName}</span><span>•</span><span>{item.type === "video" ? "Video" : "Image"}</span>
                   </div>
-                  
-                  {/* Video Metadata Panel */}
                   {item.type === "video" && (item.duration || item.resolution) && (
-                    <div className="mb-2 p-2 bg-gray-50 rounded-lg border border-gray-200">
-                      <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div>
-                          <span className="text-gray-500">File Type:</span>
-                          <div className="text-purple-600 font-medium">{getFileType(item.url, item.type)}</div>
-                        </div>
-                        {item.duration && (
-                          <div>
-                            <span className="text-gray-500">Duration:</span>
-                            <div className="text-purple-600 font-medium">{formatDuration(item.duration)}</div>
-                          </div>
-                        )}
-                        {item.resolution && (
-                          <div>
-                            <span className="text-gray-500">Resolution:</span>
-                            <div className="text-purple-600 font-medium">{item.resolution.replace('x', '×')}</div>
-                          </div>
-                        )}
-                        {item.createdAt && (
-                          <div>
-                            <span className="text-gray-500">Upload Date:</span>
-                            <div className="text-purple-600 font-medium">{formatDate(item.createdAt)}</div>
-                          </div>
-                        )}
-                      </div>
+                    <div className="mb-2 p-2 bg-muted rounded-lg border border-border text-xs grid grid-cols-2 gap-2">
+                      <div><span className="text-muted-foreground">File Type:</span><div className="font-medium">{getFileType(item.url, item.type)}</div></div>
+                      {item.duration && <div><span className="text-muted-foreground">Duration:</span><div className="font-medium">{formatDuration(item.duration)}</div></div>}
+                      {item.resolution && <div><span className="text-muted-foreground">Resolution:</span><div className="font-medium">{item.resolution.replace("x", "×")}</div></div>}
+                      {item.createdAt && <div><span className="text-muted-foreground">Upload Date:</span><div className="font-medium">{formatDate(item.createdAt)}</div></div>}
                     </div>
                   )}
-
                   {item.description && (
-                    <button
-                      onClick={() => copyDescription(item.id, item.description!)}
-                      className="flex items-center gap-1 text-left group/desc max-w-full"
-                    >
-                      <p className="text-xs text-gray-400 truncate">
-                        {item.description}
-                      </p>
-                      {copiedId === item.id ? (
-                        <Check className="h-3 w-3 text-green-500 flex-shrink-0" />
-                      ) : (
-                        <Copy className="h-3 w-3 text-gray-300 opacity-0 group-hover/desc:opacity-100 flex-shrink-0 transition-opacity" />
-                      )}
+                    <button onClick={() => copyDescription(item.id, item.description!)} className="flex items-center gap-1 text-left group/desc max-w-full">
+                      <p className="text-xs text-muted-foreground truncate">{item.description}</p>
+                      {copiedId === item.id ? <Check className="h-3 w-3 text-green-500 flex-shrink-0" /> : <Copy className="h-3 w-3 opacity-0 group-hover/desc:opacity-100 flex-shrink-0" />}
                     </button>
                   )}
                 </div>
-
-                {/* External Link */}
-                <button 
-                  onClick={(e) => { e.stopPropagation(); window.open(item.url, '_blank'); }}
-                  className="opacity-0 group-hover:opacity-100 active:opacity-100 sm:group-hover:opacity-100 transition-opacity p-1.5 sm:p-2 hover:bg-purple-100 active:bg-purple-100 rounded-lg flex-shrink-0 touch-manipulation"
-                  title="Open in new tab"
-                >
+                <button onClick={(e) => { e.stopPropagation(); window.open(item.url, "_blank"); }} className="opacity-0 group-hover:opacity-100 active:opacity-100 sm:group-hover:opacity-100 transition-opacity p-1.5 sm:p-2 hover:bg-purple-100 rounded-lg flex-shrink-0 touch-manipulation" title="Open in new tab" aria-label="Open in new tab">
                   <ExternalLink className="h-4 w-4 text-purple-600" />
                 </button>
               </div>
@@ -731,34 +900,35 @@ export default function Collections() {
         )}
 
         {/* Infinite Scroll Trigger */}
-        <div ref={loadMoreRef} className="py-8 flex items-center justify-center">
+        <div ref={loadMoreRef} className="py-8">
           {isLoadingMore && (
-            <div className="flex items-center gap-2 text-gray-500">
-              <Loader2 className="h-5 w-5 animate-spin" />
-              <span className="text-sm">Loading more...</span>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
+              {[1, 2, 3, 4].map((i) => (
+                <div key={i} className="rounded-lg sm:rounded-xl p-2 sm:p-3 border border-gray-200">
+                  <Skeleton className="aspect-video min-h-[160px] sm:min-h-[180px] w-full rounded-lg mb-3" />
+                  <Skeleton className="h-4 w-3/4 mb-1 sm:mb-2" />
+                  <Skeleton className="h-3 w-1/2 mb-2" />
+                </div>
+              ))}
             </div>
           )}
           {!hasMore && items.length > 0 && (
-            <p className="text-sm text-gray-400">
+            <p className="text-sm text-gray-400 text-center">
               Showing all {totalCount} items
             </p>
           )}
         </div>
       </div>
-
-      {/* Create Collection Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md mx-4 shadow-xl">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-semibold text-gray-900">Create Collection</h2>
-              <button 
-                onClick={() => setShowCreateModal(false)}
-                className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
-              >
+              <button onClick={() => { setShowCreateModal(false); setNewCollectionName(""); }} className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
                 <X className="h-5 w-5 text-gray-500" />
               </button>
             </div>
+            <p className="text-xs text-muted-foreground mb-2">Parent collection (nested): Coming soon</p>
             <Input
               placeholder="Collection name"
               value={newCollectionName}
@@ -766,15 +936,12 @@ export default function Collections() {
               className="mb-4"
               autoFocus
             />
-            <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setShowCreateModal(false)}>
-                Cancel
+            <div className="flex flex-wrap gap-2 justify-end">
+              <Button variant="outline" size="sm" onClick={() => { setShowSmartModal(true); setShowCreateModal(false); }} className="gap-1">
+                <Sparkles className="h-3.5 w-3.5" /> Smart collection
               </Button>
-              <Button 
-                onClick={createCollection}
-                disabled={!newCollectionName.trim() || isCreating}
-                className="bg-purple-600 hover:bg-purple-700"
-              >
+              <Button variant="outline" onClick={() => setShowCreateModal(false)}>Cancel</Button>
+              <Button onClick={createCollection} disabled={!newCollectionName.trim() || isCreating} className="bg-purple-600 hover:bg-purple-700">
                 {isCreating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                 Create
               </Button>
@@ -782,6 +949,158 @@ export default function Collections() {
           </div>
         </div>
       )}
+
+      {showSmartModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Create Smart Collection</h2>
+            <p className="text-sm text-gray-500 mb-4">Auto-populate from filters (e.g. &quot;All videos with snow&quot;). Coming soon.</p>
+            <Button onClick={() => { setShowSmartModal(false); setShowCreateModal(true); }} variant="outline">Back</Button>
+          </div>
+        </div>
+      )}
+
+      {showMoveModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Move to collection</h2>
+            <p className="text-sm text-gray-500 mb-4">{selectedIds.size} item(s) will be moved and will leave the current collection.</p>
+            <Select value={moveTarget} onValueChange={setMoveTarget}>
+              <SelectTrigger className="w-full mb-4">
+                <span className={!moveTarget ? "text-muted-foreground" : ""}>{moveTarget || "Select collection"}</span>
+              </SelectTrigger>
+              <SelectContent>
+                {collections.filter((c) => c.name !== selectedCollection).map((c) => (
+                  <SelectItem key={c.id} value={c.name}>{c.name} ({c.count})</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => { setShowMoveModal(false); setMoveTarget(""); }}>Cancel</Button>
+              <Button onClick={handleMove} disabled={!moveTarget || isBulkActioning} className="bg-purple-600">
+                {isBulkActioning ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Move
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showShareModal && selectedCollection && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Share &quot;{selectedCollection}&quot;</h2>
+            <p className="text-sm text-gray-500 mb-4">View-only and Can edit permissions. Invite by link or email. Coming soon.</p>
+            <Button variant="outline" onClick={() => setShowShareModal(false)}>Close</Button>
+          </div>
+        </div>
+      )}
+
+      {showRemoveConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">Remove from collection</h2>
+            <p className="text-sm text-gray-500 mb-4">{selectedIds.size} item(s) will be removed from this collection and will no longer appear here.</p>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowRemoveConfirm(false)}>Cancel</Button>
+              <Button onClick={handleRemoveFromCollection} disabled={isBulkActioning} className="bg-red-600 hover:bg-red-700 text-white">
+                {isBulkActioning ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                Remove
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {detailItem && (() => {
+        const idx = sortedAndFilteredItems.findIndex((i) => toId(i) === toId(detailItem));
+        const prevItem = idx > 0 ? sortedAndFilteredItems[idx - 1] : null;
+        const nextItem = idx >= 0 && idx < sortedAndFilteredItems.length - 1 ? sortedAndFilteredItems[idx + 1] : null;
+        return (
+          <div className="fixed inset-0 z-50 flex flex-col bg-black/95" role="dialog" aria-modal="true" aria-labelledby="detail-title">
+            {/* Top bar */}
+            <div className="flex-shrink-0 flex items-center justify-between gap-2 px-3 py-2 bg-black/50 border-b border-white/10">
+              <div className="flex items-center gap-2 min-w-0">
+                {prevItem ? (
+                  <button onClick={() => setDetailItem(prevItem)} className="p-1.5 rounded hover:bg-white/10 text-white" aria-label="Previous"><ChevronLeft className="h-5 w-5" /></button>
+                ) : <span className="w-8" />}
+                {nextItem ? (
+                  <button onClick={() => setDetailItem(nextItem)} className="p-1.5 rounded hover:bg-white/10 text-white" aria-label="Next"><ChevronRight className="h-5 w-5" /></button>
+                ) : <span className="w-8" />}
+                <h2 id="detail-title" className="font-medium text-white truncate">{detailItem.url.split("/").pop()?.split("?")[0] || "Untitled"}</h2>
+              </div>
+              <div className="flex items-center gap-1">
+                {detailItem.type === "image" && (
+                  <>
+                    <button onClick={() => setImageZoom((z) => Math.max(0.5, z - 0.25))} className="p-1.5 rounded hover:bg-white/10 text-white" aria-label="Zoom out"><ZoomOut className="h-4 w-4" /></button>
+                    <span className="text-xs text-white/80 min-w-[3rem] text-center">{Math.round(imageZoom * 100)}%</span>
+                    <button onClick={() => setImageZoom((z) => Math.min(3, z + 0.25))} className="p-1.5 rounded hover:bg-white/10 text-white" aria-label="Zoom in"><ZoomIn className="h-4 w-4" /></button>
+                    <button onClick={() => setImageZoom(1)} className="p-1.5 rounded hover:bg-white/10 text-white text-xs">Fit</button>
+                  </>
+                )}
+                {detailItem.type === "video" && (
+                  <button onClick={() => detailVideoRef.current?.requestFullscreen?.()} className="p-1.5 rounded hover:bg-white/10 text-white" aria-label="Fullscreen"><Maximize2 className="h-4 w-4" /></button>
+                )}
+                <button onClick={() => window.open(detailItem.url, "_blank")} className="p-1.5 rounded hover:bg-white/10 text-white" aria-label="Open in new tab"><ExternalLink className="h-4 w-4" /></button>
+                <button onClick={() => handleDetailDownload(detailItem)} className="p-1.5 rounded hover:bg-white/10 text-white" aria-label="Download"><Download className="h-4 w-4" /></button>
+                <button onClick={() => handleDetailCopyLink(detailItem.url)} className="p-1.5 rounded hover:bg-white/10 text-white" aria-label="Copy link"><Copy className="h-4 w-4" /></button>
+                <button onClick={() => handleDetailShare(detailItem)} className="p-1.5 rounded hover:bg-white/10 text-white" aria-label="Share"><Share2 className="h-4 w-4" /></button>
+                <button onClick={() => setDetailItem(null)} className="p-1.5 rounded hover:bg-white/10 text-white ml-1" aria-label="Close"><X className="h-5 w-5" /></button>
+              </div>
+            </div>
+
+            {/* Media area */}
+            <div className="flex-1 overflow-auto flex items-center justify-center p-4 min-h-0">
+              {detailItem.type === "video" ? (
+                <video
+                  ref={detailVideoRef}
+                  src={detailItem.url}
+                  className="max-w-full max-h-full object-contain"
+                  controls
+                  playsInline
+                  preload="auto"
+                  autoPlay
+                />
+              ) : (
+                <div className="overflow-auto max-w-full max-h-full flex items-center justify-center">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={detailItem.url}
+                    alt={detailItem.description || "Media"}
+                    className="max-w-full max-h-[70vh] object-contain select-none"
+                    style={{ transform: `scale(${imageZoom})`, transformOrigin: "center" }}
+                    draggable={false}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Bottom: caption, tags, comments, export */}
+            <div className="flex-shrink-0 border-t border-white/10 bg-black/50 p-4 max-h-[40vh] overflow-y-auto">
+              <div className="max-w-3xl mx-auto space-y-4">
+                <div>
+                  <p className="text-xs text-white/50 mb-0.5">{detailItem.type === "video" ? "Video" : "Image"} · {detailItem.collectionName}{detailItem.createdAt ? ` · Added ${formatDate(detailItem.createdAt)}` : ""}{detailItem.type === "video" && detailItem.duration != null ? ` · ${formatDuration(detailItem.duration)}` : ""}</p>
+                  <p className="text-xs font-medium text-white/60 uppercase tracking-wider mt-2 mb-1">Caption</p>
+                  <p className="text-sm text-white">{detailItem.description || "No caption."}</p>
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-white/60 uppercase tracking-wider mb-2">Actions</p>
+                  <div className="flex flex-wrap gap-2">
+                    <Button size="sm" variant="secondary" className="bg-white/10 text-white hover:bg-white/20 border-0" onClick={() => window.open(detailItem.url, "_blank")}><ExternalLink className="h-3.5 w-3.5 mr-1" /> Open in new tab</Button>
+                    <Button size="sm" variant="secondary" className="bg-white/10 text-white hover:bg-white/20 border-0" onClick={() => handleDetailDownload(detailItem)}><Download className="h-3.5 w-3.5 mr-1" /> Download</Button>
+                    <Button size="sm" variant="secondary" className="bg-white/10 text-white hover:bg-white/20 border-0" onClick={() => handleDetailCopyLink(detailItem.url)}><Copy className="h-3.5 w-3.5 mr-1" /> Copy link</Button>
+                    <Button size="sm" variant="secondary" className="bg-white/10 text-white hover:bg-white/20 border-0" onClick={() => handleDetailShare(detailItem)}><Share2 className="h-3.5 w-3.5 mr-1" /> Share</Button>
+                  </div>
+                </div>
+                <details className="text-white/50">
+                  <summary className="text-xs font-medium text-white/60 cursor-pointer list-none">More (coming soon)</summary>
+                  <p className="mt-2 text-xs text-white/40">Crop, AI captions, tags, comments, edit metadata, Open in Adobe, Post to social.</p>
+                </details>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
