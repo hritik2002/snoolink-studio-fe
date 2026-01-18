@@ -21,11 +21,16 @@ export async function GET(
 
     const { searchParams } = new URL(request.url);
     const type = searchParams.get("type");
+    const limit = searchParams.get("limit") || "20";
+    const offset = searchParams.get("offset") || "0";
     
-    let url = `${BACKEND_URL}/api/collections/${id}/resources`;
-    if (type) {
-      url += `?type=${type}`;
-    }
+    // Build query params
+    const params_query = new URLSearchParams();
+    if (type) params_query.append("type", type);
+    params_query.append("limit", limit);
+    params_query.append("offset", offset);
+
+    const url = `${BACKEND_URL}/api/collections/${encodeURIComponent(id)}/resources?${params_query.toString()}`;
 
     const response = await fetch(url, {
       method: "GET",
@@ -46,7 +51,6 @@ export async function GET(
 
     return NextResponse.json(data);
   } catch (error: any) {
-    console.error("Error fetching collection resources:", error);
     return NextResponse.json(
       { success: false, error: error.message },
       { status: 500 }

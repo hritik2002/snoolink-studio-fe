@@ -80,7 +80,7 @@ export default function Collections() {
       }
     });
 
-  // Fetch paginated items
+  // Fetch paginated items using collection-specific endpoint
   const fetchItems = useCallback(async (
     collection: string | null, 
     currentOffset: number, 
@@ -97,14 +97,14 @@ export default function Collections() {
 
     try {
       const params = new URLSearchParams();
-      params.append("collections", collection);
       params.append("limit", ITEMS_PER_PAGE.toString());
       params.append("offset", currentOffset.toString());
       if (type !== "all") {
         params.append("type", type);
       }
 
-      const response = await fetch(`/api/resources?${params.toString()}`);
+      // Use collection-specific endpoint
+      const response = await fetch(`/api/collections/${encodeURIComponent(collection)}/resources?${params.toString()}`);
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
@@ -122,7 +122,7 @@ export default function Collections() {
             url: item.url,
             type: item.type,
             description: item.description,
-            collectionName: item.collectionName || "Default",
+            collectionName: item.collectionName || collection,
             createdAt: item.createdAt,
             duration: item.duration,
             resolution: item.resolution,
