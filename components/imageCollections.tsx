@@ -8,7 +8,7 @@ import {
   Loader2, Video, CloudUpload, Folder, 
   CheckCircle2, Clock, AlertCircle, ChevronRight, X,
   Filter, CheckSquare, Square, Trash2, RotateCcw, FileUp, ExternalLink, Plus,
-  Camera, FolderUp, Sparkles, Play
+  Camera, FolderUp, Sparkles, Play, Pause
 } from "lucide-react";
 import { UploadsListSkeleton } from "@/components/skeletons";
 import { Input } from "@/components/ui/input";
@@ -44,6 +44,7 @@ interface UserCollection {
 }
 
 type FilterStatus = "all" | "processing" | "failed";
+type SortBy = "date" | "name" | "size" | "progress";
 
 function suggestCollectionForFiles(files: File[], collections: UserCollection[]): string | null {
   if (files.length === 0 || collections.length === 0) return null;
@@ -62,12 +63,59 @@ function suggestCollectionForFiles(files: File[], collections: UserCollection[])
   return seen.size > 0 ? Array.from(seen)[0] : null;
 }
 
+// Helper to intelligently truncate long filenames
+function truncateFilename(filename: string, maxLength = 40): { display: string; full: string } {
+  if (filename.length <= maxLength) {
+    return { display: filename, full: filename };
+  }
+  
+  // Try to extract meaningful part (remove IDs at start)
+  const parts = filename.split('_');
+  let meaningfulPart = filename;
+  
+  // If filename starts with timestamp-like ID, skip it
+  if (parts.length > 1 && /^\d+/.test(parts[0])) {
+    meaningfulPart = parts.slice(1).join('_');
+  }
+  
+  // Extract extension
+  const lastDot = meaningfulPart.lastIndexOf('.');
+  const name = lastDot > 0 ? meaningfulPart.substring(0, lastDot) : meaningfulPart;
+  const ext = lastDot > 0 ? meaningfulPart.substring(lastDot) : '';
+  
+  // Truncate name, keep extension
+  const truncatedName = name.length > (maxLength - ext.length - 3) 
+    ? name.substring(0, maxLength - ext.length - 3) + '...' 
+    : name;
+  
+  return {
+    display: truncatedName + ext,
+    full: filename
+  };
+}
+
+// Helper to format file size
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 B';
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
+}
+
+// Helper to get file size from URL (estimate based on type)
+function estimateFileSize(url: string, type: string): number {
+  // This is an estimate; in production, you'd get actual size from metadata
+  return type === "video" ? 15 * 1024 * 1024 : 2 * 1024 * 1024; // 15MB for video, 2MB for image
+}
+
 export default function ImageCollections() {
   const [files, setFiles] = useState<UploadedFile[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [sortBy, setSortBy] = useState("date");
+  const [sortBy, setSortBy] = useState<SortBy>("date");
   const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
+  const [validationError, setValidationError] = useState<string | null>(null);
   const [isDragActive, setIsDragActive] = useState(false);
   const [showUploadZone, setShowUploadZone] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -86,6 +134,8 @@ export default function ImageCollections() {
   const [tourStep, setTourStep] = useState<number | null>(null);
   const [suggestedCollection, setSuggestedCollection] = useState<string | null>(null);
   const [recentUploads, setRecentUploads] = useState<{ url: string; collectionName: string; type: string }[]>([]);
+  const [previewFile, setPreviewFile] = useState<UploadedFile | null>(null);
+  const [fileProgress, setFileProgress] = useState<Record<string, number>>({});
   const [uploadProgress, setUploadProgress] = useState<{
     files: { id: string; name: string; type: string; previewUrl: string; status: "pending" | "uploading" | "embedding" | "queuing" | "done" | "failed"; progress: number; error?: string }[];
     phase: "uploading" | "embedding" | "queuing" | "done";
@@ -713,11 +763,28 @@ export default function ImageCollections() {
   const handleDragOver = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragActive(true);
+    
+    // Real-time validation on drag
+    const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+    if (e.dataTransfer.items) {
+      const files = Array.from(e.dataTransfer.items)
+        .filter(item => item.kind === 'file')
+        .map(item => item.getAsFile())
+        .filter((f): f is File => f !== null);
+      
+      const oversized = files.filter(f => f.size > MAX_FILE_SIZE);
+      if (oversized.length > 0) {
+        setValidationError(`${oversized.length} file(s) exceed 100MB limit. Please compress or split large files.`);
+      } else {
+        setValidationError(null);
+      }
+    }
   }, []);
 
   const handleDragLeave = useCallback((e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragActive(false);
+    setValidationError(null);
   }, []);
 
   const handleFileSelect = useCallback(
@@ -773,6 +840,38 @@ export default function ImageCollections() {
   const filteredFiles = files.filter((file) => {
     return filterStatus === "all" || file.status === filterStatus;
   });
+
+  // Sort files
+  const sortedFiles = [...filteredFiles].sort((a, b) => {
+    switch (sortBy) {
+      case "name": {
+        const nameA = a.url.split('/').pop()?.split('?')[0] || '';
+        const nameB = b.url.split('/').pop()?.split('?')[0] || '';
+        return nameA.localeCompare(nameB);
+      }
+      case "size": {
+        const sizeA = estimateFileSize(a.url, a.type);
+        const sizeB = estimateFileSize(b.url, b.type);
+        return sizeB - sizeA;
+      }
+      case "progress": {
+        const progressA = fileProgress[a.id] || (a.status === "processing" ? 50 : a.status === "failed" ? 0 : 100);
+        const progressB = fileProgress[b.id] || (b.status === "processing" ? 50 : b.status === "failed" ? 0 : 100);
+        return progressB - progressA;
+      }
+      case "date":
+      default: {
+        const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return dateB - dateA;
+      }
+    }
+  });
+
+  // Calculate progress stats
+  const processingCount = files.filter(f => f.status === "processing").length;
+  const failedCount = files.filter(f => f.status === "failed").length;
+  const totalProgress = files.length > 0 ? Math.round((files.filter(f => f.status !== "processing" && f.status !== "failed").length / files.length) * 100) : 0;
 
   // Get failed files for selection
   const failedFiles = filteredFiles.filter((f) => f.status === "failed");
@@ -917,6 +1016,55 @@ export default function ImageCollections() {
         </div>
       </div>
 
+      {/* Global Progress Indicator */}
+      {files.length > 0 && (processingCount > 0 || failedCount > 0) && (
+        <div className="mb-4 sm:mb-6 p-4 rounded-xl border border-purple-200 bg-gradient-to-r from-purple-50 via-white to-purple-50 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                {processingCount > 0 && (
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
+                    <span className="text-sm font-semibold text-gray-900">
+                      {processingCount} Processing
+                    </span>
+                  </div>
+                )}
+                {failedCount > 0 && (
+                  <div className="flex items-center gap-1.5 ml-2">
+                    <div className="w-2 h-2 rounded-full bg-red-500" />
+                    <span className="text-sm font-medium text-red-600">
+                      {failedCount} Failed
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl font-bold text-purple-600 tabular-nums">{totalProgress}%</span>
+              <span className="text-xs text-gray-500">complete</span>
+            </div>
+          </div>
+          
+          {/* Animated progress bar */}
+          <div className="h-2.5 rounded-full bg-gray-200 overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-purple-600 to-purple-500 transition-all duration-500 ease-out relative overflow-hidden"
+              style={{ width: `${totalProgress}%` }}
+            >
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent" style={{ animation: 'shimmer 2s infinite' }} />
+            </div>
+          </div>
+          
+          {processingCount > 0 && (
+            <p className="text-xs text-gray-500 mt-2 flex items-center gap-1.5">
+              <Clock className="h-3.5 w-3.5" />
+              <span>Processing usually completes in under a minute per file</span>
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Upload Zone */}
       {(!hasAssets || showUploadZone) && (
         <div className="mb-4 sm:mb-6">
@@ -970,6 +1118,20 @@ export default function ImageCollections() {
                   <span className="font-semibold">Max size:</span> 100MB per file · <span className="font-semibold">Auto-indexed</span> for semantic search
                 </p>
               </div>
+              
+              {/* Validation error warning */}
+              {validationError && (
+                <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2 max-w-md animate-in fade-in slide-in-from-top-2">
+                  <AlertCircle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-red-700">{validationError}</p>
+                    <p className="text-xs text-red-600 mt-0.5">Compress files or split into smaller uploads</p>
+                  </div>
+                  <button onClick={() => setValidationError(null)} className="text-red-600 hover:text-red-700">
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
               
               {/* Selected file count indicator */}
               {selectedFileCount > 0 && (
@@ -1340,16 +1502,21 @@ export default function ImageCollections() {
           })}
           </div>
           <div className={files.length === 0 ? "opacity-50 pointer-events-none" : ""}>
-            <Select value={sortBy} onValueChange={setSortBy}>
+            <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortBy)}>
               <SelectTrigger className="w-full sm:w-[200px] border-gray-300 bg-white text-gray-700 text-xs sm:text-sm">
               <span className="hidden sm:inline font-medium">SORT: </span>
-              <span>{sortBy === "date" ? "Date Added" : sortBy === "name" ? "Name" : sortBy === "type" ? "Type" : "Size"}</span>
+              <span>
+                {sortBy === "date" ? "Date Added" : 
+                 sortBy === "name" ? "Name" : 
+                 sortBy === "size" ? "File Size" : 
+                 "Progress"}
+              </span>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="date">Date Added</SelectItem>
               <SelectItem value="name">Name</SelectItem>
-              <SelectItem value="type">Type</SelectItem>
-              <SelectItem value="size">Size</SelectItem>
+              <SelectItem value="size">File Size</SelectItem>
+              <SelectItem value="progress">Progress</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -1480,18 +1647,20 @@ export default function ImageCollections() {
         </div>
       ) : (
 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-          {filteredFiles.map((file) => {
+          {sortedFiles.map((file) => {
             const urlParts = file.url.split('/');
-            const filename = urlParts[urlParts.length - 1].split('?')[0] || (file.type === "image" ? 'image.jpg' : 'video.mp4');
+            const fullFilename = urlParts[urlParts.length - 1].split('?')[0] || (file.type === "image" ? 'image.jpg' : 'video.mp4');
+            const { display: filename, full: fullname } = truncateFilename(fullFilename, 45);
             const isFailed = file.status === "failed";
             const isProcessing = file.status === "processing";
             const isSelected = selectedFiles.has(file.id);
+            const estimatedSize = estimateFileSize(file.url, file.type);
               
               return (
               <div
                 key={file.id}
                 onClick={isFailed ? () => toggleFileSelection(file.id) : undefined}
-                className={`flex items-center gap-2 sm:gap-3 md:gap-4 p-3 sm:p-4 bg-white border-2 rounded-xl sm:rounded-2xl transition-all touch-manipulation ${
+                className={`flex items-center gap-2 sm:gap-3 md:gap-4 p-3 sm:p-4 bg-white border-2 rounded-xl sm:rounded-2xl transition-all touch-manipulation animate-in fade-in slide-in-from-bottom-2 ${
                   isSelected 
                     ? "border-purple-500 bg-purple-50/30" 
                     : "border-gray-200 hover:border-purple-300 hover:shadow-md active:border-purple-400"
@@ -1543,23 +1712,58 @@ export default function ImageCollections() {
 
                 {/* File Info */}
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm sm:text-base font-medium text-purple-600 truncate">
+                  <p 
+                    className="text-sm sm:text-base font-medium text-purple-600 truncate group relative cursor-help"
+                    title={fullname !== filename ? fullname : undefined}
+                  >
                       {filename}
+                    {fullname !== filename && (
+                      <span className="absolute left-0 bottom-full mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-3 py-2 rounded whitespace-nowrap z-20 shadow-lg max-w-sm truncate">
+                        {fullname}
+                      </span>
+                    )}
                     </p>
-                  <p className="text-xs sm:text-sm text-gray-500">
-                    {file.type === "video" ? "Video" : "Image"}
-                    {isFailed && <span className="text-red-500 ml-1 sm:ml-2">• Failed</span>}
-                    {file.status === "processing" && <span className="text-yellow-600 ml-1 sm:ml-2">• Processing</span>}
-                  </p>
-                  {file.status === "processing" && (
-                    <p className="text-xs text-gray-400 mt-1 hidden sm:block">
-                      Indexing in progress — this may take up to a minute
-                    </p>
+                  <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500">
+                    <span>{file.type === "video" ? "Video" : "Image"}</span>
+                    <span>•</span>
+                    <span className="text-gray-400">{formatFileSize(estimatedSize)}</span>
+                    {isFailed && (
+                      <>
+                        <span>•</span>
+                        <span className="text-red-500 font-medium">Failed</span>
+                      </>
+                    )}
+                    {isProcessing && (
+                      <>
+                        <span>•</span>
+                        <span className="text-yellow-600 font-medium">Processing</span>
+                      </>
+                    )}
+                  </div>
+                  {isProcessing && (
+                    <div className="mt-2 space-y-1">
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 h-1.5 rounded-full bg-gray-200 overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-yellow-500 to-yellow-400 rounded-full transition-all duration-300 animate-pulse"
+                            style={{ width: `${fileProgress[file.id] || 45}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-medium text-yellow-600 tabular-nums min-w-[3ch]">
+                          {fileProgress[file.id] || 45}%
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-500">
+                        Indexing... ~{Math.max(1, Math.ceil((100 - (fileProgress[file.id] || 45)) / 50))} min remaining
+                      </p>
+                    </div>
                   )}
                   {isFailed && file.description && (
-                    <p className="text-xs text-red-600 mt-1" title={file.description}>
-                      {file.description}
-                    </p>
+                    <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-xs">
+                      <p className="text-red-700 font-medium mb-0.5">Upload failed</p>
+                      <p className="text-red-600 line-clamp-1">{file.description}</p>
+                      <p className="text-red-500 mt-1">Click to select and retry</p>
+                    </div>
                   )}
           </div>
 
