@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, FolderOpen, User, History, BarChart3, Settings, CreditCard, Upload, LogOut } from "lucide-react";
+import { Search, FolderOpen, User, History, BarChart3, Settings, CreditCard, Upload, LogOut, Shield } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -213,10 +213,9 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                     tooltip="Settings"
                     className="text-gray-500 hover:text-gray-700 hover:bg-gray-50 data-[active=true]:bg-purple-50 data-[active=true]:text-purple-600"
                   >
-                    <button onClick={() => handleViewChange("settings")} aria-label="Settings (coming soon)">
+                    <button onClick={() => handleViewChange("settings")} aria-label="Settings">
                       <Settings className="h-4 w-4 shrink-0" />
                       <span>Settings</span>
-                      <span className="ml-1 text-[10px] text-gray-400 font-normal">Soon</span>
                     </button>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -231,6 +230,21 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                       <CreditCard className="h-4 w-4 shrink-0" />
                       <span>Billing</span>
                       <span className="ml-1 text-[10px] text-gray-400 font-normal">Soon</span>
+                    </button>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    tooltip="Admin"
+                    className="text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                  >
+                    <button
+                      onClick={() => { setOpenMobile(false); router.push("/admin"); }}
+                      aria-label="Admin"
+                    >
+                      <Shield className="h-4 w-4 shrink-0" />
+                      <span>Admin</span>
                     </button>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
