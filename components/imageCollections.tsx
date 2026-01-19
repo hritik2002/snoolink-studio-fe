@@ -969,7 +969,7 @@ export default function ImageCollections() {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full py-3 sm:py-4 md:py-6 lg:py-8 bg-white px-3 sm:px-4 md:px-6 lg:px-8">
+    <div className="flex-1 flex flex-col h-full min-w-0 py-3 sm:py-4 md:py-6 lg:py-8 bg-white px-3 sm:px-4 md:px-6 lg:px-8 overflow-x-hidden">
       {/* Breadcrumbs */}
       <div className="mb-3 sm:mb-4 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-500">
         <span>Uploads</span>

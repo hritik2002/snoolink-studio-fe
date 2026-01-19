@@ -94,33 +94,33 @@ export default function Profile() {
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full w-full max-w-2xl mx-auto py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-light text-gray-900 mb-2">Profile</h1>
-        <p className="text-gray-600 text-sm">
+    <div className="flex-1 flex flex-col h-full w-full min-w-0 max-w-2xl mx-auto py-4 sm:py-8 px-4 sm:px-6 overflow-x-hidden">
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-light text-gray-900 mb-2">Profile</h1>
+        <p className="text-gray-600 text-xs sm:text-sm">
           Manage your account information
         </p>
       </div>
 
-      <Card className="bg-white border border-gray-200 p-6 shadow-sm">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-200">
-            <div className="flex items-center justify-center w-16 h-16 rounded-full bg-purple-100">
-              <UserIcon className="h-8 w-8 text-purple-600" />
+      <Card className="bg-white border border-gray-200 p-4 sm:p-6 shadow-sm">
+        <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+          <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-gray-200">
+            <div className="flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-purple-100 flex-shrink-0">
+              <UserIcon className="h-7 w-7 sm:h-8 sm:w-8 text-purple-600" />
             </div>
-            <div>
-              <h2 className="text-xl font-medium text-gray-900">
+            <div className="min-w-0 flex-1">
+              <h2 className="text-lg sm:text-xl font-medium text-gray-900 truncate">
                 {profile.name || user?.email?.split("@")[0] || "User"}
               </h2>
-              <p className="text-sm text-gray-500">{user?.email}</p>
+              <p className="text-xs sm:text-sm text-gray-500 truncate">{user?.email}</p>
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
             <div className="space-y-2">
               <label
                 htmlFor="name"
-                className="text-sm font-medium text-gray-700"
+                className="text-xs sm:text-sm font-medium text-gray-700"
               >
                 Full Name
               </label>
@@ -132,14 +132,14 @@ export default function Profile() {
                 onChange={(e) =>
                   setProfile((prev) => ({ ...prev, name: e.target.value }))
                 }
-                className="bg-gray-50 border-gray-200 text-gray-900"
+                className="bg-gray-50 border-gray-200 text-gray-900 h-11 sm:h-12 text-base touch-manipulation"
               />
             </div>
 
             <div className="space-y-2">
               <label
                 htmlFor="email"
-                className="text-sm font-medium text-gray-700"
+                className="text-xs sm:text-sm font-medium text-gray-700"
               >
                 Email
               </label>
@@ -151,7 +151,7 @@ export default function Profile() {
                 onChange={(e) =>
                   setProfile((prev) => ({ ...prev, email: e.target.value }))
                 }
-                className="bg-gray-50 border-gray-200 text-gray-500"
+                className="bg-gray-50 border-gray-200 text-gray-500 h-11 sm:h-12 text-base"
                 disabled
               />
               <p className="text-xs text-gray-500">
@@ -161,13 +161,13 @@ export default function Profile() {
           </div>
 
           {error && (
-            <div className="text-red-700 text-sm bg-red-50 border border-red-200 rounded-md p-3">
+            <div className="text-red-700 text-xs sm:text-sm bg-red-50 border border-red-200 rounded-md p-2.5 sm:p-3">
               {error}
             </div>
           )}
 
           {success && (
-            <div className="text-green-700 text-sm bg-green-50 border border-green-200 rounded-md p-3">
+            <div className="text-green-700 text-xs sm:text-sm bg-green-50 border border-green-200 rounded-md p-2.5 sm:p-3">
               {success}
             </div>
           )}
@@ -175,7 +175,7 @@ export default function Profile() {
           <Button
             type="submit"
             disabled={saving}
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white"
+            className="w-full bg-purple-600 hover:bg-purple-700 text-white h-11 sm:h-12 text-sm sm:text-base touch-manipulation"
           >
             {saving ? (
               <>

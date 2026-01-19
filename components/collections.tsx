@@ -470,7 +470,7 @@ export default function Collections() {
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-white overflow-hidden">
+    <div className="flex-1 flex flex-col h-full min-w-0 bg-white overflow-hidden">
       {/* Header with Gradient Background */}
       <div className="sticky top-0 z-20 pt-4 sm:pt-6 pb-4 px-4 sm:px-6 flex-shrink-0 overflow-hidden">
         {/* Gradient Background */}
@@ -551,7 +551,7 @@ export default function Collections() {
                     : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300"
                 }`}
               >
-                <span className="truncate max-w-[120px] sm:max-w-[150px]">{collection.name}</span>
+                <span className="truncate max-w-[70px] xs:max-w-[90px] sm:max-w-[120px] md:max-w-[150px]">{collection.name}</span>
                 <span className={`text-xs px-1.5 py-0.5 rounded-full ${
                   selectedCollection === collection.name
                     ? "bg-gray-700 text-gray-300"
@@ -746,15 +746,15 @@ export default function Collections() {
             </div>
           </div>
         ) : viewMode === "grid" ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
+          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 xs:gap-2.5 sm:gap-3 md:gap-4 lg:gap-5">
             {sortedAndFilteredItems.map((item) => (
               <div
                 key={item.id}
                 onClick={() => setDetailItem(item)}
-                className="group border border-gray-200 rounded-lg sm:rounded-xl p-2 sm:p-3 hover:border-purple-300 hover:shadow-md transition-all bg-white touch-manipulation cursor-pointer"
+                className="group border border-gray-200 rounded-lg sm:rounded-xl p-2 xs:p-2.5 sm:p-3 hover:border-purple-300 hover:shadow-md transition-all bg-white touch-manipulation cursor-pointer min-w-0 w-full"
               >
                 <div
-                  className="relative aspect-video min-h-[160px] sm:min-h-[180px] rounded-lg overflow-hidden bg-muted mb-3"
+                  className="relative aspect-video min-h-[100px] xs:min-h-[120px] sm:min-h-[140px] md:min-h-[160px] lg:min-h-[180px] rounded-lg overflow-hidden bg-muted mb-2 xs:mb-2.5 sm:mb-3 max-w-full"
                   onMouseEnter={(e) => {
                     const v = e.currentTarget.querySelector("video");
                     if (v) {
@@ -786,11 +786,11 @@ export default function Collections() {
                   {item.type === "video" ? (
                     <video
                       src={item.url}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover min-h-0"
                       playsInline
                       controls
                       preload="metadata"
-                      style={{ display: "block", minHeight: "160px" }}
+                      style={{ display: "block" }}
                       ref={(el) => el?.setAttribute("webkit-playsinline", "true")}
                     />
                   ) : (
@@ -818,24 +818,26 @@ export default function Collections() {
                     <ExternalLink className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-700" />
                   </button>
                 </div>
-                <div className="mb-1 sm:mb-2">
-                  <h3 className="text-xs sm:text-sm font-medium text-foreground truncate">{item.url.split("/").pop()?.split("?")[0] || "Untitled"}</h3>
+                <div className="mb-1 xs:mb-1.5 sm:mb-2">
+                  <h3 className="text-xs sm:text-sm font-medium text-foreground truncate" title={item.url.split("/").pop()?.split("?")[0]}>
+                    {item.url.split("/").pop()?.split("?")[0] || "Untitled"}
+                  </h3>
                 </div>
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs text-muted-foreground">{item.collectionName}</span>
-                  <span className="text-xs text-purple-600 font-medium">{getFileExtension(item.url)}</span>
+                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-1.5 xs:mb-2 text-xs">
+                  <span className="text-muted-foreground truncate max-w-[80px] xs:max-w-[100px]">{item.collectionName}</span>
+                  <span className="text-purple-600 font-medium flex-shrink-0">{getFileExtension(item.url)}</span>
                 </div>
                 {item.type === "video" && (item.duration || item.resolution) && (
-                  <div className="mb-2 p-2 bg-muted rounded-lg border border-border text-xs grid grid-cols-2 gap-2">
-                    <div><span className="text-muted-foreground">File Type:</span><div className="text-purple-600 font-medium">{getFileType(item.url, item.type)}</div></div>
-                    {item.duration && <div><span className="text-muted-foreground">Duration:</span><div className="font-medium">{formatDuration(item.duration)}</div></div>}
-                    {item.resolution && <div><span className="text-muted-foreground">Resolution:</span><div className="font-medium">{item.resolution.replace("x", "×")}</div></div>}
-                    {item.createdAt && <div><span className="text-muted-foreground">Upload Date:</span><div className="font-medium">{formatDate(item.createdAt)}</div></div>}
+                  <div className="mb-1.5 xs:mb-2 p-1.5 xs:p-2 bg-muted rounded-lg border border-border text-[10px] xs:text-xs grid grid-cols-2 gap-1.5 xs:gap-2">
+                    <div className="min-w-0"><span className="text-muted-foreground">Type:</span><div className="text-purple-600 font-medium truncate">{getFileType(item.url, item.type)}</div></div>
+                    {item.duration && <div><span className="text-muted-foreground">Time:</span><div className="font-medium">{formatDuration(item.duration)}</div></div>}
+                    {item.resolution && <div className="min-w-0"><span className="text-muted-foreground">Res:</span><div className="font-medium truncate">{item.resolution.replace("x", "×")}</div></div>}
+                    {item.createdAt && <div className="min-w-0"><span className="text-muted-foreground">Date:</span><div className="font-medium truncate">{formatDate(item.createdAt)}</div></div>}
                   </div>
                 )}
                 {item.description && (
-                  <button onClick={() => copyDescription(item.id, item.description!)} className="w-full flex items-center gap-1 text-left group/desc">
-                    <p className="text-xs text-muted-foreground truncate flex-1">{item.description}</p>
+                  <button onClick={() => copyDescription(item.id, item.description!)} className="w-full flex items-center gap-1 text-left group/desc min-w-0">
+                    <p className="text-[10px] xs:text-xs text-muted-foreground truncate flex-1 min-w-0">{item.description}</p>
                     {copiedId === item.id ? <Check className="h-3 w-3 text-green-500 flex-shrink-0" /> : <Copy className="h-3 w-3 text-muted-foreground opacity-0 group-hover/desc:opacity-100 flex-shrink-0 transition-opacity" />}
                   </button>
                 )}
@@ -902,12 +904,12 @@ export default function Collections() {
         {/* Infinite Scroll Trigger */}
         <div ref={loadMoreRef} className="py-8">
           {isLoadingMore && (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
-              {[1, 2, 3, 4].map((i) => (
-                <div key={i} className="rounded-lg sm:rounded-xl p-2 sm:p-3 border border-gray-200">
-                  <Skeleton className="aspect-video min-h-[160px] sm:min-h-[180px] w-full rounded-lg mb-3" />
-                  <Skeleton className="h-4 w-3/4 mb-1 sm:mb-2" />
-                  <Skeleton className="h-3 w-1/2 mb-2" />
+            <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 xs:gap-2.5 sm:gap-3 md:gap-4 lg:gap-5">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="rounded-lg sm:rounded-xl p-2 xs:p-2.5 sm:p-3 border border-gray-200 min-w-0">
+                  <Skeleton className="aspect-video min-h-[100px] xs:min-h-[120px] sm:min-h-[140px] md:min-h-[160px] lg:min-h-[180px] w-full rounded-lg mb-2 xs:mb-2.5 sm:mb-3" />
+                  <Skeleton className="h-4 w-3/4 mb-1 xs:mb-1.5 sm:mb-2" />
+                  <Skeleton className="h-3 w-1/2" />
                 </div>
               ))}
             </div>

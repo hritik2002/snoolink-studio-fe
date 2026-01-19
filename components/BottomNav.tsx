@@ -1,11 +1,13 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search, CloudUpload, FolderOpen } from "lucide-react";
+import { Search, CloudUpload, FolderOpen, Menu } from "lucide-react";
+import { useSidebar } from "@/components/ui/sidebar";
 
 export function BottomNav() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { toggleSidebar } = useSidebar();
   const view = searchParams.get("view") ?? "search";
 
   const toSearch = () => router.push("/?view=search");
@@ -57,6 +59,15 @@ export function BottomNav() {
         >
           <FolderOpen className="h-5 w-5" aria-hidden />
           <span>Collections</span>
+        </button>
+        <button
+          type="button"
+          onClick={toggleSidebar}
+          className={`${base} ${inactive}`}
+          aria-label="Open menu"
+        >
+          <Menu className="h-5 w-5" aria-hidden />
+          <span>Menu</span>
         </button>
       </div>
     </nav>

@@ -12,7 +12,7 @@ interface ComingSoonProps {
 
 export function ComingSoon({ title, description, icon, features }: ComingSoonProps) {
   return (
-    <div className="flex-1 flex items-center justify-center min-h-[60vh] py-12">
+    <div className="flex-1 flex items-center justify-center min-h-[60vh] min-w-0 py-12 overflow-x-hidden">
       <Card className="max-w-2xl w-full p-8 md:p-12 bg-white border border-gray-200">
         <div className="flex flex-col items-center text-center space-y-6">
           {/* Icon */}

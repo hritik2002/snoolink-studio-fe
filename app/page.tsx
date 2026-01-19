@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
+import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/appSidebar";
 import ImageSearch from "@/components/imageSearch";
 import ImageCollections from "@/components/imageCollections";
@@ -20,7 +20,6 @@ function HomeContent() {
   const [activeView, setActiveView] = useState<
     "search" | "uploads" | "collections" | "profile" | "history" | "analytics" | "settings" | "billing"
   >("search");
-  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     const view = searchParams.get("view");
@@ -32,47 +31,14 @@ function HomeContent() {
     }
   }, [searchParams]);
 
-  // Keep sidebar always open on desktop, allow mobile toggle
-  useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 1024) {
-        // Desktop: always open
-        setSidebarOpen(true);
-      }
-    };
-    
-    handleResize();
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
-
   return (
-    <SidebarProvider open={sidebarOpen} onOpenChange={(open) => {
-      // Only allow closing on mobile
-      if (window.innerWidth < 1024) {
-        setSidebarOpen(open);
-      } else {
-        // Force open on desktop
-        setSidebarOpen(true);
-      }
-    }}>
+    <SidebarProvider defaultOpen={true}>
       <AppSidebar activeView={activeView} onViewChange={(view) => {
         setActiveView(view);
         router.push(`/?view=${view}`);
       }} />
-      <SidebarInset className="bg-background">
-        {/* Mobile Header with Hamburger */}
-        <div className="lg:hidden sticky top-0 z-50 bg-background border-b border-border px-4 py-3 flex items-center gap-3">
-          <SidebarTrigger className="lg:hidden" aria-label="Open menu" />
-          <div className="flex items-center gap-2 flex-1 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-purple-600 flex items-center justify-center flex-shrink-0">
-              <span className="text-white font-bold text-lg">S</span>
-            </div>
-            <span className="font-semibold text-foreground truncate">Snoolink Studio</span>
-          </div>
-        </div>
-
-        <main id="main" className="flex flex-col h-screen overflow-auto pb-16 md:pb-0" tabIndex={-1}>
+      <SidebarInset className="bg-background min-w-0">
+        <div id="main" className="flex flex-1 flex-col min-w-0 min-h-0 overflow-x-hidden overflow-y-auto pb-16 md:pb-0" tabIndex={-1}>
           {activeView === "search" ? (
             <ImageSearch />
           ) : activeView === "collections" ? (
@@ -92,7 +58,7 @@ function HomeContent() {
           ) : (
             <ImageSearch />
           )}
-        </main>
+        </div>
       </SidebarInset>
       <BottomNav />
     </SidebarProvider>

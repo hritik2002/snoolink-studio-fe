@@ -613,7 +613,7 @@ export default function ImageSearch() {
   const exampleQueries = EXAMPLE_QUERIES;
 
   return (
-    <div className="flex-1 flex flex-col h-full w-full overflow-hidden">
+    <div className="flex-1 flex flex-col h-full w-full min-w-0 overflow-hidden">
       {/* Header with Purple Gradient Background */}
       <div className="sticky top-0 left-0 right-0 z-[200] pt-4 sm:pt-6 pb-4 sm:pb-6 px-4 sm:px-6 flex-shrink-0 overflow-hidden">
         {/* Gradient Background */}
@@ -850,7 +850,7 @@ export default function ImageSearch() {
             </div>
 
       {/* Results Section with Sidebar */}
-      <div className="flex gap-6 px-6 flex-1 min-h-0 overflow-hidden">
+      <div className="flex gap-3 sm:gap-6 px-3 sm:px-6 flex-1 min-h-0 min-w-0 overflow-hidden">
         {/* Left Column - Results */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           {/* Search Results Header - Sticky */}
@@ -902,7 +902,7 @@ export default function ImageSearch() {
                 >
                     <div className={`flex ${viewMode === "grid" ? "flex-col" : "flex-col sm:flex-row"} gap-3 sm:gap-5`}>
                       {/* Thumbnail */}
-                      <div className={`relative ${viewMode === "grid" ? "w-full aspect-square" : "w-full sm:w-32 h-48 sm:h-32"} flex-shrink-0 rounded-lg sm:rounded-xl overflow-hidden bg-gray-100`}>
+                      <div className={`relative ${viewMode === "grid" ? "w-full aspect-square" : "w-full xs:w-32 h-48 xs:h-32"} flex-shrink-0 rounded-lg sm:rounded-xl overflow-hidden bg-gray-100`}>
                         {viewMode === "list" ? (
                     <Image
                       src={result.imageUrl}
@@ -1018,7 +1018,7 @@ export default function ImageSearch() {
           )
         ) : (
           Object.keys(videoResults).length > 0 ? (
-            <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4" : "space-y-3 sm:space-y-4"}>
+            <div className={viewMode === "grid" ? "grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4" : "space-y-3 sm:space-y-4"}>
               {Object.entries(videoResults).map(([videoUrl, videoResult]) => {
                 const matchPercentage = videoResult.bestScore ? getMatchPercentage(videoResult.bestScore) : 0;
                 const videoTitle = videoResult.title || videoResult.videoUrl.split('/').pop()?.split('?')[0] || 'Video';
@@ -1232,7 +1232,7 @@ export default function ImageSearch() {
 
         {/* Right Sidebar - Sticky */}
         {hasResults && (
-          <div className="w-80 flex-shrink-0 sticky top-0 self-start space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto pb-6">
+          <div className="w-64 lg:w-80 flex-shrink-0 sticky top-0 self-start space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto pb-6 hidden md:block">
             {/* Search Insights */}
             <Card className="p-4 bg-white border border-gray-200 rounded-xl shadow-sm">
               <div className="flex items-center gap-2 mb-4">
@@ -1241,7 +1241,7 @@ export default function ImageSearch() {
               </div>
               
               {/* Stats Grid */}
-              <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 mb-4">
                 <div className="bg-gray-50 rounded-lg p-3">
                   <p className="text-xs text-gray-500 mb-1">Total Hits</p>
                   <p className="text-2xl font-bold text-gray-900">

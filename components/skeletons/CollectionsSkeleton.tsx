@@ -45,12 +45,12 @@ export function CollectionsPageSkeleton() {
 
       {/* Grid */}
       <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
+        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 xs:gap-2.5 sm:gap-3 md:gap-4 lg:gap-5">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((i) => (
-            <div key={i} className="rounded-lg sm:rounded-xl p-2 sm:p-3 border border-gray-200">
-              <Skeleton className="aspect-video min-h-[160px] sm:min-h-[180px] w-full rounded-lg mb-3" />
-              <Skeleton className="h-4 w-3/4 mb-1 sm:mb-2" />
-              <Skeleton className="h-3 w-1/2 mb-2" />
+            <div key={i} className="rounded-lg sm:rounded-xl p-2 xs:p-2.5 sm:p-3 border border-gray-200 min-w-0">
+              <Skeleton className="aspect-video min-h-[100px] xs:min-h-[120px] sm:min-h-[140px] md:min-h-[160px] lg:min-h-[180px] w-full rounded-lg mb-2 xs:mb-2.5 sm:mb-3" />
+              <Skeleton className="h-4 w-3/4 mb-1 xs:mb-1.5 sm:mb-2" />
+              <Skeleton className="h-3 w-1/2" />
             </div>
           ))}
         </div>
@@ -62,12 +62,12 @@ export function CollectionsPageSkeleton() {
 /** In-content skeleton when collection items are loading (has collection, fetching items). */
 export function CollectionsItemsSkeleton() {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-5">
+    <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 xs:gap-2.5 sm:gap-3 md:gap-4 lg:gap-5">
       {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((i) => (
-        <div key={i} className="rounded-lg sm:rounded-xl p-2 sm:p-3 border border-gray-200">
-          <Skeleton className="aspect-video min-h-[160px] sm:min-h-[180px] w-full rounded-lg mb-3" />
-          <Skeleton className="h-4 w-3/4 mb-1 sm:mb-2" />
-          <Skeleton className="h-3 w-1/2 mb-2" />
+        <div key={i} className="rounded-lg sm:rounded-xl p-2 xs:p-2.5 sm:p-3 border border-gray-200 min-w-0">
+          <Skeleton className="aspect-video min-h-[100px] xs:min-h-[120px] sm:min-h-[140px] md:min-h-[160px] lg:min-h-[180px] w-full rounded-lg mb-2 xs:mb-2.5 sm:mb-3" />
+          <Skeleton className="h-4 w-3/4 mb-1 xs:mb-1.5 sm:mb-2" />
+          <Skeleton className="h-3 w-1/2" />
         </div>
       ))}
     </div>
