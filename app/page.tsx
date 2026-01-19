@@ -32,13 +32,17 @@ function HomeContent() {
   }, [searchParams]);
 
   return (
-    <SidebarProvider defaultOpen={true}>
+    <SidebarProvider defaultOpen={true} className="h-svh overflow-hidden">
       <AppSidebar activeView={activeView} onViewChange={(view) => {
         setActiveView(view);
         router.push(`/?view=${view}`);
       }} />
       <SidebarInset className="bg-background min-w-0">
-        <div id="main" className="flex flex-1 flex-col min-w-0 min-h-0 overflow-x-hidden overflow-y-auto pb-16 md:pb-0" tabIndex={-1}>
+        <div
+          id="main"
+          className={`flex flex-1 flex-col min-w-0 min-h-0 overflow-x-hidden pb-16 md:pb-0 ${activeView === "collections" ? "overflow-y-hidden" : "overflow-y-auto"}`}
+          tabIndex={-1}
+        >
           {activeView === "search" ? (
             <ImageSearch />
           ) : activeView === "collections" ? (

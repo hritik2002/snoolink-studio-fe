@@ -19,6 +19,7 @@ type DateFilter = "all" | "7d" | "30d" | "year";
 import Image from "next/image";
 import { useToast } from "@/lib/hooks/use-toast";
 import { createClient } from "@/lib/supabase/client";
+import { useSidebar } from "@/components/ui/sidebar";
 import { CollectionsPageSkeleton, CollectionsItemsSkeleton } from "@/components/skeletons";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -71,7 +72,12 @@ export default function Collections() {
   const detailVideoRef = useRef<HTMLVideoElement>(null);
   const { toast } = useToast();
   const router = useRouter();
-  
+  const { state: sidebarState, isMobile } = useSidebar();
+
+  // Measure fixed header height for content padding
+  const headerRef = useRef<HTMLDivElement>(null);
+  const [headerHeight, setHeaderHeight] = useState(180);
+
   // Pagination state
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
@@ -254,6 +260,16 @@ export default function Collections() {
 
     return () => observer.disconnect();
   }, [hasMore, isLoadingMore, isLoadingItems, loadMoreItems]);
+
+  // Measure fixed header for content padding
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setHeaderHeight(el.offsetHeight));
+    ro.observe(el);
+    setHeaderHeight(el.offsetHeight);
+    return () => ro.disconnect();
+  }, [selectedIds.size]);
 
   useEffect(() => {
     if (!detailItem) return;
@@ -469,73 +485,80 @@ export default function Collections() {
     return <CollectionsPageSkeleton />;
   }
 
+  const fixedHeaderLeft =
+    isMobile ? "0" : (sidebarState === "collapsed" ? "var(--sidebar-width-icon)" : "var(--sidebar-width)");
+
   return (
-    <div className="flex-1 flex flex-col h-full min-w-0 bg-white overflow-hidden">
-      {/* Header with Gradient Background */}
-      <div className="sticky top-0 z-20 pt-4 sm:pt-6 pb-4 px-4 sm:px-6 flex-shrink-0 overflow-hidden">
-        {/* Gradient Background */}
-        <div 
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: 'linear-gradient(180deg, rgba(167, 139, 250, 0.25) 0%, rgba(196, 181, 253, 0.15) 30%, rgba(233, 213, 255, 0.08) 60%, rgba(255, 255, 255, 1) 100%)',
-          }}
-        />
-        <div className="relative z-10">
-          {/* Header with Title and Action Buttons */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">Collections</h1>
-              <p className="text-gray-600 text-xs sm:text-sm">
-                Indexed media you can search.
-              </p>
-            </div>
-            <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-              {selectedCollection && (
+    <div className="flex-1 flex flex-col min-h-0 min-w-0 bg-white overflow-hidden">
+      {/* Fixed header: title, actions, chips, filters, bulk — only the items area scrolls */}
+      <div
+        ref={headerRef}
+        className="fixed top-0 right-0 z-30 bg-white"
+        style={{ left: fixedHeaderLeft }}
+      >
+        {/* Header with Gradient Background */}
+        <div className="pt-4 sm:pt-6 pb-4 px-4 sm:px-6 overflow-hidden relative">
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: "linear-gradient(180deg, rgba(167, 139, 250, 0.25) 0%, rgba(196, 181, 253, 0.15) 30%, rgba(233, 213, 255, 0.08) 60%, rgba(255, 255, 255, 1) 100%)",
+            }}
+          />
+          <div className="relative z-10">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">Collections</h1>
+                <p className="text-gray-600 text-xs sm:text-sm">
+                  Indexed media you can search.
+                </p>
+              </div>
+              <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+                {selectedCollection && (
                 <Button
                   size="sm"
                   variant="outline"
-                  className="flex items-center gap-2 border-gray-300"
+                  className="flex items-center gap-2 border-purple-300 text-gray-900 hover:bg-purple-50"
                   onClick={() => setShowShareModal(true)}
                   aria-label="Share collection"
                 >
-                  <Share2 className="h-4 w-4" />
-                  <span className="hidden sm:inline">Share</span>
+                    <Share2 className="h-4 w-4" />
+                    <span className="hidden sm:inline">Share</span>
+                  </Button>
+                )}
+                <Button
+                  size="sm"
+                  className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white flex-1 sm:flex-initial text-xs sm:text-sm"
+                  onClick={() =>
+                    router.push(
+                      selectedCollection
+                        ? `/?view=uploads&collection=${encodeURIComponent(selectedCollection)}`
+                        : "/?view=uploads"
+                    )
+                  }
+                  aria-label="Upload media to this collection"
+                >
+                  <CloudUpload className="h-4 w-4" />
+                  <span className="hidden sm:inline">Upload Media</span>
+                  <span className="sm:hidden">Upload</span>
                 </Button>
-              )}
-              <Button
-                size="sm"
-                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white flex-1 sm:flex-initial text-xs sm:text-sm"
-                onClick={() =>
-                  router.push(
-                    selectedCollection
-                      ? `/?view=uploads&collection=${encodeURIComponent(selectedCollection)}`
-                      : "/?view=uploads"
-                  )
-                }
-                aria-label="Upload media to this collection"
-              >
-                <CloudUpload className="h-4 w-4" />
-                <span className="hidden sm:inline">Upload Media</span>
-                <span className="sm:hidden">Upload</span>
-              </Button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Collection Chips Header */}
-      <div className="border-b border-gray-200 bg-white sticky top-[80px] sm:top-[104px] z-10">
-        <div className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3">
-          {/* Scroll Left Button */}
-          <button
-            onClick={() => scrollChips("left")}
-            className="flex-shrink-0 w-8 h-8 sm:w-8 sm:h-8 rounded-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 flex items-center justify-center transition-colors touch-manipulation"
-            aria-label="Scroll left"
-          >
-            <ChevronLeft className="h-4 w-4 text-gray-600" />
-          </button>
+        {/* Collection Chips + Filters */}
+        <div className="border-b border-gray-200">
+          <div className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3">
+            {/* Scroll Left Button */}
+            <button
+              onClick={() => scrollChips("left")}
+              className="flex-shrink-0 w-8 h-8 sm:w-8 sm:h-8 rounded-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 flex items-center justify-center transition-colors touch-manipulation"
+              aria-label="Scroll left"
+            >
+              <ChevronLeft className="h-4 w-4 text-gray-600" />
+            </button>
 
-          {/* Scrollable Collection Chips */}
+            {/* Scrollable Collection Chips */}
           <div 
             ref={scrollContainerRef}
             className="flex-1 flex items-center gap-2 overflow-x-auto scrollbar-hide scroll-smooth"
@@ -675,44 +698,48 @@ export default function Collections() {
               <List className="h-4 w-4" />
             </button>
           </div>
+          </div>
         </div>
+
+        {/* Bulk actions bar — fixed when visible */}
+        {selectedIds.size > 0 && (
+          <div className="flex items-center justify-between gap-2 px-3 sm:px-4 py-2 bg-purple-50 border-b border-purple-200">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-900">{selectedIds.size} selected</span>
+              <button
+                type="button"
+                onClick={selectAllOnPage}
+                className="text-xs text-purple-600 hover:underline"
+              >
+                {sortedAndFilteredItems.every((i) => selectedIds.has(toId(i))) ? "Deselect page" : "Select page"}
+              </button>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Button size="sm" variant="outline" onClick={() => { setMoveTarget(""); setShowMoveModal(true); }} disabled={isBulkActioning} className="gap-1">
+                <FolderInput className="h-3.5 w-3.5" /> Move
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setShowRemoveConfirm(true)} disabled={isBulkActioning} className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50">
+                <Trash2 className="h-3.5 w-3.5" /> Remove
+              </Button>
+              <button
+                type="button"
+                onClick={() => toast({ title: "Coming soon", description: "Bulk tagging will be available soon." })}
+                className="px-2 py-1 text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1"
+                title="Coming soon"
+              >
+                <Tag className="h-3.5 w-3.5" /> Tag (soon)
+              </button>
+              <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>Clear</Button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Bulk actions bar */}
-      {selectedIds.size > 0 && (
-        <div className="sticky top-[132px] sm:top-[156px] z-10 flex items-center justify-between gap-2 px-3 sm:px-4 py-2 bg-purple-50 border-b border-purple-200">
-          <div className="flex items-center gap-2">
-            <span className="text-sm font-medium text-gray-900">{selectedIds.size} selected</span>
-            <button
-              type="button"
-              onClick={selectAllOnPage}
-              className="text-xs text-purple-600 hover:underline"
-            >
-              {sortedAndFilteredItems.every((i) => selectedIds.has(toId(i))) ? "Deselect page" : "Select page"}
-            </button>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Button size="sm" variant="outline" onClick={() => { setMoveTarget(""); setShowMoveModal(true); }} disabled={isBulkActioning} className="gap-1">
-              <FolderInput className="h-3.5 w-3.5" /> Move
-            </Button>
-            <Button size="sm" variant="outline" onClick={() => setShowRemoveConfirm(true)} disabled={isBulkActioning} className="gap-1 text-red-600 hover:text-red-700 hover:bg-red-50">
-              <Trash2 className="h-3.5 w-3.5" /> Remove
-            </Button>
-            <button
-              type="button"
-              onClick={() => toast({ title: "Coming soon", description: "Bulk tagging will be available soon." })}
-              className="px-2 py-1 text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1"
-              title="Coming soon"
-            >
-              <Tag className="h-3.5 w-3.5" /> Tag (soon)
-            </button>
-            <Button size="sm" variant="ghost" onClick={() => setSelectedIds(new Set())}>Clear</Button>
-          </div>
-        </div>
-      )}
-
-      {/* Content Area */}
-      <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
+      {/* Content Area — only this section scrolls; padding-top clears the fixed header */}
+      <div
+        className="flex-1 min-h-0 overflow-y-auto px-3 sm:px-4 md:px-6 pb-3 sm:pb-4 md:pb-6"
+        style={{ paddingTop: (headerHeight || 180) + 12 }}
+      >
         {isLoadingItems ? (
           <CollectionsItemsSkeleton />
         ) : sortedAndFilteredItems.length === 0 ? (
@@ -829,10 +856,10 @@ export default function Collections() {
                 </div>
                 {item.type === "video" && (item.duration || item.resolution) && (
                   <div className="mb-1.5 xs:mb-2 p-1.5 xs:p-2 bg-muted rounded-lg border border-border text-[10px] xs:text-xs grid grid-cols-2 gap-1.5 xs:gap-2">
-                    <div className="min-w-0"><span className="text-muted-foreground">Type:</span><div className="text-purple-600 font-medium truncate">{getFileType(item.url, item.type)}</div></div>
-                    {item.duration && <div><span className="text-muted-foreground">Time:</span><div className="font-medium">{formatDuration(item.duration)}</div></div>}
-                    {item.resolution && <div className="min-w-0"><span className="text-muted-foreground">Res:</span><div className="font-medium truncate">{item.resolution.replace("x", "×")}</div></div>}
-                    {item.createdAt && <div className="min-w-0"><span className="text-muted-foreground">Date:</span><div className="font-medium truncate">{formatDate(item.createdAt)}</div></div>}
+                    <div className="min-w-0"><span className="text-muted-foreground">File Type:</span><div className="text-purple-600 font-medium truncate">{getFileType(item.url, item.type)}</div></div>
+                    {item.duration && <div><span className="text-muted-foreground">Duration:</span><div className="font-medium">{formatDuration(item.duration)}</div></div>}
+                    {item.resolution && <div className="min-w-0"><span className="text-muted-foreground">Resolution:</span><div className="font-medium truncate">{item.resolution.replace("x", "×")}</div></div>}
+                    {item.createdAt && <div className="min-w-0"><span className="text-muted-foreground">Upload Date:</span><div className="font-medium truncate">{formatDate(item.createdAt)}</div></div>}
                   </div>
                 )}
                 {item.description && (

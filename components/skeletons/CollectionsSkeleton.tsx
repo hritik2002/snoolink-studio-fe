@@ -5,9 +5,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 /** Full-page skeleton when collections list is loading (initial fetch). */
 export function CollectionsPageSkeleton() {
   return (
-    <div className="flex-1 flex flex-col h-full bg-white overflow-hidden">
-      {/* Header with gradient */}
-      <div className="sticky top-0 z-20 pt-4 sm:pt-6 pb-4 px-4 sm:px-6 flex-shrink-0 overflow-hidden">
+    <div className="flex-1 flex flex-col min-h-0 bg-white overflow-hidden">
+      {/* Header with gradient — matches fixed header in Collections */}
+      <div className="flex-shrink-0 pt-4 sm:pt-6 pb-4 px-4 sm:px-6 overflow-hidden bg-white">
         <div 
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -28,8 +28,8 @@ export function CollectionsPageSkeleton() {
         </div>
       </div>
 
-      {/* Chips bar */}
-      <div className="border-b border-gray-200 px-3 sm:px-4 py-2 sm:py-3 flex items-center gap-2">
+      {/* Chips bar — fixed; matches Collections */}
+      <div className="flex-shrink-0 border-b border-gray-200 bg-white px-3 sm:px-4 py-2 sm:py-3 flex items-center gap-2">
         <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />
         <div className="flex gap-2 flex-1 overflow-hidden">
           {[1, 2, 3, 4, 5].map((i) => (
@@ -43,8 +43,8 @@ export function CollectionsPageSkeleton() {
         <Skeleton className="h-8 w-8 rounded-md flex-shrink-0" />
       </div>
 
-      {/* Grid */}
-      <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-6">
+      {/* Grid — only this section scrolls */}
+      <div className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 md:p-6">
         <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 xs:gap-2.5 sm:gap-3 md:gap-4 lg:gap-5">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((i) => (
             <div key={i} className="rounded-lg sm:rounded-xl p-2 xs:p-2.5 sm:p-3 border border-gray-200 min-w-0">
