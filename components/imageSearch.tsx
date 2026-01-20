@@ -245,6 +245,9 @@ export default function ImageSearch() {
   const [isLoadingCollections, setIsLoadingCollections] = useState(false);
   const collectionScrollRef = useRef<HTMLDivElement>(null);
 
+  // Expand query: when true, backend expands the search query with AI (e.g. "water" → "water, liquid, aquatic"); when false, uses the raw query.
+  const [expandQuery, setExpandQuery] = useState(true);
+
   // Scroll collection chips
   const scrollCollectionChips = (direction: "left" | "right") => {
     if (collectionScrollRef.current) {
@@ -403,7 +406,7 @@ export default function ImageSearch() {
     try {
       if (mode === "image") {
         const response = await fetch(
-          `/api/search?query=${encodeURIComponent(q)}&collections=${encodeURIComponent(collectionsParam)}&topK=10`,
+          `/api/search?query=${encodeURIComponent(q)}&collections=${encodeURIComponent(collectionsParam)}&topK=10&expandQuery=${expandQuery}`,
           { method: "GET" }
         );
         if (!response.ok) {
@@ -423,7 +426,7 @@ export default function ImageSearch() {
         setQueryInterpretation(generateQueryInterpretation(q));
       } else {
         const response = await fetch(
-          `/api/videos/search-collections?query=${encodeURIComponent(q)}&collections=${encodeURIComponent(collectionsParam)}&topK=10`,
+          `/api/videos/search-collections?query=${encodeURIComponent(q)}&collections=${encodeURIComponent(collectionsParam)}&topK=10&expandQuery=${expandQuery}`,
           { method: "GET" }
         );
         if (!response.ok) {
@@ -446,7 +449,7 @@ export default function ImageSearch() {
     } finally {
       setIsSearching(false);
     }
-  }, [searchQuery, mode, toast, selectedCollections]);
+  }, [searchQuery, mode, toast, selectedCollections, expandQuery]);
 
   const handleKeyPress = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -732,6 +735,18 @@ export default function ImageSearch() {
                   <span className="sm:hidden">Images</span>
             </Button>
           </div>
+
+              {/* Expand query toggle */}
+              <label className="flex items-center gap-2 cursor-pointer select-none" title="When on, AI expands your query (e.g. water → water, liquid, aquatic). When off, search uses your exact words.">
+                <input
+                  type="checkbox"
+                  checked={expandQuery}
+                  onChange={(e) => setExpandQuery(e.target.checked)}
+                  className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                  aria-label="Expand query with AI"
+                />
+                <span className="text-xs sm:text-sm text-gray-600 whitespace-nowrap">Expand query</span>
+              </label>
 
               {/* Divider */}
               <div className="hidden sm:block w-px h-8 bg-gray-200 flex-shrink-0" />

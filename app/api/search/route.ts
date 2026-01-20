@@ -36,6 +36,8 @@ export async function GET(request: NextRequest) {
     params.append("query", query);
     params.append("collections", collections);
     params.append("topK", topK);
+    const expandQuery = searchParams.get("expandQuery");
+    if (expandQuery !== null) params.set("expandQuery", expandQuery);
 
     const response = await fetch(
       `${backendUrl}/api/media/search?${params.toString()}`,
