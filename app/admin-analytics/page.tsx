@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, BarChart3, Loader2, Shield, Users, Search, Upload, FolderPlus, Eye, Zap, Smartphone, Server } from "lucide-react";
+import { ArrowLeft, BarChart3, FileSearch, Loader2, Shield, Users, Search, Upload, FolderPlus, Eye, Zap, Smartphone, Server } from "lucide-react";
 
 type Range = "7" | "30" | "90";
 
@@ -51,16 +51,35 @@ interface UserRow {
   lastSeen: string;
 }
 
+interface SearchQueryRow {
+  userId: string;
+  email?: string | null;
+  name?: string | null;
+  eventName: string;
+  searchType: string;
+  userQuery: string | null;
+  expandedQuery: string | null;
+  createdAt: string;
+  resultCount?: number;
+  collection?: string;
+  collectionCount?: number;
+  videoCount?: number;
+}
+
 export default function AdminAnalyticsPage() {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [range, setRange] = useState<Range>("30");
   const [overview, setOverview] = useState<Overview | null>(null);
   const [trends, setTrends] = useState<Trends | null>(null);
   const [users, setUsers] = useState<{ users: UserRow[]; total: number; hasMore: boolean } | null>(null);
+  const [searchQueries, setSearchQueries] = useState<{ queries: SearchQueryRow[]; total: number; hasMore: boolean } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [userPage, setUserPage] = useState(0);
+  const [searchQueryPage, setSearchQueryPage] = useState(0);
+  const [loadingMoreSq, setLoadingMoreSq] = useState(false);
   const limit = 20;
+  const sqLimit = 25;
 
   const { start, end } = getRange(range);
   const q = `startDate=${start}&endDate=${end}`;
@@ -88,17 +107,21 @@ export default function AdminAnalyticsPage() {
       fetch(`/api/admin/analytics/overview?${q}`),
       fetch(`/api/admin/analytics/trends?${q}`),
       fetch(`/api/admin/analytics/users?${q}&limit=${limit}&offset=0`),
+      fetch(`/api/admin/analytics/search-queries?${q}&limit=${sqLimit}&offset=0`),
     ])
-      .then(async ([r1, r2, r3]) => {
+      .then(async ([r1, r2, r3, r4]) => {
         if (cancelled) return;
-        const [j1, j2, j3] = await Promise.all([r1.json(), r2.json(), r3.json()]);
+        const [j1, j2, j3, j4] = await Promise.all([r1.json(), r2.json(), r3.json(), r4.json()]);
         if (!r1.ok) throw new Error(j1?.error || "Failed to load overview");
         if (!r2.ok) throw new Error(j2?.error || "Failed to load trends");
         if (!r3.ok) throw new Error(j3?.error || "Failed to load users");
+        if (!r4.ok) throw new Error(j4?.error || "Failed to load search queries");
         setOverview(j1?.data ?? null);
         setTrends(j2?.data ?? null);
         setUsers({ users: j3?.users ?? [], total: j3?.total ?? 0, hasMore: j3?.hasMore ?? false });
+        setSearchQueries({ queries: j4?.queries ?? [], total: j4?.total ?? 0, hasMore: j4?.hasMore ?? false });
         setUserPage(0);
+        setSearchQueryPage(0);
       })
       .catch((e) => {
         if (!cancelled) setError(e instanceof Error ? e.message : "Failed to load");
@@ -120,6 +143,23 @@ export default function AdminAnalyticsPage() {
       setUserPage((p) => p + 1);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load more users");
+    }
+  };
+
+  const loadMoreSearchQueries = async () => {
+    if (!isAdmin || !searchQueries?.hasMore || loadingMoreSq) return;
+    const offset = (searchQueryPage + 1) * sqLimit;
+    setLoadingMoreSq(true);
+    try {
+      const r = await fetch(`/api/admin/analytics/search-queries?${q}&limit=${sqLimit}&offset=${offset}`);
+      const d = await r.json();
+      if (!r.ok) throw new Error(d?.error);
+      setSearchQueries((prev) => prev ? { ...prev, queries: [...prev.queries, ...(d.queries ?? [])], hasMore: d.hasMore ?? false } : null);
+      setSearchQueryPage((p) => p + 1);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load more");
+    } finally {
+      setLoadingMoreSq(false);
     }
   };
 
@@ -248,6 +288,62 @@ export default function AdminAnalyticsPage() {
                 </table>
               </Card>
             )}
+
+            {/* Search / prompt queries */}
+            <Card className="p-4 border border-gray-200 overflow-x-auto">
+              <h2 className="text-base font-semibold text-gray-900 mb-1 flex items-center gap-2">
+                <FileSearch className="h-4 w-4 text-purple-600" />
+                Search queries (prompt & expanded)
+              </h2>
+              <p className="text-sm text-gray-500 mb-4">Queries entered by users and the expanded version used for semantic search. Use for product and query-expansion tuning.</p>
+              {!searchQueries?.queries?.length ? (
+                <p className="text-sm text-gray-500">No search queries in this period. Older events may not include query text.</p>
+              ) : (
+                <>
+                  <table className="w-full min-w-[780px] text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-2 pr-2 text-gray-600 font-medium">User</th>
+                        <th className="text-left py-2 pr-2 text-gray-600 font-medium max-w-[200px]">Query (prompt)</th>
+                        <th className="text-left py-2 pr-2 text-gray-600 font-medium max-w-[200px]">Expanded query</th>
+                        <th className="text-left py-2 px-2 text-gray-600 font-medium">Type</th>
+                        <th className="text-right py-2 px-2 text-gray-600 font-medium">Results</th>
+                        <th className="text-left py-2 pl-2 text-gray-600 font-medium">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {searchQueries.queries.map((row, idx) => (
+                        <tr key={`${row.userId}-${row.createdAt}-${idx}`} className="border-b border-gray-100">
+                          <td className="py-2.5 pr-2 align-top">
+                            <div className="font-medium text-gray-900">{row.email || row.name || "—"}</div>
+                            <div className="text-xs text-gray-500 font-mono" title={row.userId}>{row.userId.slice(0, 8)}…</div>
+                          </td>
+                          <td className="py-2.5 pr-2 max-w-[200px] align-top" title={row.userQuery ?? undefined}>
+                            <span className="block overflow-hidden text-ellipsis whitespace-nowrap text-gray-800">{row.userQuery || "—"}</span>
+                          </td>
+                          <td className="py-2.5 pr-2 max-w-[200px] align-top" title={row.expandedQuery ?? undefined}>
+                            <span className="block overflow-hidden text-ellipsis whitespace-nowrap text-gray-700">{row.expandedQuery || "—"}</span>
+                          </td>
+                          <td className="py-2.5 px-2 align-top">
+                            <span className="inline-flex rounded bg-gray-100 px-1.5 py-0.5 text-xs font-medium text-gray-700">{row.searchType}</span>
+                          </td>
+                          <td className="py-2.5 px-2 text-right text-gray-600 align-top">{row.resultCount ?? row.videoCount ?? "—"}</td>
+                          <td className="py-2.5 pl-2 text-gray-500 text-xs align-top whitespace-nowrap">{new Date(row.createdAt).toLocaleString()}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {searchQueries.hasMore && (
+                    <div className="mt-4 flex items-center gap-2">
+                      <Button variant="outline" size="sm" onClick={loadMoreSearchQueries} disabled={loadingMoreSq}>
+                        {loadingMoreSq ? <Loader2 className="h-4 w-4 animate-spin" /> : "Load more"}
+                      </Button>
+                      <span className="text-xs text-gray-500">Showing {searchQueries.queries.length} of {searchQueries.total}</span>
+                    </div>
+                  )}
+                </>
+              )}
+            </Card>
 
             {/* Per-user table */}
             <Card className="p-4 border border-gray-200 overflow-x-auto">
