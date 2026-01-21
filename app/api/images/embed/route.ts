@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     const { urls, collectionName = "Default" } = await request.json();
 
     const backendUrl =
-      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+      process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
     try {
       const response = await fetch(`${backendUrl}/api/media/upload-images`, {
