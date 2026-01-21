@@ -17,11 +17,14 @@ interface PromptRow {
 interface ModelSettings {
   search_model: string | null;
   ingestion_model: string | null;
+  min_score: number | null;
 }
+
+const DEFAULT_MIN_SCORE = 0.5;
 
 export function SettingsPage() {
   const [prompts, setPrompts] = useState<PromptRow[]>([]);
-  const [settings, setSettings] = useState<ModelSettings>({ search_model: null, ingestion_model: null });
+  const [settings, setSettings] = useState<ModelSettings>({ search_model: null, ingestion_model: null, min_score: null });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +43,12 @@ export function SettingsPage() {
         }
         if (settingsRes.ok) {
           const s = await settingsRes.json();
-          setSettings(s?.data || { search_model: null, ingestion_model: null });
+          const d = s?.data || {};
+          setSettings({
+            search_model: d.search_model ?? null,
+            ingestion_model: d.ingestion_model ?? null,
+            min_score: d.min_score != null ? Number(d.min_score) : null,
+          });
         }
       } catch {
         setError("Failed to load settings.");
@@ -61,6 +69,7 @@ export function SettingsPage() {
         body: JSON.stringify({
           search_model: settings.search_model || null,
           ingestion_model: settings.ingestion_model || null,
+          min_score: settings.min_score ?? null,
         }),
       });
       const data = await res.json();
@@ -145,6 +154,30 @@ export function SettingsPage() {
               </SelectContent>
             </Select>
             <p className="text-xs text-gray-500 mt-1">Used when ingesting (uploading) images and videos.</p>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Minimum search score
+            </label>
+            <input
+              type="number"
+              min={0}
+              max={1}
+              step={0.05}
+              placeholder={`${DEFAULT_MIN_SCORE} (default)`}
+              value={settings.min_score ?? ""}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (v === "") setSettings((s) => ({ ...s, min_score: null }));
+                else {
+                  const n = parseFloat(v);
+                  if (!Number.isNaN(n)) setSettings((s) => ({ ...s, min_score: Math.max(0, Math.min(1, n)) }));
+                }
+              }}
+              className="w-full max-w-[10rem] rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
+            />
+            <p className="text-xs text-gray-500 mt-1">Vector similarity threshold (0–1). Results below this are filtered out. Default 0.5. Higher = stricter.</p>
           </div>
 
           {error && <p className="text-sm text-red-600">{error}</p>}
