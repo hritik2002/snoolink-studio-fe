@@ -22,6 +22,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useSidebar } from "@/components/ui/sidebar";
 import { CollectionsPageSkeleton, CollectionsItemsSkeleton } from "@/components/skeletons";
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
 
 interface Collection {
   id: string;
@@ -489,26 +490,49 @@ export default function Collections() {
     isMobile ? "0" : (sidebarState === "collapsed" ? "var(--sidebar-width-icon)" : "var(--sidebar-width)");
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 min-w-0 bg-white overflow-hidden">
+    <div className="flex-1 flex flex-col h-full min-h-0 min-w-0 bg-white overflow-hidden">
       {/* Fixed header: title, actions, chips, filters, bulk — only the items area scrolls */}
       <div
         ref={headerRef}
         className="fixed top-0 right-0 z-30 bg-white"
         style={{ left: fixedHeaderLeft }}
       >
-        {/* Header with Gradient Background */}
-        <div className="pt-4 sm:pt-6 pb-4 px-4 sm:px-6 overflow-hidden relative">
+        {/* Header with Premium Gradient Background */}
+        <div className="pt-4 sm:pt-6 pb-4 px-4 sm:px-6 overflow-hidden relative backdrop-blur-sm">
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
-              background: "linear-gradient(180deg, rgba(167, 139, 250, 0.25) 0%, rgba(196, 181, 253, 0.15) 30%, rgba(233, 213, 255, 0.08) 60%, rgba(255, 255, 255, 1) 100%)",
+              background: `linear-gradient(180deg, 
+                var(--page-accent-primary) / 0.15 0%, 
+                var(--page-accent-secondary) / 0.10 30%, 
+                var(--page-accent-tertiary) / 0.05 60%, 
+                var(--background) 100%)`,
             }}
           />
-          <div className="relative z-10">
+          <div className="absolute inset-0 pointer-events-none opacity-20 dark:opacity-10">
+            <div 
+              className="absolute inset-0"
+              style={{
+                backgroundImage: `radial-gradient(circle at 20% 20%, var(--page-accent-primary) 0%, transparent 40%),
+                                  radial-gradient(circle at 80% 80%, var(--page-accent-secondary) 0%, transparent 40%)`,
+              }}
+            />
+          </div>
+          <div className="relative z-10 page-animate-fade">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">Collections</h1>
-                <p className="text-gray-600 text-xs sm:text-sm">
+                <h1 className={cn(
+                  "text-3xl sm:text-4xl font-bold mb-2",
+                  "font-[var(--page-font)]",
+                  "bg-gradient-to-r from-[var(--page-accent-primary)] to-[var(--page-accent-secondary)]",
+                  "bg-clip-text text-transparent"
+                )}>
+                  Collections
+                </h1>
+                <p className={cn(
+                  "text-muted-foreground text-sm sm:text-base",
+                  "font-[var(--page-font)] font-medium"
+                )}>
                   Indexed media you can search.
                 </p>
               </div>
@@ -527,7 +551,12 @@ export default function Collections() {
                 )}
                 <Button
                   size="sm"
-                  className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white flex-1 sm:flex-initial text-xs sm:text-sm"
+                  className={cn(
+                    "flex items-center gap-2",
+                    "page-button-premium",
+                    "text-white flex-1 sm:flex-initial text-xs sm:text-sm",
+                    "font-[var(--page-font)] font-semibold"
+                  )}
                   onClick={() =>
                     router.push(
                       selectedCollection
@@ -737,7 +766,7 @@ export default function Collections() {
 
       {/* Content Area — only this section scrolls; padding-top clears the fixed header */}
       <div
-        className="flex-1 min-h-0 overflow-y-auto px-3 sm:px-4 md:px-6 pb-3 sm:pb-4 md:pb-6"
+        className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 pb-4 sm:pb-6"
         style={{ paddingTop: (headerHeight || 180) + 12 }}
       >
         {isLoadingItems ? (
@@ -821,7 +850,7 @@ export default function Collections() {
                       ref={(el) => el?.setAttribute("webkit-playsinline", "true")}
                     />
                   ) : (
-                    <Image src={item.url} alt={item.description || "Collection item"} fill className="object-cover" unoptimized />
+                    <Image src={item.url} alt={item.description || "Collection item"} fill className="object-cover" loading="lazy" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={85} />
                   )}
                   <div className="absolute top-2 left-2 flex items-center gap-1.5">
                     <button
@@ -891,7 +920,7 @@ export default function Collections() {
                   {item.type === "video" ? (
                     <video src={item.url} className="w-full h-full object-cover" playsInline preload="metadata" style={{ display: "block" }} ref={(el) => el?.setAttribute("webkit-playsinline", "true")} />
                   ) : (
-                    <Image src={item.url} alt={item.description || "Collection item"} fill className="object-cover" unoptimized />
+                    <Image src={item.url} alt={item.description || "Collection item"} fill className="object-cover" loading="lazy" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={85} />
                   )}
                   <div className="absolute top-1 left-1 bg-black/50 rounded p-0.5">
                     {item.type === "video" ? <Video className="h-3 w-3 text-white" /> : <ImageIcon className="h-3 w-3 text-white" />}

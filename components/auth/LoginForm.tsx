@@ -46,7 +46,7 @@ export function LoginForm() {
         type="button"
         onClick={handleGoogleLogin}
         disabled={loading}
-        className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+        className="w-full flex items-center justify-center gap-3 px-6 py-3.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl hover:from-purple-700 hover:to-purple-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl font-semibold text-sm"
       >
         {/* Google Icon */}
         <svg
@@ -72,8 +72,8 @@ export function LoginForm() {
             fill="#EA4335"
           />
         </svg>
-        <span className="text-gray-700 font-medium text-sm">
-          {loading ? "Signing in..." : "Continue with Google"}
+        <span className="text-white font-semibold text-sm">
+          {loading ? "Signing in..." : "Start Free Trial"}
         </span>
       </button>
     </div>

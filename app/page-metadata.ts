@@ -1,13 +1,12 @@
 import { Metadata } from 'next'
-import { Suspense } from 'react'
-import HomeClient from './home-client'
-import { AppShellSkeleton } from '@/components/skeletons'
 
-type Props = {
+/**
+ * Generate metadata for the homepage based on view query parameter
+ * This is used by a server component wrapper since page.tsx is a client component
+ */
+export async function generatePageMetadata(
   searchParams: Promise<{ view?: string }>
-}
-
-export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+): Promise<Metadata> {
   const params = await searchParams
   const view = params?.view || 'search'
   
@@ -66,12 +65,4 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   }
 
   return metadataMap[view] || metadataMap.search
-}
-
-export default async function Home({ searchParams }: Props) {
-  return (
-    <Suspense fallback={<AppShellSkeleton />}>
-      <HomeClient />
-    </Suspense>
-  )
 }

@@ -1,11 +1,12 @@
-"use client";
+"use client"
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
-import { Settings, Loader2, Save } from "lucide-react";
+import { Settings, Loader2, Save, Sparkles, Zap } from "lucide-react";
 import { analyticsClient } from "@/lib/analytics";
+import { cn } from "@/lib/utils";
 
 interface PromptRow {
   id: string;
@@ -90,37 +91,111 @@ export function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center min-h-[40vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+      <div className="flex-1 flex items-center justify-center min-h-[40vh] page-animate-fade">
+        <div className="flex flex-col items-center gap-4">
+          <div className="relative">
+            <Loader2 className="h-10 w-10 animate-spin text-[var(--page-accent-primary)]" />
+            <div className="absolute inset-0 bg-[var(--page-accent-primary)]/20 rounded-full blur-xl" />
+          </div>
+          <p className="text-muted-foreground font-[var(--page-font)]">Loading settings...</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 max-w-2xl mx-auto w-full py-4 sm:py-8 px-4 sm:px-6 overflow-x-hidden">
-      <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">Settings</h1>
-        <p className="text-gray-600 text-xs sm:text-sm">
-          Choose which prompt model to use for search and ingestion.
+    <div className={cn(
+      "flex-1 flex flex-col min-w-0 max-w-3xl mx-auto w-full",
+      "py-6 sm:py-10 px-4 sm:px-6 overflow-x-hidden",
+      "page-animate-fade"
+    )}>
+      {/* Atmospheric background */}
+      <div className="fixed inset-0 pointer-events-none -z-10 opacity-30 dark:opacity-10">
+        <div 
+          className="absolute inset-0"
+          style={{
+            background: `radial-gradient(circle at 20% 30%, var(--page-accent-primary) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 70%, var(--page-accent-secondary) 0%, transparent 50%)`,
+          }}
+        />
+      </div>
+
+      {/* Header */}
+      <div className="mb-8 sm:mb-10 page-animate-slide">
+        <div className="flex items-center gap-3 mb-3">
+          <div className={cn(
+            "relative rounded-xl p-3",
+            "bg-gradient-to-br from-[var(--page-accent-primary)] to-[var(--page-accent-secondary)]",
+            "shadow-lg shadow-[var(--page-accent-primary)]/20"
+          )}>
+            <Settings className="h-6 w-6 text-white" />
+            <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-white/20 to-transparent" />
+          </div>
+          <div>
+            <h1 className={cn(
+              "text-3xl sm:text-4xl font-bold",
+              "font-[var(--page-font)]",
+              "bg-gradient-to-r from-[var(--page-accent-primary)] to-[var(--page-accent-secondary)]",
+              "bg-clip-text text-transparent"
+            )}>
+              Settings
+            </h1>
+          </div>
+        </div>
+        <p className={cn(
+          "text-muted-foreground text-sm sm:text-base",
+          "font-[var(--page-font)] font-medium",
+          "ml-[60px]"
+        )}>
+          Configure AI models and search preferences to customize your experience.
         </p>
       </div>
 
-      <Card className="p-4 sm:p-6 border border-gray-200">
-        <div className="flex items-center gap-2 mb-4">
-          <Settings className="h-5 w-5 text-purple-600" />
-          <h2 className="text-base font-medium text-gray-900">Model preferences</h2>
+      {/* Settings Card */}
+      <Card className={cn(
+        "page-card-premium",
+        "p-6 sm:p-8",
+        "page-animate-scale"
+      )}>
+        <div className="flex items-center gap-3 mb-6">
+          <div className={cn(
+            "rounded-lg p-2",
+            "bg-gradient-to-br from-[var(--page-accent-primary)]/10 to-[var(--page-accent-secondary)]/10",
+            "border border-[var(--page-accent-primary)]/20"
+          )}>
+            <Zap className="h-5 w-5 text-[var(--page-accent-primary)]" />
+          </div>
+          <h2 className={cn(
+            "text-xl font-semibold",
+            "font-[var(--page-font)]"
+          )}>
+            Model Preferences
+          </h2>
         </div>
 
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Search – prompt for query expansion
+        <div className="space-y-6">
+          {/* Search Model */}
+          <div className="space-y-2">
+            <label className={cn(
+              "block text-sm font-semibold",
+              "font-[var(--page-font)]",
+              "text-foreground"
+            )}>
+              Search Model
+              <span className="ml-2 text-xs font-normal text-muted-foreground">
+                – Prompt for query expansion
+              </span>
             </label>
             <Select
               value={settings.search_model || ""}
               onValueChange={(v) => setSettings((s) => ({ ...s, search_model: v || null }))}
             >
-              <SelectTrigger className="w-full max-w-xs border-gray-300 text-gray-900">
+              <SelectTrigger className={cn(
+                "w-full max-w-md",
+                "page-input-premium",
+                "h-12",
+                "font-[var(--page-font)]"
+              )}>
                 <span>{settings.search_model || "Default (system prompt)"}</span>
               </SelectTrigger>
               <SelectContent>
@@ -132,18 +207,36 @@ export function SettingsPage() {
                 ))}
               </SelectContent>
             </Select>
-            <p className="text-xs text-gray-500 mt-1">Used when you search videos and images.</p>
+            <p className={cn(
+              "text-xs text-muted-foreground mt-1.5",
+              "font-[var(--page-font)]"
+            )}>
+              Used when you search videos and images. Expands your query with AI for better results.
+            </p>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Ingestion – prompt for describing media
+          {/* Ingestion Model */}
+          <div className="space-y-2">
+            <label className={cn(
+              "block text-sm font-semibold",
+              "font-[var(--page-font)]",
+              "text-foreground"
+            )}>
+              Ingestion Model
+              <span className="ml-2 text-xs font-normal text-muted-foreground">
+                – Prompt for describing media
+              </span>
             </label>
             <Select
               value={settings.ingestion_model || ""}
               onValueChange={(v) => setSettings((s) => ({ ...s, ingestion_model: v || null }))}
             >
-              <SelectTrigger className="w-full max-w-xs border-gray-300 text-gray-900">
+              <SelectTrigger className={cn(
+                "w-full max-w-md",
+                "page-input-premium",
+                "h-12",
+                "font-[var(--page-font)]"
+              )}>
                 <span>{settings.ingestion_model || "Default (system prompt)"}</span>
               </SelectTrigger>
               <SelectContent>
@@ -155,39 +248,110 @@ export function SettingsPage() {
                 ))}
               </SelectContent>
             </Select>
-            <p className="text-xs text-gray-500 mt-1">Used when ingesting (uploading) images and videos.</p>
+            <p className={cn(
+              "text-xs text-muted-foreground mt-1.5",
+              "font-[var(--page-font)]"
+            )}>
+              Used when ingesting (uploading) images and videos. Generates semantic descriptions.
+            </p>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Minimum search score
+          {/* Minimum Score */}
+          <div className="space-y-2">
+            <label className={cn(
+              "block text-sm font-semibold",
+              "font-[var(--page-font)]",
+              "text-foreground"
+            )}>
+              Minimum Search Score
+              <span className="ml-2 text-xs font-normal text-muted-foreground">
+                – Vector similarity threshold
+              </span>
             </label>
-            <input
-              type="number"
-              min={0}
-              max={1}
-              step={0.05}
-              placeholder={`${DEFAULT_MIN_SCORE} (default)`}
-              value={settings.min_score ?? ""}
-              onChange={(e) => {
-                const v = e.target.value;
-                if (v === "") setSettings((s) => ({ ...s, min_score: null }));
-                else {
-                  const n = parseFloat(v);
-                  if (!Number.isNaN(n)) setSettings((s) => ({ ...s, min_score: Math.max(0, Math.min(1, n)) }));
-                }
-              }}
-              className="w-full max-w-[10rem] rounded-md border border-gray-300 px-3 py-2 text-gray-900 shadow-sm focus:border-purple-500 focus:outline-none focus:ring-1 focus:ring-purple-500"
-            />
-            <p className="text-xs text-gray-500 mt-1">Vector similarity threshold (0–1). Results below this are filtered out. Default 0.5. Higher = stricter.</p>
+            <div className="relative">
+              <input
+                type="number"
+                min={0}
+                max={1}
+                step={0.05}
+                placeholder={`${DEFAULT_MIN_SCORE} (default)`}
+                value={settings.min_score ?? ""}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (v === "") setSettings((s) => ({ ...s, min_score: null }));
+                  else {
+                    const n = parseFloat(v);
+                    if (!Number.isNaN(n)) setSettings((s) => ({ ...s, min_score: Math.max(0, Math.min(1, n)) }));
+                  }
+                }}
+                className={cn(
+                  "w-full max-w-[12rem]",
+                  "page-input-premium",
+                  "h-12 px-4",
+                  "rounded-lg",
+                  "font-[var(--page-font)]",
+                  "text-foreground"
+                )}
+              />
+            </div>
+            <p className={cn(
+              "text-xs text-muted-foreground mt-1.5",
+              "font-[var(--page-font)]"
+            )}>
+              Results below this threshold are filtered out (0–1). Default: 0.5. Higher = stricter matching.
+            </p>
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          {success && <p className="text-sm text-green-600">{success}</p>}
+          {/* Status Messages */}
+          {error && (
+            <div className={cn(
+              "p-3 rounded-lg",
+              "bg-red-50 dark:bg-red-950/20",
+              "border border-red-200 dark:border-red-800",
+              "text-red-700 dark:text-red-300",
+              "text-sm font-[var(--page-font)]",
+              "page-animate-fade"
+            )}>
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className={cn(
+              "p-3 rounded-lg",
+              "bg-emerald-50 dark:bg-emerald-950/20",
+              "border border-emerald-200 dark:border-emerald-800",
+              "text-emerald-700 dark:text-emerald-300",
+              "text-sm font-[var(--page-font)]",
+              "page-animate-fade"
+            )}>
+              {success}
+            </div>
+          )}
 
-          <Button onClick={handleSave} disabled={saving} className="gap-2">
-            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-            Save
+          {/* Save Button */}
+          <Button 
+            onClick={handleSave} 
+            disabled={saving}
+            className={cn(
+              "page-button-premium",
+              "h-12 px-6",
+              "text-white",
+              "font-[var(--page-font)] font-semibold",
+              "gap-2",
+              "disabled:opacity-50 disabled:cursor-not-allowed"
+            )}
+          >
+            {saving ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4" />
+                Save Settings
+              </>
+            )}
           </Button>
         </div>
       </Card>

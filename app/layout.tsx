@@ -1,15 +1,24 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Sora } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { OnboardingProvider } from "@/contexts/OnboardingContext";
 import { AnalyticsProvider } from "@/components/AnalyticsProvider";
 import { Toaster } from "@/components/ui/toaster";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
+import { PopupManagerWrapper } from "@/components/popups/PopupManagerWrapper";
 
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
   display: "swap",
+});
+
+const sora = Sora({
+  subsets: ["latin"],
+  variable: "--font-popup",
+  display: "swap",
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -146,11 +155,6 @@ export default function RootLayout({
       "price": "0",
       "priceCurrency": "USD"
     },
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.8",
-      "ratingCount": "250"
-    },
     "description": "AI-powered semantic search platform for videos and images. Upload your media and search by meaning, not just keywords.",
     "url": "https://app.snoolink.com",
     "screenshot": "https://app.snoolink.com/og-image.png",
@@ -191,7 +195,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${inter.variable} font-sans antialiased min-h-screen bg-background text-foreground overflow-x-hidden`}
+        className={`${inter.variable} ${sora.variable} font-sans antialiased min-h-screen bg-background text-foreground overflow-x-hidden`}
       >
         <a
           href="#main"
@@ -201,10 +205,13 @@ export default function RootLayout({
         </a>
         <GoogleAnalytics />
         <AuthProvider>
-          <AnalyticsProvider>
-            {children}
-            <Toaster />
-          </AnalyticsProvider>
+          <OnboardingProvider>
+            <AnalyticsProvider>
+              {children}
+              <Toaster />
+              <PopupManagerWrapper />
+            </AnalyticsProvider>
+          </OnboardingProvider>
         </AuthProvider>
       </body>
     </html>

@@ -18,6 +18,8 @@ import { ToastAction } from "@/components/ui/toast";
 import { createClient } from "@/lib/supabase/client";
 import axios from "axios";
 import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
+import { useOnboarding } from "@/contexts/OnboardingContext";
+import { cn } from "@/lib/utils";
 
 interface UploadedFile {
   id: string;
@@ -151,6 +153,7 @@ export default function ImageCollections() {
   const [supportsFolderUpload, setSupportsFolderUpload] = useState(false);
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { refreshState: refreshOnboardingState, onboardingState } = useOnboarding();
 
   const hasAssets = files.length > 0;
 
@@ -733,6 +736,25 @@ export default function ImageCollections() {
         setIsUploading(false);
         fetchCollections();
         setUploadProgress((prev) => (prev ? { ...prev, phase: "done" } : null));
+        
+        // Refresh onboarding state after successful upload
+        refreshOnboardingState().catch(console.error);
+        
+        // Celebrate first upload
+        const wasFirstUpload = !onboardingState?.hasUploaded;
+        if (wasFirstUpload && (imageFiles.length > 0 || videoFiles.length > 0)) {
+          toast({
+            title: "🎉 Great! Your media is being indexed",
+            description: "Try searching for it in a moment. Your media will be searchable by meaning!",
+            duration: 6000,
+            action: (
+              <ToastAction altText="Go to search" onClick={() => router.push("/?view=search")}>
+                Search Now
+              </ToastAction>
+            ),
+          });
+        }
+        
         setTimeout(() => {
           setUploadProgress(null);
           previewFiles.forEach((f) => URL.revokeObjectURL(f.previewUrl));
@@ -977,11 +999,16 @@ export default function ImageCollections() {
         <span className="text-gray-900 font-medium">Upload Queue</span>
       </div>
 
-      {/* Header */}
-      <div className="mb-4 sm:mb-6 md:mb-8">
+      {/* Premium Header */}
+      <div className="mb-4 sm:mb-6 md:mb-8 page-animate-fade">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 mb-2">
+            <h1 className={cn(
+              "text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2",
+              "font-[var(--page-font)]",
+              "bg-gradient-to-r from-[var(--page-accent-primary)] to-[var(--page-accent-secondary)]",
+              "bg-clip-text text-transparent"
+            )}>
               Upload Queue
             </h1>
             {hasAssets ? (
@@ -1103,10 +1130,12 @@ export default function ImageCollections() {
                 <FileUp className={`h-7 w-7 sm:h-9 sm:w-9 text-purple-600 ${isDragActive ? "animate-bounce" : ""}`} />
               </div>
               <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
-                Upload Files
+                {!hasAssets ? "Ready to upload your first media?" : "Upload Files"}
           </h3>
               <p className="text-gray-700 text-sm sm:text-base mb-2 max-w-md px-2 font-medium">
-                Drag and drop images or videos here, or click to select from your computer.
+                {!hasAssets 
+                  ? "Drag and drop images or videos here. Your media will be automatically indexed with AI, making it searchable by meaning."
+                  : "Drag and drop images or videos here, or click to select from your computer."}
               </p>
               
               {/* File restrictions */}
@@ -1610,7 +1639,8 @@ export default function ImageCollections() {
                           width={120} 
                           height={120} 
                           className="w-full h-full object-cover" 
-                          unoptimized 
+                          loading="lazy"
+                          quality={85}
                         />
                       </div>
                     ))}
@@ -1705,7 +1735,8 @@ export default function ImageCollections() {
                       width={64} 
                       height={64} 
                       className="w-full h-full object-cover"
-                    unoptimized
+                      loading="lazy"
+                      quality={85}
                   />
                   )}
                         </div>
