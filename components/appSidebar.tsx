@@ -191,7 +191,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                   tooltip="Analytics"
                   className="text-gray-500 hover:text-gray-700 hover:bg-gray-50 data-[active=true]:bg-purple-50 data-[active=true]:text-purple-600"
                 >
-                  <button onClick={() => handleViewChange("analytics")} aria-label="Analytics (coming soon)">
+                  <button onClick={() => handleViewChange("analytics")} aria-label="Analytics">
                     <BarChart3 className="h-4 w-4 shrink-0" />
                     <span>Analytics</span>
                   </button>

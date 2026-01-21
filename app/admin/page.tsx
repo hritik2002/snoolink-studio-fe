@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
-import { ArrowLeft, Loader2, Plus, Shield } from "lucide-react";
+import { ArrowLeft, BarChart2, Loader2, Plus, Shield } from "lucide-react";
 
 interface PromptRow {
   id: string;
@@ -110,6 +110,11 @@ export default function AdminPage() {
           <ArrowLeft className="h-5 w-5" />
         </Link>
         <h1 className="text-lg font-semibold text-gray-900">Admin – Prompts</h1>
+        <Link href="/admin-analytics" className="ml-auto">
+          <Button variant="outline" size="sm" className="gap-2">
+            <BarChart2 className="h-4 w-4" /> Platform Analytics
+          </Button>
+        </Link>
       </header>
 
       <main className="max-w-2xl mx-auto p-4 sm:p-6 space-y-6">

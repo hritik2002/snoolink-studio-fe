@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { Settings, Loader2, Save } from "lucide-react";
+import { analyticsClient } from "@/lib/analytics";
 
 interface PromptRow {
   id: string;
@@ -79,6 +80,7 @@ export function SettingsPage() {
       }
       setSuccess("Settings saved.");
       setTimeout(() => setSuccess(null), 3000);
+      analyticsClient.feature("settings_saved");
     } catch (e: unknown) {
       setError((e as Error).message);
     } finally {

@@ -8,7 +8,8 @@ import ImageCollections from "@/components/imageCollections";
 import Collections from "@/components/collections";
 import Profile from "@/components/profile";
 import { BottomNav } from "@/components/BottomNav";
-import { HistoryPage, AnalyticsPage, BillingPage } from "@/components/comingSoon";
+import { HistoryPage, BillingPage } from "@/components/comingSoon";
+import { AnalyticsDashboard } from "@/components/AnalyticsDashboard";
 import { SettingsPage } from "@/components/settings";
 import { useAuth } from "@/contexts/AuthContext";
 import { AppShellSkeleton } from "@/components/skeletons";
@@ -55,7 +56,7 @@ function HomeContent() {
           ) : activeView === "history" ? (
             <HistoryPage />
           ) : activeView === "analytics" ? (
-            <AnalyticsPage />
+            <AnalyticsDashboard />
           ) : activeView === "settings" ? (
             <SettingsPage />
           ) : activeView === "billing" ? (

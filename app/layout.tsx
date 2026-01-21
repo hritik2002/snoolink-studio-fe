@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { AnalyticsProvider } from "@/components/AnalyticsProvider";
 import { Toaster } from "@/components/ui/toaster";
 import { GoogleAnalytics } from "@/components/GoogleAnalytics";
 
@@ -200,8 +201,10 @@ export default function RootLayout({
         </a>
         <GoogleAnalytics />
         <AuthProvider>
-          {children}
-          <Toaster />
+          <AnalyticsProvider>
+            {children}
+            <Toaster />
+          </AnalyticsProvider>
         </AuthProvider>
       </body>
     </html>
