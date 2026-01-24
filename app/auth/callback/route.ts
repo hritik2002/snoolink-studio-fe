@@ -1,13 +1,37 @@
-import { createClient } from "@/lib/supabase/server";
-import { NextResponse } from "next/server";
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
+import { cookies } from "next/headers";
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
   const origin = requestUrl.origin;
 
   if (code) {
-    const supabase = await createClient();
+    const cookieStore = await cookies();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll();
+          },
+          setAll(cookiesToSet) {
+            try {
+              cookiesToSet.forEach(({ name, value, options }) =>
+                cookieStore.set(name, value, options)
+              );
+            } catch {
+              // The `setAll` method was called from a Server Component.
+              // This can be ignored if you have middleware refreshing
+              // user sessions.
+            }
+          },
+        },
+      }
+    );
+
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
     // After successful OAuth, ensure user profile is created/updated
@@ -34,8 +58,11 @@ export async function GET(request: Request) {
   }
 
   // Redirect to ?next= when provided (e.g. /upload, /?view=collections) so deep links work
+  // Default to "/" to ensure users are redirected to home after successful authentication
   const next = requestUrl.searchParams.get("next") || requestUrl.searchParams.get("redirect");
   const dest = next && next.startsWith("/") ? `${origin}${next}` : `${origin}/`;
+  
+  // Create redirect response - cookies set via setAll callback will be included
   return NextResponse.redirect(dest);
 }
 

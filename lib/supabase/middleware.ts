@@ -49,9 +49,11 @@ export async function updateSession(request: NextRequest) {
 
   // If user is not authenticated and not on login page, redirect to login
   // with ?next= so we can restore destination after sign-in
+  // Exclude /auth/callback from this check as it handles authentication
   if (
     !user &&
-    !request.nextUrl.pathname.startsWith("/login")
+    !request.nextUrl.pathname.startsWith("/login") &&
+    !request.nextUrl.pathname.startsWith("/auth/callback")
   ) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
