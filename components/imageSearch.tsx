@@ -938,23 +938,6 @@ export default function ImageSearch() {
             </div>
           </div>
 
-          {/* Example queries / zero-query prompt */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 pb-4 border-b border-gray-100">
-            <span className="text-xs font-bold text-gray-500 tracking-wider uppercase flex-shrink-0">
-              {!searchQuery.trim() ? "Describe what you're looking for" : "Try:"}
-            </span>
-            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-              {exampleQueries.map((q, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleSearch(q)}
-                  className="px-3 sm:px-4 py-1.5 text-xs sm:text-sm bg-white border border-gray-200 hover:border-purple-400 hover:bg-purple-50 active:bg-purple-100 text-gray-700 rounded-full transition-all cursor-pointer touch-manipulation"
-                >
-                  {q}
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
 
