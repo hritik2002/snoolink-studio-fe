@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   Search, Loader2, Image as ImageIcon, Video, Clock, Download, Share2,
-  MoreVertical, Sparkles, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, List as ListIcon, Play, Star, ArrowRight, Plus, Lightbulb, CloudUpload, Folder
+  MoreVertical, Sparkles, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, List as ListIcon, Play, Star, ArrowRight, Plus, Lightbulb, CloudUpload, Folder, X
 } from "lucide-react";
 import Image from "next/image";
 import { useToast } from "@/lib/hooks/use-toast";
@@ -251,6 +251,10 @@ export default function ImageSearch() {
 
   // Expand query: when true, backend expands the search query with AI (e.g. "water" → "water, liquid, aquatic"); when false, uses the raw query.
   const [expandQuery, setExpandQuery] = useState(true);
+
+  // Right sidebar state
+  const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
+  const sidebarTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Scroll collection chips
   const scrollCollectionChips = (direction: "left" | "right") => {
@@ -644,6 +648,40 @@ export default function ImageSearch() {
 
   const hasResults = (mode === "image" ? imageResults.length : Object.keys(videoResults).length) > 0;
 
+  // Right sidebar handlers
+  const openRightSidebar = useCallback(() => {
+    setIsRightSidebarOpen(true);
+    // Clear any existing timeout
+    if (sidebarTimeoutRef.current) {
+      clearTimeout(sidebarTimeoutRef.current);
+    }
+    // Set auto-close after 30 seconds
+    sidebarTimeoutRef.current = setTimeout(() => {
+      setIsRightSidebarOpen(false);
+    }, 30000);
+  }, []);
+
+  const resetSidebarTimer = useCallback(() => {
+    // Reset the timer when user interacts with sidebar
+    if (sidebarTimeoutRef.current) {
+      clearTimeout(sidebarTimeoutRef.current);
+    }
+    if (isRightSidebarOpen) {
+      sidebarTimeoutRef.current = setTimeout(() => {
+        setIsRightSidebarOpen(false);
+      }, 30000);
+    }
+  }, [isRightSidebarOpen]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (sidebarTimeoutRef.current) {
+        clearTimeout(sidebarTimeoutRef.current);
+      }
+    };
+  }, []);
+
   // Example queries (replaces placeholder "Trending" with real, clickable examples)
   const exampleQueries = EXAMPLE_QUERIES;
   const hasContent = collections.reduce((a, c) => a + c.count, 0) > 0;
@@ -706,7 +744,7 @@ export default function ImageSearch() {
             <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
               <Button
                 size="sm"
-                className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 text-white flex-1 sm:flex-initial text-xs sm:text-sm"
+                className="flex items-center gap-2 bg-[#7c3aed] hover:bg-purple-700 text-white flex-1 sm:flex-initial text-xs sm:text-sm"
                 onClick={() => router.push("/?view=uploads")}
                 aria-label="Go to Uploads to add media"
               >
@@ -884,7 +922,7 @@ export default function ImageSearch() {
                     <button
                       onClick={() => toggleCollection("all")}
                       className={`flex-shrink-0 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all touch-manipulation ${selectedCollections.includes("all")
-                          ? "bg-purple-600 text-white"
+                          ? "bg-[#7c3aed] text-white"
                           : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300"
                         }`}
                     >
@@ -903,7 +941,7 @@ export default function ImageSearch() {
                         key={collection.name}
                         onClick={() => toggleCollection(collection.name)}
                         className={`flex-shrink-0 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all touch-manipulation ${selectedCollections.includes(collection.name)
-                            ? "bg-purple-600 text-white"
+                            ? "bg-[#7c3aed] text-white"
                             : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300"
                           }`}
                       >
@@ -942,7 +980,7 @@ export default function ImageSearch() {
       </div>
 
       {/* Results Section with Sidebar */}
-      <div className="flex gap-3 sm:gap-6 px-3 sm:px-6 flex-1 min-h-0 min-w-0 overflow-hidden">
+      <div className="relative flex gap-3 sm:gap-6 px-3 sm:px-6 flex-1 min-h-0 min-w-0 overflow-hidden">
         {/* Left Column - Results */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           {/* Search Results Header - Sticky */}
@@ -954,21 +992,33 @@ export default function ImageSearch() {
                   {mode === "image" ? imageResults.length : Object.keys(videoResults).length}
                 </span>
               </div>
-              <div className="flex items-center text-xs sm:text-sm text-gray-500">
-                <span className="hidden sm:inline">Sort by:</span>
-                <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-auto border-0 bg-transparent text-gray-900 hover:bg-gray-50 rounded-lg gap-1 pl-1 pr-0 h-auto py-0 font-medium text-xs sm:text-sm">
-                    <span className="hidden sm:inline">Relevance</span>
-                    <span className="sm:hidden">Sort</span>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="relevance">Relevance</SelectItem>
-                    {mode === "video" && <SelectItem value="confidence">Confidence</SelectItem>}
-                    {mode === "video" && <SelectItem value="length">Video length</SelectItem>}
-                    {mode === "video" && <SelectItem value="timestamp">Timestamp</SelectItem>}
-                    {mode === "image" && <SelectItem value="confidence">Confidence</SelectItem>}
-                  </SelectContent>
-                </Select>
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={openRightSidebar}
+                  className="hidden md:flex items-center gap-2 text-xs sm:text-sm"
+                  aria-label="Open insights sidebar"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  <span>Insights</span>
+                </Button>
+                <div className="flex items-center text-xs sm:text-sm text-gray-500">
+                  <span className="hidden sm:inline">Sort by:</span>
+                  <Select value={sortBy} onValueChange={setSortBy}>
+                    <SelectTrigger className="w-auto border-0 bg-transparent text-gray-900 hover:bg-gray-50 rounded-lg gap-1 pl-1 pr-0 h-auto py-0 font-medium text-xs sm:text-sm">
+                      <span className="hidden sm:inline">Relevance</span>
+                      <span className="sm:hidden">Sort</span>
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="relevance">Relevance</SelectItem>
+                      {mode === "video" && <SelectItem value="confidence">Confidence</SelectItem>}
+                      {mode === "video" && <SelectItem value="length">Video length</SelectItem>}
+                      {mode === "video" && <SelectItem value="timestamp">Timestamp</SelectItem>}
+                      {mode === "image" && <SelectItem value="confidence">Confidence</SelectItem>}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
           )}
@@ -1313,12 +1363,31 @@ export default function ImageSearch() {
 
         {/* Right Sidebar - Sticky */}
         {hasResults && (
-          <div className="w-64 lg:w-80 flex-shrink-0 sticky top-0 self-start space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto pb-6 hidden md:block">
+          <div 
+            className={cn(
+              "flex-shrink-0 sticky top-0 self-start space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto pb-6 hidden md:block transition-all duration-300 ease-in-out",
+              isRightSidebarOpen 
+                ? "w-64 lg:w-80 translate-x-0 opacity-100 pointer-events-auto" 
+                : "w-0 translate-x-full opacity-0 pointer-events-none overflow-hidden"
+            )}
+            onClick={resetSidebarTimer}
+          >
             {/* Search Insights */}
             <Card className="p-4 bg-white border border-gray-200 rounded-xl shadow-sm">
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles className="h-4 w-4 text-purple-600" />
-                <h3 className="text-sm font-semibold text-gray-900">Search Insights</h3>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-purple-600" />
+                  <h3 className="text-sm font-semibold text-gray-900">Search Insights</h3>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsRightSidebarOpen(false)}
+                  className="h-6 w-6 p-0"
+                  aria-label="Close sidebar"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
 
               {/* Stats Grid */}
@@ -1358,7 +1427,11 @@ export default function ImageSearch() {
                   <h3 className="text-sm font-semibold text-gray-900">Your collections</h3>
                   <button
                     type="button"
-                    onClick={() => router.push("/?view=collections")}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      resetSidebarTimer();
+                      router.push("/?view=collections");
+                    }}
                     className="text-xs text-purple-600 hover:text-purple-700 font-medium"
                   >
                     View all
@@ -1369,7 +1442,11 @@ export default function ImageSearch() {
                     <button
                       key={col.name}
                       type="button"
-                      onClick={() => toggleCollection(col.name)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        resetSidebarTimer();
+                        toggleCollection(col.name);
+                      }}
                       className="w-full flex items-center justify-between cursor-pointer hover:bg-gray-50 -mx-2 px-2 py-2 rounded-lg transition-colors text-left"
                     >
                       <div className="flex items-center gap-3">
@@ -1404,7 +1481,11 @@ export default function ImageSearch() {
                       <button
                         key={ex}
                         type="button"
-                        onClick={() => handleExampleClick(ex)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          resetSidebarTimer();
+                          handleExampleClick(ex);
+                        }}
                         className="text-xs px-2.5 py-1 bg-white/80 hover:bg-white border border-purple-200 rounded-full text-purple-700 font-medium"
                       >
                         {ex}

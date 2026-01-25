@@ -12,16 +12,16 @@ export async function generatePageMetadata(
   
   const metadataMap: Record<string, Metadata> = {
     search: {
-      title: 'AI-Powered Semantic Search | Snoolink Studio',
+      title: 'AI-Powered Semantic Search | Snoolink',
       description: 'Search your video and image library by meaning, not keywords. Find specific moments instantly with AI-powered semantic search.',
       openGraph: {
-        title: 'AI-Powered Semantic Search | Snoolink Studio',
+        title: 'AI-Powered Semantic Search | Snoolink',
         description: 'Search your media library by meaning with AI.',
         url: 'https://app.snoolink.com/?view=search',
       },
       twitter: {
         card: 'summary_large_image',
-        title: 'AI-Powered Semantic Search | Snoolink Studio',
+        title: 'AI-Powered Semantic Search | Snoolink',
         description: 'Search your media library by meaning with AI.',
       },
       alternates: {
@@ -29,16 +29,16 @@ export async function generatePageMetadata(
       },
     },
     collections: {
-      title: 'Media Collections | Snoolink Studio',
+      title: 'Media Collections | Snoolink',
       description: 'Organize and manage your video and image collections. Group related media for easy access and search.',
       openGraph: {
-        title: 'Media Collections | Snoolink Studio',
+        title: 'Media Collections | Snoolink',
         description: 'Organize your media into collections.',
         url: 'https://app.snoolink.com/?view=collections',
       },
       twitter: {
         card: 'summary_large_image',
-        title: 'Media Collections | Snoolink Studio',
+        title: 'Media Collections | Snoolink',
         description: 'Organize your media into collections.',
       },
       alternates: {
@@ -46,16 +46,16 @@ export async function generatePageMetadata(
       },
     },
     uploads: {
-      title: 'Upload Media | Snoolink Studio',
-      description: 'Upload videos and images to Snoolink Studio. Our AI will automatically index your media for semantic search.',
+      title: 'Upload Media | Snoolink',
+      description: 'Upload videos and images to Snoolink. Our AI will automatically index your media for semantic search.',
       openGraph: {
-        title: 'Upload Media | Snoolink Studio',
+        title: 'Upload Media | Snoolink',
         description: 'Upload and index your media with AI.',
         url: 'https://app.snoolink.com/?view=uploads',
       },
       twitter: {
         card: 'summary_large_image',
-        title: 'Upload Media | Snoolink Studio',
+        title: 'Upload Media | Snoolink',
         description: 'Upload and index your media with AI.',
       },
       alternates: {

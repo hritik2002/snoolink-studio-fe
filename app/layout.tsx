@@ -24,10 +24,10 @@ const sora = Sora({
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://app.snoolink.com'),
   title: {
-    default: "Snoolink Studio - AI-Powered Semantic Video & Image Search Platform",
-    template: "%s | Snoolink Studio"
+    default: "Snoolink - AI-Powered Semantic Video & Image Search Platform",
+    template: "%s | Snoolink"
   },
-  description: "Transform how you find content with Snoolink Studio's AI-powered semantic search. Upload videos and images, search by meaning, not just keywords. Perfect for content creators, videographers, and media professionals. Get instant, intelligent results across your entire media library.",
+  description: "Transform how you find content with Snoolink's AI-powered semantic search. Upload videos and images, search by meaning, not just keywords. Perfect for content creators, videographers, and media professionals. Get instant, intelligent results across your entire media library.",
   keywords: [
     // Primary keywords
     "semantic video search",
@@ -60,10 +60,10 @@ export const metadata: Metadata = {
     "organize video library automatically",
     "AI video indexing service"
   ],
-  authors: [{ name: "Snoolink Studio", url: "https://app.snoolink.com" }],
-  creator: "Snoolink Studio",
-  publisher: "Snoolink Studio",
-  applicationName: "Snoolink Studio",
+  authors: [{ name: "Snoolink", url: "https://app.snoolink.com" }],
+  creator: "Snoolink",
+  publisher: "Snoolink",
+  applicationName: "Snoolink",
   referrer: "origin-when-cross-origin",
   robots: {
     index: true,
@@ -82,15 +82,15 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "https://app.snoolink.com",
-    siteName: "Snoolink Studio",
-    title: "Snoolink Studio - AI-Powered Semantic Video & Image Search",
+    siteName: "Snoolink",
+    title: "Snoolink - AI-Powered Semantic Video & Image Search",
     description: "Transform how you find content with AI-powered semantic search. Upload videos and images, search by meaning. Perfect for content creators and media professionals.",
     images: [
       {
         url: "/og-image.png",
         width: 1200,
         height: 630,
-        alt: "Snoolink Studio - AI Video Search Platform",
+        alt: "Snoolink - AI Video Search Platform",
         type: "image/png",
       }
     ],
@@ -99,7 +99,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     site: "@SnoolinkStudio",
     creator: "@SnoolinkStudio",
-    title: "Snoolink Studio - AI-Powered Semantic Video & Image Search",
+    title: "Snoolink - AI-Powered Semantic Video & Image Search",
     description: "Transform how you find content with AI-powered semantic search. Upload videos and images, search by meaning instantly.",
     images: ["/og-image.png"],
   },
@@ -125,10 +125,10 @@ export const metadata: Metadata = {
     // bing: "bing-verification-code",
   },
   other: {
-    "application-name": "Snoolink Studio",
+    "application-name": "Snoolink",
     "apple-mobile-web-app-capable": "yes",
     "apple-mobile-web-app-status-bar-style": "black-translucent",
-    "apple-mobile-web-app-title": "Snoolink Studio",
+    "apple-mobile-web-app-title": "Snoolink",
     "format-detection": "telephone=no",
     "mobile-web-app-capable": "yes",
     "msapplication-TileColor": "#7c3aed",
@@ -147,7 +147,7 @@ export default function RootLayout({
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    "name": "Snoolink Studio",
+    "name": "Snoolink",
     "applicationCategory": "MultimediaApplication",
     "operatingSystem": "Web",
     "offers": {
@@ -172,9 +172,9 @@ export default function RootLayout({
   const organizationJsonLd = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "name": "Snoolink Studio",
+    "name": "Snoolink",
     "url": "https://app.snoolink.com",
-    "logo": "https://app.snoolink.com/icon-512.png",
+    "logo": "https://app.snoolink.com/logo.png",
     "description": "AI-powered semantic search platform for videos and images",
     "sameAs": [
       "https://twitter.com/SnoolinkStudio",

@@ -117,7 +117,7 @@ export function AnalyticsDashboard() {
           <button
             onClick={handleExport}
             disabled={exporting}
-            className="inline-flex items-center gap-2 rounded-md bg-purple-600 px-3 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-md bg-[#7c3aed] px-3 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-60"
           >
             {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
             Export

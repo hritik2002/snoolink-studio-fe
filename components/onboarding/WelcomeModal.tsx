@@ -62,7 +62,7 @@ export function WelcomeModal() {
               <Sparkles className="h-8 w-8 text-white" />
             </div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">
-              Welcome to Snoolink Studio!
+              Welcome to Snoolink!
             </h2>
             <p className="text-gray-600 text-sm sm:text-base">
               Let's get you set up in 2 minutes. Upload your media, and we'll make it searchable by meaning.

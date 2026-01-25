@@ -100,7 +100,7 @@ export function SettingsPage() {
   return (
     <ComingSoon
       title="Settings"
-      description="Customize your Snoolink Studio experience with personalized preferences and configurations."
+      description="Customize your Snoolink experience with personalized preferences and configurations."
       icon={<Settings className="h-10 w-10" />}
       features={[
         "Account preferences",

@@ -1,6 +1,6 @@
 {
-  "name": "Snoolink Studio - AI-Powered Semantic Video & Image Search",
-  "short_name": "Snoolink Studio",
+  "name": "Snoolink - AI-Powered Semantic Video & Image Search",
+  "short_name": "Snoolink",
   "description": "Transform how you find content with AI-powered semantic search. Upload videos and images, search by meaning instantly.",
   "start_url": "/",
   "display": "standalone",

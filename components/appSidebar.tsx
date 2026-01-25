@@ -1,6 +1,7 @@
 "use client";
 
 import { Search, FolderOpen, User, History, BarChart3, Settings, CreditCard, Upload, LogOut, Shield } from "lucide-react";
+import Image from "next/image";
 import {
   Sidebar,
   SidebarContent,
@@ -103,10 +104,16 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
       <SidebarHeader className="px-2 md:px-4 py-4 md:py-6 border-b border-gray-200 flex flex-col items-center group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:py-3">
         <div className="flex items-center gap-2 w-full group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:gap-2 group-data-[collapsible=icon]:w-full">
           <SidebarTrigger className="size-8 shrink-0" aria-label="Collapse or expand sidebar" />
-          <div className="w-8 h-8 rounded-lg bg-purple-600 flex items-center justify-center shrink-0 group-data-[collapsible=icon]:w-7 group-data-[collapsible=icon]:h-7">
-            <span className="text-white font-bold text-lg group-data-[collapsible=icon]:text-base">S</span>
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 group-data-[collapsible=icon]:w-7 group-data-[collapsible=icon]:h-7 overflow-hidden">
+            <Image 
+              src="/logo.png" 
+              alt="Snoolink" 
+              width={32} 
+              height={32} 
+              className="w-full h-full object-contain"
+            />
           </div>
-          <span className="font-semibold text-gray-900 truncate group-data-[collapsible=icon]:hidden">Snoolink Studio</span>
+          <span className="font-semibold text-gray-900 truncate group-data-[collapsible=icon]:hidden">Snoolink</span>
         </div>
       </SidebarHeader>
       <SidebarContent>

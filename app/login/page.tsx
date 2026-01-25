@@ -5,6 +5,7 @@ import { Play, CloudUpload, Search, Sparkles, Check, Users, Shield, Zap } from "
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
 import { LoginSkeleton } from "@/components/skeletons";
+import Image from "next/image";
 
 function LoginContent() {
   const searchParams = useSearchParams();
@@ -36,10 +37,17 @@ function LoginContent() {
       <div className="relative z-10 flex flex-col items-center w-full max-w-2xl px-4 sm:px-6">
         {/* Logo and Brand Name - Smaller, Secondary */}
         <div className="flex flex-col items-center mb-3 sm:mb-4">
-          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-200 mb-2 sm:mb-3">
-            <Play className="w-6 h-6 sm:w-7 sm:h-7 text-white ml-1" fill="white" />
+          <div className="w-32 h-16 sm:w-40 sm:h-20 flex items-center justify-center mb-2 sm:mb-3">
+            <Image 
+              src="/login-logo.png" 
+              alt="Snoolink" 
+              width={160} 
+              height={80} 
+              className="w-full h-full object-contain"
+              priority
+            />
           </div>
-          <p className="text-sm sm:text-base text-gray-600 font-medium">Snoolink Studio</p>
+          <p className="text-sm sm:text-base text-gray-600 font-medium">Snoolink</p>
         </div>
 
         {/* Primary Value Proposition - H1, Benefit-Focused */}
@@ -155,7 +163,7 @@ function LoginContent() {
       </div>
 
       <div className="absolute bottom-4 sm:bottom-6 text-center w-full">
-        <p className="text-xs sm:text-sm text-gray-400">© 2024 Snoolink Studio</p>
+        <p className="text-xs sm:text-sm text-gray-400">© 2024 Snoolink</p>
       </div>
     </div>
   );

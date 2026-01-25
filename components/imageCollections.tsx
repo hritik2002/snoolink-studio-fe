@@ -1240,7 +1240,7 @@ export default function ImageCollections() {
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isUploading}
                   size="lg"
-                  className="bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-white touch-manipulation font-semibold text-base px-6 py-3 h-12"
+                  className="bg-[#7c3aed] hover:bg-purple-700 active:bg-purple-800 text-white touch-manipulation font-semibold text-base px-6 py-3 h-12"
                 >
                   {isUploading ? (
                     <>
@@ -1373,7 +1373,7 @@ export default function ImageCollections() {
                   <Button
                     size="sm"
                     onClick={() => { isPausedRef.current = false; setUploadProgress((p) => (p ? { ...p, isPaused: false } : null)); }}
-                    className="text-xs bg-purple-600"
+                    className="text-xs bg-[#7c3aed]"
                   >
                     Resume
                   </Button>
@@ -1381,7 +1381,7 @@ export default function ImageCollections() {
               </>
             )}
             {uploadProgress.phase === "done" && uploadProgress.failedFiles.length > 0 && (
-              <Button size="sm" onClick={handleRetryFromProgress} className="text-xs bg-purple-600">
+              <Button size="sm" onClick={handleRetryFromProgress} className="text-xs bg-[#7c3aed]">
                 <RotateCcw className="h-3 w-3 mr-1" />
                 Retry {uploadProgress.failedFiles.length} failed
               </Button>
@@ -1486,7 +1486,7 @@ export default function ImageCollections() {
                 <Button 
                   size="sm"
                   onClick={() => tourStep < 3 ? setTourStep((s) => (s ?? 1) + 1) : setTourStep(null)} 
-                  className="bg-purple-600 hover:bg-purple-700"
+                  className="bg-[#7c3aed] hover:bg-purple-700"
                 >
                   {tourStep < 3 ? "Next" : "Got it"}
                 </Button>
@@ -1520,7 +1520,7 @@ export default function ImageCollections() {
                   isDisabled
                     ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                     : filterStatus === status
-                      ? "bg-purple-600 text-white shadow-md active:bg-purple-700"
+                      ? "bg-[#7c3aed] text-white shadow-md active:bg-purple-700"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300"
                 }`}
               >
@@ -1581,7 +1581,7 @@ export default function ImageCollections() {
                 size="sm"
                 onClick={handleRetryFailed}
                 disabled={isProcessingAction}
-                className="flex items-center gap-1.5 sm:gap-2 bg-purple-600 hover:bg-purple-700 active:bg-purple-800 text-xs sm:text-sm touch-manipulation flex-1 sm:flex-initial"
+                className="flex items-center gap-1.5 sm:gap-2 bg-[#7c3aed] hover:bg-purple-700 active:bg-purple-800 text-xs sm:text-sm touch-manipulation flex-1 sm:flex-initial"
               >
                 {isProcessingAction ? <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
                 <span>Retry</span>
@@ -1656,7 +1656,7 @@ export default function ImageCollections() {
               <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
                 <Button
                   size="default"
-                  className="bg-purple-600 hover:bg-purple-700 text-white font-semibold px-6"
+                  className="bg-[#7c3aed] hover:bg-purple-700 text-white font-semibold px-6"
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <Folder className="h-4 w-4 mr-2" />
@@ -1859,7 +1859,7 @@ export default function ImageCollections() {
               <Button 
                 onClick={handleCreateCollection}
                 disabled={!newCollectionName.trim() || isCreatingCollection}
-                className="bg-purple-600 hover:bg-purple-700"
+                className="bg-[#7c3aed] hover:bg-purple-700"
               >
                 {isCreatingCollection ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                 Create

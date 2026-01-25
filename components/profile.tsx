@@ -175,7 +175,7 @@ export default function Profile() {
           <Button
             type="submit"
             disabled={saving}
-            className="w-full bg-purple-600 hover:bg-purple-700 text-white h-11 sm:h-12 text-sm sm:text-base touch-manipulation"
+            className="w-full bg-[#7c3aed] hover:bg-purple-700 text-white h-11 sm:h-12 text-sm sm:text-base touch-manipulation"
           >
             {saving ? (
               <>

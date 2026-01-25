@@ -2,7 +2,7 @@
 # The humans responsible & technology colophon
 
 /* TEAM */
-Team: Snoolink Studio
+Team: Snoolink
 Site: https://app.snoolink.com
 Location: Global
 

@@ -156,7 +156,7 @@ export const clickTriggeredPopup: PopupConfig = {
   },
   emailCapture: {
     headline: "Request a Demo",
-    subheadline: "See how Snoolink Studio can transform your workflow",
+    subheadline: "See how Snoolink can transform your workflow",
     ctaText: "Schedule Demo",
     declineText: "Cancel",
     onSubmit: async (email) => {

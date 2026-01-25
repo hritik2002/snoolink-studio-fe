@@ -792,7 +792,7 @@ export default function Collections() {
               {items.length === 0 && selectedCollection && (
                 <Button
                   size="sm"
-                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                  className="bg-[#7c3aed] hover:bg-purple-700 text-white"
                   onClick={() => router.push(`/?view=uploads&collection=${encodeURIComponent(selectedCollection)}`)}
                 >
                   <CloudUpload className="h-4 w-4 mr-2" />
@@ -874,28 +874,12 @@ export default function Collections() {
                     <ExternalLink className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-700" />
                   </button>
                 </div>
-                <div className="mb-1 xs:mb-1.5 sm:mb-2">
-                  <h3 className="text-xs sm:text-sm font-medium text-foreground truncate" title={item.url.split("/").pop()?.split("?")[0]}>
-                    {item.url.split("/").pop()?.split("?")[0] || "Untitled"}
-                  </h3>
-                </div>
-                <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-1.5 xs:mb-2 text-xs">
-                  <span className="text-muted-foreground truncate max-w-[80px] xs:max-w-[100px]">{item.collectionName}</span>
-                  <span className="text-purple-600 font-medium flex-shrink-0">{getFileExtension(item.url)}</span>
-                </div>
                 {item.type === "video" && (item.duration || item.resolution) && (
                   <div className="mb-1.5 xs:mb-2 p-1.5 xs:p-2 bg-muted rounded-lg border border-border text-[10px] xs:text-xs grid grid-cols-2 gap-1.5 xs:gap-2">
-                    <div className="min-w-0"><span className="text-muted-foreground">File Type:</span><div className="text-purple-600 font-medium truncate">{getFileType(item.url, item.type)}</div></div>
                     {item.duration && <div><span className="text-muted-foreground">Duration:</span><div className="font-medium">{formatDuration(item.duration)}</div></div>}
                     {item.resolution && <div className="min-w-0"><span className="text-muted-foreground">Resolution:</span><div className="font-medium truncate">{item.resolution.replace("x", "×")}</div></div>}
                     {item.createdAt && <div className="min-w-0"><span className="text-muted-foreground">Upload Date:</span><div className="font-medium truncate">{formatDate(item.createdAt)}</div></div>}
                   </div>
-                )}
-                {item.description && (
-                  <button onClick={() => copyDescription(item.id, item.description!)} className="w-full flex items-center gap-1 text-left group/desc min-w-0">
-                    <p className="text-[10px] xs:text-xs text-muted-foreground truncate flex-1 min-w-0">{item.description}</p>
-                    {copiedId === item.id ? <Check className="h-3 w-3 text-green-500 flex-shrink-0" /> : <Copy className="h-3 w-3 text-muted-foreground opacity-0 group-hover/desc:opacity-100 flex-shrink-0 transition-opacity" />}
-                  </button>
                 )}
               </div>
             ))}
@@ -929,24 +913,13 @@ export default function Collections() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="text-sm font-medium text-foreground truncate">{item.url.split("/").pop()?.split("?")[0] || "Untitled"}</h3>
-                    <span className="text-xs text-purple-600 font-medium">{getFileExtension(item.url)}</span>
-                  </div>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground mb-1">
-                    <span>{item.collectionName}</span><span>•</span><span>{item.type === "video" ? "Video" : "Image"}</span>
                   </div>
                   {item.type === "video" && (item.duration || item.resolution) && (
                     <div className="mb-2 p-2 bg-muted rounded-lg border border-border text-xs grid grid-cols-2 gap-2">
-                      <div><span className="text-muted-foreground">File Type:</span><div className="font-medium">{getFileType(item.url, item.type)}</div></div>
                       {item.duration && <div><span className="text-muted-foreground">Duration:</span><div className="font-medium">{formatDuration(item.duration)}</div></div>}
                       {item.resolution && <div><span className="text-muted-foreground">Resolution:</span><div className="font-medium">{item.resolution.replace("x", "×")}</div></div>}
                       {item.createdAt && <div><span className="text-muted-foreground">Upload Date:</span><div className="font-medium">{formatDate(item.createdAt)}</div></div>}
                     </div>
-                  )}
-                  {item.description && (
-                    <button onClick={() => copyDescription(item.id, item.description!)} className="flex items-center gap-1 text-left group/desc max-w-full">
-                      <p className="text-xs text-muted-foreground truncate">{item.description}</p>
-                      {copiedId === item.id ? <Check className="h-3 w-3 text-green-500 flex-shrink-0" /> : <Copy className="h-3 w-3 opacity-0 group-hover/desc:opacity-100 flex-shrink-0" />}
-                    </button>
                   )}
                 </div>
                 <button onClick={(e) => { e.stopPropagation(); window.open(item.url, "_blank"); }} className="opacity-0 group-hover:opacity-100 active:opacity-100 sm:group-hover:opacity-100 transition-opacity p-1.5 sm:p-2 hover:bg-purple-100 rounded-lg flex-shrink-0 touch-manipulation" title="Open in new tab" aria-label="Open in new tab">
@@ -999,7 +972,7 @@ export default function Collections() {
                 <Sparkles className="h-3.5 w-3.5" /> Smart collection
               </Button>
               <Button variant="outline" onClick={() => setShowCreateModal(false)}>Cancel</Button>
-              <Button onClick={createCollection} disabled={!newCollectionName.trim() || isCreating} className="bg-purple-600 hover:bg-purple-700">
+              <Button onClick={createCollection} disabled={!newCollectionName.trim() || isCreating} className="bg-[#7c3aed] hover:bg-purple-700">
                 {isCreating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                 Create
               </Button>
@@ -1035,7 +1008,7 @@ export default function Collections() {
             </Select>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => { setShowMoveModal(false); setMoveTarget(""); }}>Cancel</Button>
-              <Button onClick={handleMove} disabled={!moveTarget || isBulkActioning} className="bg-purple-600">
+              <Button onClick={handleMove} disabled={!moveTarget || isBulkActioning} className="bg-[#7c3aed]">
                 {isBulkActioning ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                 Move
               </Button>

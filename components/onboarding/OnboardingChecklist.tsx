@@ -80,7 +80,7 @@ export function OnboardingChecklist() {
             </div>
           </div>
           <DialogTitle className="text-2xl font-bold text-center">
-            Welcome to Snoolink Studio!
+            Welcome to Snoolink!
           </DialogTitle>
           <DialogDescription className="text-center text-base pt-2">
             Let's get you set up in 2 minutes. Complete these steps to unlock the full power of semantic search.
