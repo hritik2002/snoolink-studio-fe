@@ -93,14 +93,14 @@ export default function UnifiedUpload() {
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
 
       if (mode === "image") {
-        // Upload images to Cloudinary first
-        setProgress("Uploading images to Cloudinary...");
+        // Upload images to S3 first
+        setProgress("Uploading images to S3...");
         const formData = new FormData();
         files.forEach((file) => {
           formData.append("images", file);
         });
 
-        const uploadResponse = await fetch("/api/images/upload-cloudinary", {
+        const uploadResponse = await fetch("/api/images/upload-s3", {
           method: "POST",
           body: formData,
         });
@@ -135,68 +135,44 @@ export default function UnifiedUpload() {
           variant: "success",
         });
       } else {
-        // For videos, upload all to Cloudinary in parallel, then process all in parallel
+        // For videos, upload all to S3 in parallel, then process all in parallel
         const totalVideos = files.length;
-        setProgress(`Uploading ${totalVideos} video(s) to Cloudinary...`);
+        setProgress(`Uploading ${totalVideos} video(s) to S3...`);
 
-        // Step 1: Upload all videos directly to Cloudinary in parallel (bypasses Next.js body size limits)
+        // Step 1: Upload all videos directly to S3 in parallel (bypasses Next.js body size limits)
         const uploadPromises = files.map(async (videoFile, index) => {
           try {
-            // Generate unique public_id
-            const timestamp = Date.now();
-            const random = Math.random().toString(36).slice(2, 9);
-            const sanitizedName = videoFile.name
-              .replace(/\.[^/.]+$/, "")
-              .replace(/[^a-zA-Z0-9\s\-_]/g, "")
-              .replace(/\s+/g, "_")
-              .substring(0, 50);
-            const publicId = `${timestamp}_${random}_${sanitizedName}`;
-
-            // Get signature from backend
-            const paramsToSign: Record<string, string | number> = {
-              timestamp: Math.round(Date.now() / 1000),
-              folder: "snoolink-studio/videos",
-              public_id: publicId,
-            };
-
-            const signatureResponse = await axios.post(
-              "/api/videos/cloudinary-signature",
-              { paramsToSign }
-            );
-
-            const { signature } = signatureResponse.data;
-
-            // Upload directly to Cloudinary
-            const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/video/upload`;
-            
-            const formData = new FormData();
-            formData.append("file", videoFile);
-            formData.append(
-              "api_key",
-              process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY!
-            );
-            formData.append("timestamp", paramsToSign.timestamp.toString());
-            formData.append("signature", signature);
-            formData.append("folder", "snoolink-studio/videos");
-            formData.append("public_id", publicId);
-
-            const videoUploadResponse = await axios.post(
-              CLOUDINARY_UPLOAD_URL,
-              formData,
-              {
-                headers: {
-                  "Content-Type": "multipart/form-data",
-                },
+            // Get presigned URL from backend
+            const presignedResponse = await axios.post(
+              "/api/videos/s3-presigned-url",
+              { 
+                fileName: videoFile.name,
+                contentType: videoFile.type || "video/mp4"
               }
             );
 
-            if (!videoUploadResponse.data.secure_url) {
-              throw new Error("Upload failed - no URL returned");
+            const { presignedUrl, url } = presignedResponse.data;
+
+            if (!presignedUrl || !url) {
+              throw new Error("Failed to get presigned URL");
+            }
+
+            // Upload directly to S3 using presigned URL
+            const uploadResponse = await fetch(presignedUrl, {
+              method: "PUT",
+              body: videoFile,
+              headers: {
+                "Content-Type": videoFile.type || "video/mp4",
+              },
+            });
+
+            if (!uploadResponse.ok) {
+              throw new Error(`Upload failed with status ${uploadResponse.status}`);
             }
 
             return {
               success: true,
-              videoUrl: videoUploadResponse.data.secure_url,
+              videoUrl: url,
               fileName: videoFile.name,
               index,
             };

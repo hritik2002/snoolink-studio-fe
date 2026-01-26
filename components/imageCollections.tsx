@@ -367,7 +367,7 @@ export default function ImageCollections() {
         const errors: string[] = [];
         let uploadedCount = 0;
 
-        const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`;
+        // S3 upload will use presigned URLs
 
         const convertToPNG = async (file: File): Promise<{ blob: Blob; isHEIC: boolean }> => {
           const MAX_SIZE = 10 * 1024 * 1024;
@@ -425,37 +425,39 @@ export default function ImageCollections() {
         };
 
         const uploadSingleFile = async (file: File): Promise<string> => {
-            const { blob: processedBlob, isHEIC } = await convertToPNG(file);
-            const timestamp = Date.now();
-            const random = Math.random().toString(36).slice(2, 9);
-          const sanitizedName = file.name.replace(/\.[^/.]+$/, "").replace(/[^a-zA-Z0-9\s\-_]/g, "").replace(/\s+/g, "_").substring(0, 50);
-            const publicId = `${timestamp}_${random}_${sanitizedName}`;
+            const { blob: processedBlob } = await convertToPNG(file);
+            
+            // Get presigned URL from backend
+            const fileExtension = processedBlob.type === "image/jpeg" ? "jpg" : "png";
+            const fileName = `${file.name.replace(/\.[^/.]+$/, "")}.${fileExtension}`;
+            
+            const presignedResponse = await axios.post("/api/images/s3-presigned-url", {
+              fileName,
+              contentType: processedBlob.type || "image/png"
+            });
 
-            const paramsToSign: Record<string, string | number> = {
-              timestamp: Math.round(Date.now() / 1000),
-              folder: "snoolink-studio",
-              public_id: publicId,
-            };
-          if (isHEIC) paramsToSign.format = "jpg";
+            const { presignedUrl, url } = presignedResponse.data;
 
-          const signatureResponse = await axios.post("/api/images/cloudinary-signature", { paramsToSign });
-            const { signature } = signatureResponse.data;
+            if (!presignedUrl || !url) {
+              throw new Error("Failed to get presigned URL");
+            }
 
-            const formData = new FormData();
-          const fileExtension = isHEIC ? "heic" : processedBlob.type === "image/jpeg" ? "jpg" : "png";
-          const uploadBlob = processedBlob instanceof File ? processedBlob : new File([processedBlob], `${sanitizedName}.${fileExtension}`, { type: processedBlob.type });
+            // Upload to S3 using presigned URL
+            const uploadBlob = processedBlob instanceof File ? processedBlob : new File([processedBlob], fileName, { type: processedBlob.type });
+            
+            const uploadResponse = await fetch(presignedUrl, {
+              method: "PUT",
+              body: uploadBlob,
+              headers: {
+                "Content-Type": processedBlob.type || "image/png",
+              },
+            });
 
-            formData.append("file", uploadBlob);
-          formData.append("api_key", process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY!);
-            formData.append("timestamp", paramsToSign.timestamp.toString());
-            formData.append("signature", signature);
-            formData.append("folder", "snoolink-studio");
-            formData.append("public_id", publicId);
-          if (isHEIC) formData.append("format", "jpg");
+            if (!uploadResponse.ok) {
+              throw new Error(`Upload failed with status ${uploadResponse.status}`);
+            }
 
-          const uploadResponse = await axios.post(CLOUDINARY_UPLOAD_URL, formData);
-          if (!uploadResponse.data.secure_url) throw new Error("Upload failed");
-            return uploadResponse.data.secure_url;
+            return url;
         };
 
         for (let i = 0; i < imageFiles.length; i += BATCH_SIZE) {
@@ -562,23 +564,32 @@ export default function ImageCollections() {
               public_id: publicId,
             };
 
-            const signatureResponse = await axios.post("/api/videos/cloudinary-signature", { paramsToSign });
-            const { signature } = signatureResponse.data;
+            // Get presigned URL from backend
+            const presignedResponse = await axios.post("/api/videos/s3-presigned-url", {
+              fileName: videoFile.name,
+              contentType: videoFile.type || "video/mp4"
+            });
 
-            const CLOUDINARY_UPLOAD_URL = `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/video/upload`;
-            
-            const formData = new FormData();
-            formData.append("file", videoFile);
-            formData.append("api_key", process.env.NEXT_PUBLIC_CLOUDINARY_API_KEY!);
-            formData.append("timestamp", paramsToSign.timestamp.toString());
-            formData.append("signature", signature);
-            formData.append("folder", "snoolink-studio/videos");
-            formData.append("public_id", publicId);
+            const { presignedUrl, url } = presignedResponse.data;
 
-            const videoUploadResponse = await axios.post(CLOUDINARY_UPLOAD_URL, formData, { headers: { "Content-Type": "multipart/form-data" } });
-            if (!videoUploadResponse.data.secure_url) throw new Error("Upload failed");
+            if (!presignedUrl || !url) {
+              throw new Error("Failed to get presigned URL");
+            }
 
-            return { success: true, videoUrl: videoUploadResponse.data.secure_url, fileName: videoFile.name };
+            // Upload directly to S3 using presigned URL
+            const uploadResponse = await fetch(presignedUrl, {
+              method: "PUT",
+              body: videoFile,
+              headers: {
+                "Content-Type": videoFile.type || "video/mp4",
+              },
+            });
+
+            if (!uploadResponse.ok) {
+              throw new Error(`Upload failed with status ${uploadResponse.status}`);
+            }
+
+            return { success: true, videoUrl: url, fileName: videoFile.name };
           } catch (error) {
             return { success: false, error: error instanceof Error ? error.message : "Unknown error", fileName: videoFile.name };
           }
