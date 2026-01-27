@@ -1652,6 +1652,7 @@ export default function ImageCollections() {
                           className="w-full h-full object-cover" 
                           loading="lazy"
                           quality={85}
+                          unoptimized
                         />
                       </div>
                     ))}
@@ -1748,6 +1749,7 @@ export default function ImageCollections() {
                       className="w-full h-full object-cover"
                       loading="lazy"
                       quality={85}
+                      unoptimized
                   />
                   )}
                         </div>

@@ -850,7 +850,7 @@ export default function Collections() {
                       ref={(el) => el?.setAttribute("webkit-playsinline", "true")}
                     />
                   ) : (
-                    <Image src={item.url} alt={item.description || "Collection item"} fill className="object-cover" loading="lazy" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={85} />
+                    <Image src={item.url} alt={item.description || "Collection item"} fill className="object-cover" loading="lazy" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={85} unoptimized />
                   )}
                   <div className="absolute top-2 left-2 flex items-center gap-1.5">
                     <button
@@ -904,7 +904,7 @@ export default function Collections() {
                   {item.type === "video" ? (
                     <video src={item.url} className="w-full h-full object-cover" playsInline preload="metadata" style={{ display: "block" }} ref={(el) => el?.setAttribute("webkit-playsinline", "true")} />
                   ) : (
-                    <Image src={item.url} alt={item.description || "Collection item"} fill className="object-cover" loading="lazy" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={85} />
+                    <Image src={item.url} alt={item.description || "Collection item"} fill className="object-cover" loading="lazy" sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" quality={85} unoptimized />
                   )}
                   <div className="absolute top-1 left-1 bg-black/50 rounded p-0.5">
                     {item.type === "video" ? <Video className="h-3 w-3 text-white" /> : <ImageIcon className="h-3 w-3 text-white" />}

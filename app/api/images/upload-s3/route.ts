@@ -139,7 +139,10 @@ export async function POST(request: Request) {
 
           await s3Client.send(command);
 
-          const url = `https://${bucketName}.s3.${process.env.NEXT_PUBLIC_S3_REGION || "us-east-1"}.amazonaws.com/${key}`;
+          const baseUrl =
+            process.env.NEXT_PUBLIC_CDN_URL?.replace(/\/$/, "") ||
+            `https://${bucketName}.s3.${process.env.NEXT_PUBLIC_S3_REGION || "us-east-1"}.amazonaws.com`;
+          const url = `${baseUrl}/${key}`;
 
           return {
             url,

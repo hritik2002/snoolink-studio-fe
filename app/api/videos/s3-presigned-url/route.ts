@@ -58,10 +58,13 @@ export async function POST(request: Request) {
 
     const presignedUrl = await getSignedUrl(s3Client, command, { expiresIn: 3600 });
 
+    const baseUrl =
+      process.env.NEXT_PUBLIC_CDN_URL?.replace(/\/$/, "") ||
+      `https://${bucketName}.s3.${process.env.NEXT_PUBLIC_S3_REGION || "us-east-1"}.amazonaws.com`;
     return NextResponse.json({ 
       presignedUrl,
       key,
-      url: `https://${bucketName}.s3.${process.env.NEXT_PUBLIC_S3_REGION || "us-east-1"}.amazonaws.com/${key}`
+      url: `${baseUrl}/${key}`
     });
   } catch (error) {
     console.error("Error generating presigned URL:", error);
