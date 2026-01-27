@@ -67,7 +67,7 @@ export async function POST(request: Request) {
     return new Promise((resolve) => {
       const upload = cloudinary.uploader.upload_stream(
         {
-          folder: "snoolink-studio/videos",
+          folder: "snoolink-studio",
           resource_type: "video",
           public_id: publicId,
           invalidate: true,

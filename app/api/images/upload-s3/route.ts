@@ -120,7 +120,7 @@ export async function POST(request: Request) {
           /* ---------------- Generate unique key (random only — avoids "file already exists") ---------------- */
           const timestamp = Date.now();
           const randomId = crypto.randomBytes(12).toString("hex");
-          const key = `snoolink-studio/images/${timestamp}_${randomId}.png`;
+          const key = `snoolink-studio/${timestamp}_${randomId}.png`;
 
           /* ---------------- Upload to S3 ---------------- */
           const command = new PutObjectCommand({

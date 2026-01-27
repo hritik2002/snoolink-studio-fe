@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     const timestamp = Date.now();
     const randomId = crypto.randomBytes(12).toString("hex");
     const extension = fileName.includes(".") ? fileName.substring(fileName.lastIndexOf(".")) : ".png";
-    const key = `snoolink-studio/images/${timestamp}_${randomId}${extension}`;
+    const key = `snoolink-studio/${timestamp}_${randomId}${extension}`;
 
     const command = new PutObjectCommand({
       Bucket: bucketName,

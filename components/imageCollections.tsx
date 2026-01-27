@@ -560,7 +560,7 @@ export default function ImageCollections() {
 
             const paramsToSign: Record<string, string | number> = {
               timestamp: Math.round(Date.now() / 1000),
-              folder: "snoolink-studio/videos",
+              folder: "snoolink-studio",
               public_id: publicId,
             };
 
