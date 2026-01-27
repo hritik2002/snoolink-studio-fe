@@ -38,17 +38,11 @@ export async function POST(request: Request) {
       );
     }
 
-    // Generate unique key
+    // Generate unique key (random only — avoids "file already exists")
     const timestamp = Date.now();
-    const random = crypto.randomBytes(8).toString("hex");
-    const sanitizedName = fileName
-      .replace(/\.[^/.]+$/, "") // remove extension
-      .replace(/[^a-zA-Z0-9\s\-_]/g, "") // remove special chars
-      .replace(/\s+/g, "_") // replace spaces with underscore
-      .substring(0, 50);
-    
+    const randomId = crypto.randomBytes(12).toString("hex");
     const extension = fileName.includes(".") ? fileName.substring(fileName.lastIndexOf(".")) : ".mp4";
-    const key = `snoolink-studio/videos/${timestamp}_${random}_${sanitizedName}${extension}`;
+    const key = `snoolink-studio/videos/${timestamp}_${randomId}${extension}`;
 
     const command = new PutObjectCommand({
       Bucket: bucketName,

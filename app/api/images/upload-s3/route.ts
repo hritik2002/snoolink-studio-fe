@@ -117,17 +117,10 @@ export async function POST(request: Request) {
           // Get image metadata
           const metadata = await sharp(processedImage).metadata();
 
-          /* ---------------- Generate Unique key ---------------- */
+          /* ---------------- Generate unique key (random only — avoids "file already exists") ---------------- */
           const timestamp = Date.now();
-          const random = crypto.randomBytes(8).toString("hex");
-
-          const sanitizedName = fileName
-            .replace(/\.[^/.]+$/, "") // remove extension
-            .replace(/[^a-zA-Z0-9\s\-_]/g, "") // remove special chars
-            .replace(/\s+/g, "_") // replace spaces with underscore
-            .substring(0, 50);
-
-          const key = `snoolink-studio/images/${timestamp}_${random}_${sanitizedName}.png`;
+          const randomId = crypto.randomBytes(12).toString("hex");
+          const key = `snoolink-studio/images/${timestamp}_${randomId}.png`;
 
           /* ---------------- Upload to S3 ---------------- */
           const command = new PutObjectCommand({
