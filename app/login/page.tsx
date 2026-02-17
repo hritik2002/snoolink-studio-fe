@@ -47,7 +47,7 @@ function LoginContent() {
               priority
             />
           </div>
-          <p className="text-sm sm:text-base text-gray-600 font-medium">Snoolink</p>
+          <p className="text-sm sm:text-base text-gray-600 font-medium">SnOOlink</p>
         </div>
 
         {/* Primary Value Proposition - H1, Benefit-Focused */}
