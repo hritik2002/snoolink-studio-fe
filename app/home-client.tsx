@@ -42,10 +42,16 @@ function HomeContent() {
         setActiveView(view);
         router.push(`/?view=${view}`);
       }} />
-      <SidebarInset className="bg-cg-bg min-w-0">
+      <SidebarInset className="bg-cg-bg-alt min-w-0 relative">
+        {/* Subtle rainbow accent — ties app shell to marketing page */}
+        <div
+          className="absolute inset-x-0 top-0 h-px z-10"
+          style={{ background: "var(--gradient-hero-blob)" }}
+          aria-hidden
+        />
         <div
           id="main"
-          className={`flex flex-1 flex-col min-w-0 min-h-0 overflow-x-hidden pb-16 md:pb-0 ${activeView === "collections" ? "overflow-y-hidden" : "overflow-y-auto"}`}
+          className={`flex flex-1 flex-col min-w-0 min-h-0 overflow-x-hidden pb-20 md:pb-0 ${activeView === "collections" ? "overflow-y-hidden" : "overflow-y-auto"} ${activeView === "search" ? "hero-blob hero-blob-app" : ""}`}
           tabIndex={-1}
         >
           <div className={`${activeView === "search" || activeView === "uploads" || activeView === "collections" || activeView === "profile" || activeView === "settings" || activeView === "analytics" || activeView === "history" || activeView === "billing" ? "px-0 pb-0 flex-1 flex flex-col min-h-0" : "px-4 sm:px-6 pb-4 sm:pb-6"}`}>

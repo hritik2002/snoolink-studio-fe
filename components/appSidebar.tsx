@@ -20,7 +20,8 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
+import { sidebarItem } from "@/lib/cg-classes";
 
 type ViewType = "search" | "uploads" | "collections" | "profile" | "history" | "analytics" | "settings" | "billing";
 
@@ -98,25 +99,32 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
     router.push("/");
   };
 
+  const navClass = cn(
+    sidebarItem,
+    "rounded-[10px] data-[active=true]:shadow-btn-light data-[active=true]:bg-cg-surface data-[active=true]:text-cg-ink data-[active=true]:font-medium"
+  );
+
   return (
-    <Sidebar className="border-r border-cg-line bg-cg-bg-alt" collapsible="icon">
+    <Sidebar className="border-r border-cg-line bg-cg-bg-alt/80 backdrop-blur-sm" collapsible="icon">
       <SidebarRail />
-      <SidebarHeader className="px-2 md:px-4 py-4 md:py-6 border-b border-cg-line flex flex-col items-center group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:py-3">
-        <div className="flex items-center gap-2 w-full group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:gap-2 group-data-[collapsible=icon]:w-full">
-          <SidebarTrigger className="size-8 shrink-0" aria-label="Collapse or expand sidebar" />
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 group-data-[collapsible=icon]:w-7 group-data-[collapsible=icon]:h-7 overflow-hidden">
+      <SidebarHeader className="px-3 md:px-4 py-4 md:py-5 border-b border-cg-line">
+        <div className="flex items-center gap-2.5 w-full group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:gap-2">
+          <SidebarTrigger className="size-8 shrink-0 rounded-badge hover:bg-cg-bg-warm" aria-label="Collapse or expand sidebar" />
+          <div className="size-8 rounded-icon flex items-center justify-center shrink-0 bg-cg-surface border border-cg-line shadow-btn-light overflow-hidden group-data-[collapsible=icon]:size-7">
             <Image 
               src="/logo.png" 
               alt="Snoolink" 
               width={32} 
               height={32} 
-              className="w-full h-full object-contain"
+              className="size-full object-contain p-0.5"
             />
           </div>
-          <span className="font-display font-semibold text-cg-ink truncate group-data-[collapsible=icon]:hidden">Snoolink</span>
+          <span className="font-ui text-body font-medium text-cg-ink tracking-tight truncate group-data-[collapsible=icon]:hidden">
+            Snoolink
+          </span>
         </div>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="px-2 py-3">
         {!isMobile && (
           <SidebarGroup>
             <SidebarGroupContent>
@@ -126,7 +134,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                     asChild
                     isActive={activeView === "search"}
                     tooltip="Search"
-                    className="text-cg-ink-3 hover:text-cg-ink hover:bg-cg-bg-warm data-[active=true]:bg-cg-bg-warm data-[active=true]:text-cg-ink data-[active=true]:font-medium"
+                    className={navClass}
                   >
                     <button onClick={() => handleViewChange("search")} aria-label="Search">
                       <Search className="h-4 w-4 shrink-0" />
@@ -139,7 +147,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                     asChild
                     isActive={activeView === "collections"}
                     tooltip="Collections"
-                    className="text-cg-ink-3 hover:text-cg-ink hover:bg-cg-bg-warm data-[active=true]:bg-cg-bg-warm data-[active=true]:text-cg-ink data-[active=true]:font-medium"
+                    className={navClass}
                   >
                     <button onClick={() => handleViewChange("collections")} aria-label="Collections">
                       <FolderOpen className="h-4 w-4 shrink-0" />
@@ -152,7 +160,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                     asChild
                     isActive={activeView === "uploads"}
                     tooltip="Uploads"
-                    className="text-cg-ink-3 hover:text-cg-ink hover:bg-cg-bg-warm data-[active=true]:bg-cg-bg-warm data-[active=true]:text-cg-ink data-[active=true]:font-medium"
+                    className={navClass}
                   >
                     <button onClick={() => handleViewChange("uploads")} aria-label="Uploads">
                       <Upload className="h-4 w-4 shrink-0" />
@@ -177,7 +185,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                   asChild
                   isActive={activeView === "history"}
                   tooltip="History"
-                  className="text-cg-ink-4 hover:text-cg-ink hover:bg-cg-bg-warm data-[active=true]:bg-cg-bg-warm data-[active=true]:text-cg-ink"
+                  className={navClass}
                 >
                   <button onClick={() => handleViewChange("history")} aria-label="History (coming soon)">
                     <History className="h-4 w-4 shrink-0" />
@@ -190,7 +198,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                   asChild
                   isActive={activeView === "analytics"}
                   tooltip="Analytics"
-                  className="text-cg-ink-4 hover:text-cg-ink hover:bg-cg-bg-warm data-[active=true]:bg-cg-bg-warm data-[active=true]:text-cg-ink"
+                  className={navClass}
                 >
                   <button onClick={() => handleViewChange("analytics")} aria-label="Analytics">
                     <BarChart3 className="h-4 w-4 shrink-0" />
@@ -209,7 +217,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                     asChild
                     isActive={activeView === "settings"}
                     tooltip="Settings"
-                    className="text-cg-ink-4 hover:text-cg-ink hover:bg-cg-bg-warm data-[active=true]:bg-cg-bg-warm data-[active=true]:text-cg-ink"
+                    className={navClass}
                   >
                     <button onClick={() => handleViewChange("settings")} aria-label="Settings">
                       <Settings className="h-4 w-4 shrink-0" />
@@ -222,7 +230,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                     asChild
                     isActive={activeView === "billing"}
                     tooltip="Billing"
-                    className="text-cg-ink-4 hover:text-cg-ink hover:bg-cg-bg-warm data-[active=true]:bg-cg-bg-warm data-[active=true]:text-cg-ink"
+                    className={navClass}
                   >
                     <button onClick={() => handleViewChange("billing")} aria-label="Billing (coming soon)">
                       <CreditCard className="h-4 w-4 shrink-0" />
@@ -235,7 +243,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                   <SidebarMenuButton
                     asChild
                     tooltip="Admin"
-                    className="text-cg-ink-4 hover:text-cg-ink hover:bg-cg-bg-warm"
+                    className={cn(navClass, "data-[active=false]:text-cg-ink-4")}
                   >
                     <button
                       onClick={() => { setOpenMobile(false); router.push("/admin"); }}
@@ -250,25 +258,27 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="border-t border-cg-line p-2 md:p-4">
+      <SidebarFooter className="border-t border-cg-line p-2 md:p-3">
         {/* Expanded: full footer */}
         <div className="group-data-[collapsible=icon]:hidden">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 shrink-0">
-              <User className="h-5 w-5 text-primary" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-cg-ink truncate">
-                {user?.email?.split("@")[0] || "User"}
-              </p>
-              <p className="text-xs text-cg-ink-4 font-medium truncate">
-                Pro
-              </p>
+          <div className="rounded-card border border-cg-line bg-cg-surface shadow-card p-3 mb-2">
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center size-10 rounded-full bg-cg-peach/40 border border-cg-orange/20 shrink-0">
+                <User className="size-4 text-cg-orange" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-cg-ink truncate">
+                  {user?.email?.split("@")[0] || "User"}
+                </p>
+                <p className="text-xs text-cg-ink-4 font-medium truncate">
+                  Pro
+                </p>
+              </div>
             </div>
           </div>
           <button
             onClick={handleSignOut}
-            className="w-full text-left text-sm text-cg-ink-4 hover:text-cg-ink transition-colors duration-200 ease-cg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cg-ink/20 focus-visible:ring-offset-2 rounded-badge"
+            className="w-full text-left text-sm text-cg-ink-4 hover:text-cg-ink px-1 transition-colors duration-200 ease-cg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cg-ink/20 focus-visible:ring-offset-2 rounded-badge"
           >
             Sign out
           </button>

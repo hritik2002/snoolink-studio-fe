@@ -1,8 +1,14 @@
 "use client";
 
-import { CloudUpload, Search, ArrowUpRight } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { CloudUpload, Search, ArrowUpRight, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
+import {
+  badgeSection,
+  btnLight,
+  headingH3,
+  bodyLg,
+} from "@/lib/cg-classes";
 
 interface EmptyStateSearchProps {
   hasContent: boolean;
@@ -21,24 +27,36 @@ export function EmptyStateSearch({
 
   if (!hasContent) {
     return (
-      <div className="flex flex-col items-center justify-center flex-1 py-20 px-4">
-        <div className="glue-card max-w-sm w-full p-8 relative backdrop-blur-3xl">
-          <div className="text-center space-y-4">
-            <CloudUpload className="h-8 w-8 text-primary mx-auto" strokeWidth={1.5} aria-hidden />
-            <div>
-              <h3 className="text-lg font-medium text-foreground mb-2">No media yet</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed max-w-[28ch] mx-auto">
-                Upload files to index them. Then search by meaning.
-              </p>
+      <div className="flex flex-col items-center justify-center flex-1 px-4 py-16 md:py-24">
+        <div className="relative max-w-md w-full">
+          <div className="glue-card-accent" aria-hidden />
+          <div className="glue-card p-1">
+            <div className="glue-card-inner p-8 md:p-10 text-center space-y-6">
+              <div
+                className="mx-auto size-14 rounded-icon flex items-center justify-center bg-cg-surface border border-cg-line-2 shadow-btn-light"
+                aria-hidden
+              >
+                <CloudUpload className="size-6 text-cg-orange stroke-[1.75]" />
+              </div>
+              <div className="space-y-2">
+                <h3 className={headingH3}>No media yet</h3>
+                <p className={cn(bodyLg, "text-cg-ink-4 max-w-[28ch] mx-auto")}>
+                  Upload files to index them. Then search by meaning, not
+                  keywords.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => router.push("/?view=uploads")}
+                className={cn(btnLight, "w-full group text-body")}
+              >
+                Upload media
+                <ArrowUpRight
+                  className="size-4 transition-transform duration-200 ease-cg group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                  aria-hidden
+                />
+              </button>
             </div>
-            <Button
-              variant="beetle"
-              className="w-full group"
-              onClick={() => router.push("/?view=uploads")}
-            >
-              Upload media
-              <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-            </Button>
           </div>
         </div>
       </div>
@@ -47,30 +65,61 @@ export function EmptyStateSearch({
 
   if (searchQuery) {
     return (
-      <div className="flex flex-col items-center justify-center flex-1 py-20 px-4 text-center">
-        <Search className="h-6 w-6 text-muted-foreground mb-4" strokeWidth={1.5} aria-hidden />
-        <p className="text-foreground/80 text-sm mb-1">No results for &ldquo;{searchQuery}&rdquo;</p>
-        <p className="text-[13px] text-muted-foreground">Try broader terms or a different query.</p>
+      <div className="flex flex-col items-center justify-center flex-1 px-4 py-20 text-center">
+        <div
+          className="mb-5 size-12 rounded-icon flex items-center justify-center bg-cg-bg-warm border border-cg-line"
+          aria-hidden
+        >
+          <Search className="size-5 text-cg-ink-4 stroke-[1.75]" />
+        </div>
+        <p className="font-body text-body text-cg-ink mb-1">
+          No results for &ldquo;{searchQuery}&rdquo;
+        </p>
+        <p className="font-body text-sm text-cg-ink-4">
+          Try broader terms or a different query.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center justify-center flex-1 py-20 px-4 text-center">
-      <Search className="h-6 w-6 text-muted-foreground mb-4" strokeWidth={1.5} aria-hidden />
-      <p className="text-foreground/80 text-sm mb-6 max-w-sm">
-        Describe what you&apos;re looking for. We match by meaning, not keywords.
+    <div className="flex flex-col items-center justify-center flex-1 px-4 py-12 md:py-20 text-center">
+      <span className={cn(badgeSection, "mb-6 md:mb-8")}>
+        <Sparkles className="size-4 text-cg-orange" aria-hidden />
+        Semantic search
+      </span>
+
+      <h2
+        className={cn(
+          headingH3,
+          "text-[clamp(1.5rem,4vw,2rem)] max-w-[18ch] mb-4 tracking-tight"
+        )}
+      >
+        Find any moment by meaning
+      </h2>
+
+      <p className={cn(bodyLg, "max-w-prose mb-8 md:mb-10 text-cg-ink-4")}>
+        Describe what you&apos;re looking for. We match by meaning, not
+        keywords.
       </p>
+
       {exampleQueries.length > 0 && (
-        <div className="flex flex-wrap justify-center gap-2">
+        <div className="flex flex-wrap justify-center gap-2 max-w-lg">
           {exampleQueries.slice(0, 4).map((q) => (
             <button
               key={q}
               type="button"
               onClick={() => onExampleClick?.(q)}
-              className="px-3 py-1.5 text-[13px] border border-border text-foreground/80 hover:border-primary/40 hover:text-primary transition-colors duration-150"
+              className={cn(
+                btnLight,
+                "px-4 py-2.5 text-sm h-auto group"
+              )}
             >
               {q}
+              <ArrowUpRight
+                className="size-3.5 opacity-50 transition-transform duration-200 ease-cg group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100"
+                aria-hidden
+              />
             </button>
           ))}
         </div>

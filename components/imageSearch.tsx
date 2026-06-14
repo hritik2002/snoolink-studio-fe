@@ -18,6 +18,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyStateSearch } from "@/components/onboarding/EmptyStateSearch";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { cn } from "@/lib/utils";
+import {
+  btnLight,
+  chip,
+  chipActive,
+  commandBar,
+  segmentActive,
+  segmentControl,
+  segmentInactive,
+} from "@/lib/cg-classes";
 
 type SearchMode = "image" | "video";
 type ViewMode = "grid" | "list";
@@ -675,14 +684,14 @@ export default function ImageSearch() {
   const hasContent = collections.reduce((a, c) => a + c.count, 0) > 0;
 
   return (
-    <div className="flex-1 flex flex-col h-full w-full min-w-0 overflow-hidden">
-      {/* Command bar */}
-      <div className="sticky top-0 z-[200] flex-shrink-0 border-b border-cg-line bg-cg-bg/90 backdrop-blur-xl">
-        <div className="max-w-content mx-auto px-4 md:px-9 lg:px-15 py-4">
+    <div className="flex-1 flex flex-col h-full w-full min-w-0 overflow-hidden relative z-[1]">
+      {/* Floating command bar */}
+      <div className="sticky top-0 z-[200] flex-shrink-0 px-4 md:px-9 lg:px-15 pt-4 md:pt-5 pb-2">
+        <div className={cn(commandBar, "max-w-content mx-auto p-4 md:p-5")}>
           {/* Search row */}
-          <div className="flex items-center gap-3 mb-3">
-            <div className="flex-1 flex items-center h-11 bg-cg-bg-warm border border-cg-line-3 rounded-btn focus-within:border-cg-orange/50 focus-within:ring-[3px] focus-within:ring-cg-orange/20 transition-all duration-150 ease-cg">
-              <Search className="h-4 w-4 text-cg-ink-4 ml-3 shrink-0" aria-hidden />
+          <div className="flex items-center gap-3 mb-3 md:mb-4">
+            <div className="flex-1 flex items-center h-12 bg-cg-bg-warm border border-cg-line-3 rounded-btn shadow-btn-light focus-within:border-cg-orange/50 focus-within:ring-[3px] focus-within:ring-cg-orange/15 transition-all duration-150 ease-cg">
+              <Search className="h-4 w-4 text-cg-ink-4 ml-3.5 shrink-0" aria-hidden />
               <Input
                 type="text"
                 autoFocus
@@ -690,13 +699,13 @@ export default function ImageSearch() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className="flex-1 bg-transparent border-0 h-full text-sm text-cg-ink placeholder:text-cg-ink-4 focus-visible:ring-0 focus-visible:border-0 !shadow-none rounded-none px-3"
+                className="flex-1 bg-transparent border-0 h-full text-body text-cg-ink placeholder:text-cg-ink-4 focus-visible:ring-0 focus-visible:border-0 !shadow-none rounded-none px-3"
                 aria-label="Search by meaning"
               />
               <Button
                 size="icon"
                 variant="dark"
-                className="h-8 w-8 mr-1.5 shrink-0 rounded-badge disabled:opacity-40"
+                className="h-9 w-9 mr-1.5 shrink-0 rounded-badge disabled:opacity-40"
                 onClick={() => handleSearch()}
                 disabled={isSearching || !searchQuery.trim()}
                 aria-label="Run search"
@@ -709,21 +718,20 @@ export default function ImageSearch() {
                 )}
               </Button>
             </div>
-            <Button
-              variant="beetle-green"
-              size="sm"
-              className="hidden sm:inline-flex shrink-0 group"
+            <button
+              type="button"
               onClick={() => router.push("/?view=uploads")}
+              className={cn(btnLight, "hidden sm:inline-flex shrink-0 group h-12 px-5 text-sm")}
             >
-              <CloudUpload className="h-4 w-4" />
+              <CloudUpload className="h-4 w-4" aria-hidden />
               Upload
-            </Button>
+            </button>
           </div>
 
           {/* Filters row */}
-          <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2.5 md:gap-3 flex-wrap">
             {/* Mode segmented control */}
-            <div className="inline-flex rounded-btn border border-border bg-secondary p-0.5">
+            <div className={segmentControl}>
               <button
                 type="button"
                 onClick={() => {
@@ -734,10 +742,8 @@ export default function ImageSearch() {
                 }}
                 disabled={isSearching}
                 className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 text-[15px] font-medium rounded-badge transition-colors duration-200",
-                  mode === "video"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
+                  "flex items-center gap-1.5 px-3.5 py-2 text-sm transition-all duration-200 ease-cg",
+                  mode === "video" ? segmentActive : segmentInactive
                 )}
               >
                 <Video className="h-3.5 w-3.5" aria-hidden />
@@ -753,10 +759,8 @@ export default function ImageSearch() {
                 }}
                 disabled={isSearching}
                 className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 text-[15px] font-medium rounded-badge transition-colors duration-200",
-                  mode === "image"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
+                  "flex items-center gap-1.5 px-3.5 py-2 text-sm transition-all duration-200 ease-cg",
+                  mode === "image" ? segmentActive : segmentInactive
                 )}
               >
                 <ImageIcon className="h-3.5 w-3.5" aria-hidden />
@@ -764,14 +768,14 @@ export default function ImageSearch() {
               </button>
             </div>
 
-            <div className="hidden sm:block w-px h-5 bg-border" />
+            <div className="hidden sm:block w-px h-5 bg-cg-line-3" />
 
             {/* Collection chips */}
             <div className="flex items-center gap-1.5 flex-1 min-w-0 overflow-x-auto scrollbar-hide">
               {isLoadingCollections ? (
                 <>
                   {[1, 2, 3].map((i) => (
-                    <Skeleton key={i} className="h-7 w-16 shrink-0 rounded-none" />
+                    <Skeleton key={i} className="h-8 w-16 shrink-0 rounded-badge" />
                   ))}
                 </>
               ) : (
@@ -780,14 +784,12 @@ export default function ImageSearch() {
                     type="button"
                     onClick={() => toggleCollection("all")}
                     className={cn(
-                      "shrink-0 px-3 py-1 text-[15px] font-medium rounded-badge border transition-colors duration-200",
-                      selectedCollections.includes("all")
-                        ? "border-[var(--color-accent-orange)] bg-[var(--color-accent-peach)]/30 text-foreground"
-                        : "border-border text-muted-foreground hover:text-foreground"
+                      chip,
+                      selectedCollections.includes("all") && chipActive
                     )}
                   >
                     All
-                    <span className="ml-1 text-muted-foreground/70">
+                    <span className="text-cg-ink-4 tabular-nums">
                       {collections.reduce((acc, c) => acc + c.count, 0)}
                     </span>
                   </button>
@@ -797,44 +799,43 @@ export default function ImageSearch() {
                       type="button"
                       onClick={() => toggleCollection(collection.name)}
                       className={cn(
-                        "shrink-0 px-2.5 py-1 text-[13px] font-medium border transition-colors duration-150 max-w-[120px] truncate",
-                        selectedCollections.includes(collection.name)
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border text-muted-foreground hover:text-foreground/80"
+                        chip,
+                        "max-w-[140px] truncate",
+                        selectedCollections.includes(collection.name) && chipActive
                       )}
                     >
                       {collection.name}
-                      <span className="ml-1 text-muted-foreground/70">{collection.count}</span>
+                      <span className="text-cg-ink-4 tabular-nums shrink-0">
+                        {collection.count}
+                      </span>
                     </button>
                   ))}
                 </>
               )}
             </div>
 
-            {/* Expand query — subtle toggle */}
+            {/* Expand query */}
             <button
               type="button"
               onClick={() => setExpandQuery(!expandQuery)}
               title="Expand query with AI synonyms"
               className={cn(
-                "shrink-0 flex items-center gap-1.5 px-2.5 py-1 text-[13px] border transition-colors duration-150",
-                expandQuery
-                  ? "border-primary/40 text-primary bg-primary/10"
-                  : "border-border text-muted-foreground hover:text-foreground/70"
+                chip,
+                expandQuery && chipActive
               )}
             >
               <Sparkles className="h-3.5 w-3.5" aria-hidden />
               <span className="hidden sm:inline">Expand</span>
             </button>
 
-            <Button
-              variant="beetle-green"
-              size="sm"
-              className="sm:hidden shrink-0"
+            <button
+              type="button"
               onClick={() => router.push("/?view=uploads")}
+              className={cn(btnLight, "sm:hidden shrink-0 h-9 w-9 p-0 rounded-badge")}
+              aria-label="Upload"
             >
               <CloudUpload className="h-4 w-4" />
-            </Button>
+            </button>
           </div>
         </div>
       </div>
@@ -845,12 +846,12 @@ export default function ImageSearch() {
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           {/* Search Results Header - Sticky */}
           {!isSearching && hasResults && (
-            <div className="flex items-center justify-between py-3 px-4 sm:px-6 border-b border-border flex-shrink-0">
+            <div className="flex items-center justify-between py-3 px-4 sm:px-6 border-b border-cg-line flex-shrink-0 bg-cg-bg/60 backdrop-blur-sm">
               <div className="flex items-center gap-2">
-                <span className="font-mono text-sm text-primary font-bold">
+                <span className="font-mono text-sm text-cg-orange font-semibold tabular-nums">
                   {mode === "image" ? imageResults.length : Object.keys(videoResults).length}
                 </span>
-                <span className="text-[13px] text-muted-foreground">results</span>
+                <span className="text-sm text-cg-ink-4">results</span>
               </div>
               <div className="flex items-center gap-3">
                 <Button

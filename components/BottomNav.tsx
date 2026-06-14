@@ -26,7 +26,7 @@ export function BottomNav() {
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-cg-bg/90 backdrop-blur-xl border-t border-cg-line safe-area-pb"
+      className="md:hidden fixed bottom-3 left-3 right-3 z-50 rounded-cta bg-cg-bg/95 backdrop-blur-xl border border-cg-line shadow-card safe-area-pb"
       aria-label="Primary"
     >
       <div className="flex">

@@ -317,6 +317,11 @@
     pointer-events: none;
     z-index: 0;
   }
+  .hero-blob-app::before {
+    opacity: 0.28;
+    top: 38%;
+    height: min(50vh, 420px);
+  }
   .hero-blob > * {
     position: relative;
     z-index: 1;

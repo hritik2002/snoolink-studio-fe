@@ -139,3 +139,27 @@ export const focusRingLight =
 
 export const focusRingDark =
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:ring-offset-2 focus-visible:ring-offset-cg-ink"
+
+export const chip = [
+  "inline-flex items-center gap-1 shrink-0",
+  "font-body text-sm text-cg-ink-3",
+  "bg-cg-bg border border-cg-line",
+  "rounded-badge px-3 py-1.5",
+  "transition-all duration-150 ease-cg",
+  "hover:border-cg-line-3 hover:text-cg-ink",
+].join(" ")
+
+export const chipActive =
+  "border-cg-orange/50 bg-cg-peach/40 text-cg-ink-warm font-medium"
+
+export const segmentControl =
+  "inline-flex rounded-btn border border-cg-line-3 bg-cg-bg-warm p-0.5"
+
+export const segmentActive =
+  "bg-cg-surface text-cg-ink shadow-btn-light rounded-badge font-medium"
+
+export const segmentInactive =
+  "text-cg-ink-4 hover:text-cg-ink-2 rounded-badge"
+
+export const commandBar =
+  "rounded-cta border border-cg-line bg-cg-bg/95 backdrop-blur-xl shadow-card"
