@@ -4,6 +4,26 @@ import { NextResponse, type NextRequest } from "next/server";
 const PROTECTED_PREFIXES = ["/admin"];
 
 export async function updateSession(request: NextRequest) {
+  const { pathname, search } = request.nextUrl;
+
+  // Supabase may redirect to Site URL with ?code= instead of /auth/callback.
+  // Forward to the callback route so the code is exchanged for a session.
+  const code = request.nextUrl.searchParams.get("code");
+  if (code && pathname !== "/auth/callback") {
+    const callback = request.nextUrl.clone();
+    callback.pathname = "/auth/callback";
+    return NextResponse.redirect(callback);
+  }
+
+  const oauthError = request.nextUrl.searchParams.get("error");
+  if (oauthError && pathname !== "/auth/callback") {
+    const home = request.nextUrl.clone();
+    home.pathname = "/";
+    home.search = "";
+    home.searchParams.set("reason", "auth_error");
+    return NextResponse.redirect(home);
+  }
+
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -35,9 +55,6 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { pathname, search } = request.nextUrl;
-
-  // Legacy login route → homepage
   if (pathname.startsWith("/login")) {
     const home = request.nextUrl.clone();
     home.pathname = "/";

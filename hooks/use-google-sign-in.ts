@@ -1,6 +1,7 @@
 "use client";
 
 import { createClient } from "@/lib/supabase/client";
+import { buildOAuthCallbackUrl } from "@/lib/auth/constants";
 import { useCallback, useState } from "react";
 
 export function useGoogleSignIn() {
@@ -15,12 +16,9 @@ export function useGoogleSignIn() {
     try {
       const params = new URLSearchParams(window.location.search);
       const next =
-        params.get("next") || params.get("redirect") || "";
+        params.get("next") || params.get("redirect") || undefined;
 
-      const redirectTo =
-        next && next.startsWith("/")
-          ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`
-          : `${window.location.origin}/auth/callback?next=${encodeURIComponent("/?view=search")}`;
+      const redirectTo = buildOAuthCallbackUrl(window.location.origin, next);
 
       const { error: authError } = await supabase.auth.signInWithOAuth({
         provider: "google",
