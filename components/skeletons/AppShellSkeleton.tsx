@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function AppShellSkeleton() {
   return (
-    <div className="flex h-screen w-full bg-background dot-grid">
+    <div className="flex h-screen w-full bg-background">
       {/* Sidebar placeholder */}
       <div className="hidden lg:flex w-64 flex-col border-r border-sidebar-border bg-sidebar">
         <div className="flex items-center gap-2 px-4 py-6 border-b border-border">
@@ -44,14 +44,14 @@ export function AppShellSkeleton() {
               <Skeleton className="h-8 w-48" />
               <Skeleton className="h-4 w-72" />
             </div>
-            <Skeleton className="h-12 w-full rounded-none" />
+            <Skeleton className="h-12 w-full rounded-[18px]" />
             <div className="flex gap-2">
-              <Skeleton className="h-10 w-28 rounded-none" />
-              <Skeleton className="h-10 w-28 rounded-none" />
+              <Skeleton className="h-10 w-28 rounded-[18px]" />
+              <Skeleton className="h-10 w-28 rounded-[18px]" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
               {[1, 2, 3, 4].map((i) => (
-                <Skeleton key={i} className="h-48 w-full rounded-none" />
+                <Skeleton key={i} className="h-48 w-full rounded-[18px]" />
               ))}
             </div>
           </div>

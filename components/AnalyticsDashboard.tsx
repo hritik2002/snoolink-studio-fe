@@ -108,7 +108,7 @@ export function AnalyticsDashboard() {
             <select
               value={range}
               onChange={(e) => setRange(e.target.value as Range)}
-              className="h-9 px-3 text-[13px] bg-[#0A090D] border border-[rgba(51,51,51,0.5)] text-white/80 focus:border-primary/50 focus:outline-none"
+              className="h-9 px-3 text-[13px] bg-input border border-border text-foreground/80 focus:border-primary/50 focus:outline-none"
               aria-label="Date range"
             >
               <option value="7">7 days</option>
@@ -159,31 +159,26 @@ export function AnalyticsDashboard() {
             </div>
 
             {summary?.byDay && summary.byDay.length > 0 && (
-              <div className="beetle-card p-4 mb-6 relative backdrop-blur-3xl">
-                <span className="beetle-bracket beetle-bracket-tl" aria-hidden />
-                <span className="beetle-bracket beetle-bracket-tr" aria-hidden />
-                <span className="beetle-bracket beetle-bracket-bl" aria-hidden />
-                <span className="beetle-bracket beetle-bracket-br" aria-hidden />
-                <p className="text-[13px] font-mono uppercase tracking-wide text-white/90 mb-4">
+              <div className="glue-card p-4 mb-6 relative backdrop-blur-3xl">                <p className="text-[13px] font-mono uppercase tracking-wide text-white/90 mb-4">
                   Activity
                 </p>
                 <div className="overflow-x-auto">
                   <table className="w-full min-w-[360px] text-sm">
                     <thead>
-                      <tr className="border-b border-[#333333]">
-                        <th className="text-left py-2 text-[13px] text-[#71717a] font-normal">Date</th>
-                        <th className="text-right py-2 text-[13px] text-[#71717a] font-normal">Search</th>
-                        <th className="text-right py-2 text-[13px] text-[#71717a] font-normal">Upload</th>
-                        <th className="text-right py-2 text-[13px] text-[#71717a] font-normal">Views</th>
+                      <tr className="border-b border-border">
+                        <th className="text-left py-2 text-[13px] text-muted-foreground font-normal">Date</th>
+                        <th className="text-right py-2 text-[13px] text-muted-foreground font-normal">Search</th>
+                        <th className="text-right py-2 text-[13px] text-muted-foreground font-normal">Upload</th>
+                        <th className="text-right py-2 text-[13px] text-muted-foreground font-normal">Views</th>
                       </tr>
                     </thead>
                     <tbody>
                       {[...(summary.byDay || [])].reverse().map((r) => (
-                        <tr key={r.date} className="border-b border-[#333333]/50">
-                          <td className="py-2 text-white/80">{r.date}</td>
-                          <td className="py-2 text-right font-mono-beetle text-primary">{r.searches}</td>
-                          <td className="py-2 text-right font-mono-beetle text-primary">{r.uploads}</td>
-                          <td className="py-2 text-right font-mono-beetle text-primary">{r.pageViews}</td>
+                        <tr key={r.date} className="border-b border-border/50">
+                          <td className="py-2 text-foreground/80">{r.date}</td>
+                          <td className="py-2 text-right font-mono text-primary">{r.searches}</td>
+                          <td className="py-2 text-right font-mono text-primary">{r.uploads}</td>
+                          <td className="py-2 text-right font-mono text-primary">{r.pageViews}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -193,19 +188,14 @@ export function AnalyticsDashboard() {
             )}
 
             {overview?.topEventNames && overview.topEventNames.length > 0 && (
-              <div className="beetle-card p-4 relative backdrop-blur-3xl">
-                <span className="beetle-bracket beetle-bracket-tl" aria-hidden />
-                <span className="beetle-bracket beetle-bracket-tr" aria-hidden />
-                <span className="beetle-bracket beetle-bracket-bl" aria-hidden />
-                <span className="beetle-bracket beetle-bracket-br" aria-hidden />
-                <p className="text-[13px] font-mono uppercase tracking-wide text-white/90 mb-4">
+              <div className="glue-card p-4 relative backdrop-blur-3xl">                <p className="text-[13px] font-mono uppercase tracking-wide text-white/90 mb-4">
                   Top events
                 </p>
                 <ul className="space-y-2">
                   {overview.topEventNames.map(({ name, count }) => (
                     <li key={name} className="flex justify-between items-center text-sm">
-                      <span className="text-white/70 font-mono text-[13px]">{name}</span>
-                      <span className="font-mono-beetle text-primary">{count}</span>
+                      <span className="text-foreground/70 font-mono text-[13px]">{name}</span>
+                      <span className="font-mono text-primary">{count}</span>
                     </li>
                   ))}
                 </ul>

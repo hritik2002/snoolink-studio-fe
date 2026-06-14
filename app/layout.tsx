@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import { GeistSans } from "geist/font/sans";
-import { GeistMono } from "geist/font/mono";
+import { Inter, Urbanist } from "next/font/google";
+import { Fragment_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { OnboardingProvider } from "@/contexts/OnboardingContext";
@@ -12,9 +11,23 @@ import { PopupManagerWrapper } from "@/components/popups/PopupManagerWrapper";
 
 const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-display",
+  variable: "--font-inter",
   display: "swap",
   weight: ["400", "500", "600", "700"],
+});
+
+const urbanist = Urbanist({
+  subsets: ["latin"],
+  variable: "--font-urbanist",
+  display: "swap",
+  weight: ["600", "900"],
+});
+
+const fragmentMono = Fragment_Mono({
+  subsets: ["latin"],
+  variable: "--font-fragment-mono",
+  display: "swap",
+  weight: ["400"],
 });
 
 export const metadata: Metadata = {
@@ -25,32 +38,23 @@ export const metadata: Metadata = {
   },
   description: "Transform how you find content with Snoolink's AI-powered semantic search. Upload videos and images, search by meaning, not just keywords. Perfect for content creators, videographers, and media professionals. Get instant, intelligent results across your entire media library.",
   keywords: [
-    // Primary keywords
     "semantic video search",
     "AI video search",
     "intelligent media search",
     "content discovery platform",
-    
-    // Feature-based keywords
     "search videos by meaning",
     "AI-powered image search",
     "video content management",
     "media asset management",
     "visual search engine",
-    
-    // Use case keywords
     "video search for creators",
     "professional video organization",
     "media library search",
     "smart video indexing",
-    
-    // Technology keywords
     "machine learning search",
     "computer vision platform",
     "neural search technology",
     "deep learning video analysis",
-    
-    // Long-tail keywords
     "find specific moments in videos",
     "search video content by description",
     "organize video library automatically",
@@ -117,20 +121,18 @@ export const metadata: Metadata = {
   },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
-    // yandex: "yandex-verification-code",
-    // bing: "bing-verification-code",
   },
   other: {
     "application-name": "Snoolink",
     "apple-mobile-web-app-capable": "yes",
-    "apple-mobile-web-app-status-bar-style": "black-translucent",
+    "apple-mobile-web-app-status-bar-style": "default",
     "apple-mobile-web-app-title": "Snoolink",
     "format-detection": "telephone=no",
     "mobile-web-app-capable": "yes",
-    "msapplication-TileColor": "#2BC8B7",
+    "msapplication-TileColor": "#fefefe",
     "msapplication-config": "/browserconfig.xml",
     "msapplication-tap-highlight": "no",
-    "theme-color": "#010010",
+    "theme-color": "#fefefe",
   },
 };
 
@@ -139,7 +141,6 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Structured Data for Google Rich Results
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
@@ -179,7 +180,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
         <script
           type="application/ld+json"
@@ -191,17 +192,18 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${inter.variable} ${GeistSans.variable} ${GeistMono.variable} font-sans antialiased min-h-screen bg-background text-foreground overflow-x-hidden`}
+        className={`${inter.variable} ${urbanist.variable} ${fragmentMono.variable} font-sans antialiased min-h-screen bg-background text-foreground overflow-x-hidden`}
         style={{
-          ["--font-sans" as string]: "var(--font-display), system-ui, sans-serif",
-          ["--font-body" as string]: "var(--font-geist-sans), var(--font-display), system-ui, sans-serif",
-          ["--font-mono" as string]: "var(--font-geist-mono), ui-monospace, monospace",
+          ["--font-sans" as string]: "var(--font-inter), system-ui, sans-serif",
+          ["--font-body" as string]: "var(--font-inter), system-ui, sans-serif",
+          ["--font-display" as string]: "var(--font-urbanist), var(--font-inter), system-ui, sans-serif",
+          ["--font-mono" as string]: "var(--font-fragment-mono), ui-monospace, monospace",
           ["--font-popup" as string]: "var(--font-body)",
         }}
       >
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[200] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-md"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[200] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-[18px]"
         >
           Skip to main content
         </a>

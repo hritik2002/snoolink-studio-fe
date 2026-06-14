@@ -677,12 +677,12 @@ export default function ImageSearch() {
   return (
     <div className="flex-1 flex flex-col h-full w-full min-w-0 overflow-hidden">
       {/* Command bar */}
-      <div className="sticky top-0 z-[200] flex-shrink-0 border-b border-[#333333] bg-[#010010]/90 backdrop-blur-xl">
-        <div className="max-w-[1563px] mx-auto border-x border-[#333333] px-4 sm:px-6 py-4">
+      <div className="sticky top-0 z-[200] flex-shrink-0 border-b border-border bg-background/90 backdrop-blur-xl">
+        <div className="max-w-[1228px] mx-auto px-4 sm:px-6 lg:px-[60px] py-4">
           {/* Search row */}
           <div className="flex items-center gap-3 mb-3">
-            <div className="flex-1 flex items-center h-11 bg-[#0A090D] border border-[rgba(51,51,51,0.5)] focus-within:border-primary/50 transition-colors">
-              <Search className="h-4 w-4 text-white/50 ml-3 shrink-0" aria-hidden />
+            <div className="flex-1 flex items-center h-11 bg-input border border-border rounded-[18px] focus-within:border-[var(--color-accent-orange)]/50 focus-within:ring-[3px] focus-within:ring-[var(--color-accent-orange)]/20 transition-colors">
+              <Search className="h-4 w-4 text-muted-foreground ml-3 shrink-0" aria-hidden />
               <Input
                 type="text"
                 autoFocus
@@ -690,12 +690,12 @@ export default function ImageSearch() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className="flex-1 bg-transparent border-0 h-full text-sm text-white placeholder:text-white/40 focus-visible:ring-0 focus-visible:border-0 !shadow-none rounded-none px-3"
+                className="flex-1 bg-transparent border-0 h-full text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:border-0 !shadow-none rounded-none px-3"
                 aria-label="Search by meaning"
               />
               <Button
                 size="icon"
-                className="h-8 w-8 mr-1.5 shrink-0 rounded-[6px] bg-primary text-black hover:bg-primary/90 disabled:opacity-40"
+                className="h-8 w-8 mr-1.5 shrink-0 rounded-[13px] bg-primary text-primary-foreground hover:-translate-y-0 disabled:opacity-40"
                 onClick={() => handleSearch()}
                 disabled={isSearching || !searchQuery.trim()}
                 aria-label="Run search"
@@ -722,7 +722,7 @@ export default function ImageSearch() {
           {/* Filters row */}
           <div className="flex items-center gap-3 flex-wrap">
             {/* Mode segmented control */}
-            <div className="flex border border-[rgba(51,51,51,0.5)]">
+            <div className="inline-flex rounded-[18px] border border-border bg-secondary p-0.5">
               <button
                 type="button"
                 onClick={() => {
@@ -733,10 +733,10 @@ export default function ImageSearch() {
                 }}
                 disabled={isSearching}
                 className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium transition-colors duration-150",
+                  "flex items-center gap-1.5 px-3 py-1.5 text-[15px] font-medium rounded-[13px] transition-colors duration-200",
                   mode === "video"
-                    ? "bg-primary text-black"
-                    : "text-white/60 hover:text-white/80 hover:bg-white/5"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 <Video className="h-3.5 w-3.5" aria-hidden />
@@ -752,10 +752,10 @@ export default function ImageSearch() {
                 }}
                 disabled={isSearching}
                 className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium border-l border-[rgba(51,51,51,0.5)] transition-colors duration-150",
+                  "flex items-center gap-1.5 px-3 py-1.5 text-[15px] font-medium rounded-[13px] transition-colors duration-200",
                   mode === "image"
-                    ? "bg-primary text-black"
-                    : "text-white/60 hover:text-white/80 hover:bg-white/5"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 <ImageIcon className="h-3.5 w-3.5" aria-hidden />
@@ -763,7 +763,7 @@ export default function ImageSearch() {
               </button>
             </div>
 
-            <div className="hidden sm:block w-px h-5 bg-[#333333]" />
+            <div className="hidden sm:block w-px h-5 bg-border" />
 
             {/* Collection chips */}
             <div className="flex items-center gap-1.5 flex-1 min-w-0 overflow-x-auto scrollbar-hide">
@@ -779,14 +779,14 @@ export default function ImageSearch() {
                     type="button"
                     onClick={() => toggleCollection("all")}
                     className={cn(
-                      "shrink-0 px-2.5 py-1 text-[13px] font-medium border transition-colors duration-150",
+                      "shrink-0 px-3 py-1 text-[15px] font-medium rounded-[13px] border transition-colors duration-200",
                       selectedCollections.includes("all")
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-[rgba(51,51,51,0.5)] text-white/60 hover:text-white/80"
+                        ? "border-[var(--color-accent-orange)] bg-[var(--color-accent-peach)]/30 text-foreground"
+                        : "border-border text-muted-foreground hover:text-foreground"
                     )}
                   >
                     All
-                    <span className="ml-1 text-white/40">
+                    <span className="ml-1 text-muted-foreground/70">
                       {collections.reduce((acc, c) => acc + c.count, 0)}
                     </span>
                   </button>
@@ -799,11 +799,11 @@ export default function ImageSearch() {
                         "shrink-0 px-2.5 py-1 text-[13px] font-medium border transition-colors duration-150 max-w-[120px] truncate",
                         selectedCollections.includes(collection.name)
                           ? "border-primary bg-primary/10 text-primary"
-                          : "border-[rgba(51,51,51,0.5)] text-white/60 hover:text-white/80"
+                          : "border-border text-muted-foreground hover:text-foreground/80"
                       )}
                     >
                       {collection.name}
-                      <span className="ml-1 text-white/40">{collection.count}</span>
+                      <span className="ml-1 text-muted-foreground/70">{collection.count}</span>
                     </button>
                   ))}
                 </>
@@ -819,7 +819,7 @@ export default function ImageSearch() {
                 "shrink-0 flex items-center gap-1.5 px-2.5 py-1 text-[13px] border transition-colors duration-150",
                 expandQuery
                   ? "border-primary/40 text-primary bg-primary/10"
-                  : "border-[rgba(51,51,51,0.5)] text-white/50 hover:text-white/70"
+                  : "border-border text-muted-foreground hover:text-foreground/70"
               )}
             >
               <Sparkles className="h-3.5 w-3.5" aria-hidden />
@@ -844,26 +844,26 @@ export default function ImageSearch() {
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           {/* Search Results Header - Sticky */}
           {!isSearching && hasResults && (
-            <div className="flex items-center justify-between py-3 px-4 sm:px-6 border-b border-[#333333] flex-shrink-0">
+            <div className="flex items-center justify-between py-3 px-4 sm:px-6 border-b border-border flex-shrink-0">
               <div className="flex items-center gap-2">
-                <span className="font-mono-beetle text-sm text-primary font-bold">
+                <span className="font-mono text-sm text-primary font-bold">
                   {mode === "image" ? imageResults.length : Object.keys(videoResults).length}
                 </span>
-                <span className="text-[13px] text-[#71717a]">results</span>
+                <span className="text-[13px] text-muted-foreground">results</span>
               </div>
               <div className="flex items-center gap-3">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={openRightSidebar}
-                  className="hidden md:flex items-center gap-1.5 text-[13px] text-white/60 hover:text-white h-8 px-2"
+                  className="hidden md:flex items-center gap-1.5 text-[13px] text-muted-foreground hover:text-foreground h-8 px-2"
                   aria-label="Open insights"
                 >
                   <Sparkles className="h-3.5 w-3.5" />
                   Insights
                 </Button>
                 <Select value={sortBy} onValueChange={setSortBy}>
-                  <SelectTrigger className="w-auto border-0 bg-transparent text-[13px] text-white/60 hover:text-white/80 h-8 px-2 gap-1">
+                  <SelectTrigger className="w-auto border-0 bg-transparent text-[13px] text-muted-foreground hover:text-foreground/80 h-8 px-2 gap-1">
                     Relevance
                   </SelectTrigger>
                   <SelectContent>
@@ -896,13 +896,13 @@ export default function ImageSearch() {
                       <Card
                         key={result.id}
                         className={cn(
-                          "beetle-card overflow-hidden rounded-none touch-manipulation border border-[rgba(51,51,51,0.5)] bg-[#0A090D]",
+                          "glue-card overflow-hidden rounded-[24px] touch-manipulation border border-border bg-card",
                           compactMode ? "p-2 sm:p-3" : "p-3 sm:p-4"
                         )}
                       >
                         <div className={`flex ${viewMode === "grid" ? "flex-col" : "flex-col sm:flex-row"} gap-3 sm:gap-5`}>
                           {/* Thumbnail */}
-                          <div className={`relative ${viewMode === "grid" ? "w-full aspect-square" : "w-full xs:w-32 h-48 xs:h-32"} flex-shrink-0 rounded-none overflow-hidden bg-muted`}>
+                          <div className={`relative ${viewMode === "grid" ? "w-full aspect-square" : "w-full xs:w-32 h-48 xs:h-32"} flex-shrink-0 rounded-[18px] overflow-hidden bg-muted`}>
                             {viewMode === "list" ? (
                               <Image
                                 src={result.imageUrl}
@@ -930,7 +930,7 @@ export default function ImageSearch() {
                             {matchPercentage > 0 && (
                               <div className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 bg-primary text-white text-xs font-medium px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full flex items-center gap-1 group">
                                 {matchPercentage}% Match
-                                <div className="absolute left-0 top-6 w-48 p-2 bg-[#050505] text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 hidden sm:block">
+                                <div className="absolute left-0 top-6 w-48 p-2 bg-secondary text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 hidden sm:block">
                                   Semantic similarity score between your query and this image
                                 </div>
                               </div>
@@ -1029,12 +1029,12 @@ export default function ImageSearch() {
                       <Card
                         key={videoResult.videoUrl}
                         className={cn(
-                          "beetle-card overflow-hidden relative rounded-none p-3 sm:p-4 touch-manipulation group border border-[rgba(51,51,51,0.5)] bg-[#0A090D]"
+                          "glue-card overflow-hidden relative rounded-none p-3 sm:p-4 touch-manipulation group border border-border bg-input"
                         )}
                       >
                         <div className={`flex ${viewMode === "grid" ? "flex-col" : "flex-col sm:flex-row"} gap-3 sm:gap-5`}>
                           {/* Thumbnail */}
-                          <div className="relative w-[300px] h-[250px] flex-shrink-0 rounded-none overflow-hidden bg-[#050505] flex items-center justify-center shadow-lg border border-border transition-all duration-200 group-hover:shadow-2xl group-hover:border-primary/20">
+                          <div className="relative w-[300px] h-[250px] flex-shrink-0 rounded-none overflow-hidden bg-secondary flex items-center justify-center shadow-lg border border-border transition-all duration-200 group-hover:shadow-2xl group-hover:border-primary/20">
                             {videoResult.videoUrl ? (
                               <>
                                 <video
@@ -1224,18 +1224,13 @@ export default function ImageSearch() {
             onClick={resetSidebarTimer}
           >
             {/* Search Insights */}
-            <Card className="p-4 beetle-card relative">
-              <span className="beetle-bracket beetle-bracket-tl" aria-hidden />
-              <span className="beetle-bracket beetle-bracket-tr" aria-hidden />
-              <span className="beetle-bracket beetle-bracket-bl" aria-hidden />
-              <span className="beetle-bracket beetle-bracket-br" aria-hidden />
-              <div className="flex items-center justify-between mb-4">
+            <Card className="p-4 glue-card relative">              <div className="flex items-center justify-between mb-4">
                 <span className="text-[13px] font-mono uppercase tracking-wide text-white/90">Insights</span>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsRightSidebarOpen(false)}
-                  className="h-6 w-6 p-0 text-white/50 hover:text-white"
+                  className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
                   aria-label="Close"
                 >
                   <X className="h-4 w-4" />
@@ -1243,21 +1238,21 @@ export default function ImageSearch() {
               </div>
 
               <div className="grid grid-cols-2 gap-3 mb-4">
-                <div className="border border-[rgba(51,51,51,0.5)] p-3">
-                  <p className="text-[13px] text-[#71717a] mb-1">Hits</p>
-                  <p className="font-mono-beetle text-2xl font-bold text-primary">
+                <div className="border border-border p-3">
+                  <p className="text-[13px] text-muted-foreground mb-1">Hits</p>
+                  <p className="font-mono text-2xl font-bold text-primary">
                     {(mode === "image" ? imageResults.length : Object.keys(videoResults).length).toLocaleString()}
                   </p>
                 </div>
-                <div className="border border-[rgba(51,51,51,0.5)] p-3">
-                  <p className="text-[13px] text-[#71717a] mb-1">Avg. conf.</p>
-                  <p className="font-mono-beetle text-2xl font-bold text-primary">{Math.round(avgConfidence)}%</p>
+                <div className="border border-border p-3">
+                  <p className="text-[13px] text-muted-foreground mb-1">Avg. conf.</p>
+                  <p className="font-mono text-2xl font-bold text-primary">{Math.round(avgConfidence)}%</p>
                 </div>
               </div>
 
               {(queryInterpretation.length > 0) && (
-                <div className="pt-3 border-t border-[#333333]">
-                  <p className="text-[13px] text-[#71717a] mb-2">Concepts</p>
+                <div className="pt-3 border-t border-border">
+                  <p className="text-[13px] text-muted-foreground mb-2">Concepts</p>
                   <div className="flex flex-wrap gap-1.5">
                     {queryInterpretation.slice(0, 4).map((concept, idx) => (
                       <span
@@ -1274,13 +1269,8 @@ export default function ImageSearch() {
 
             {/* Your collections (real data) */}
             {collections.length > 0 && (
-              <div className="beetle-card p-4 relative">
-                <span className="beetle-bracket beetle-bracket-tl" aria-hidden />
-                <span className="beetle-bracket beetle-bracket-tr" aria-hidden />
-                <span className="beetle-bracket beetle-bracket-bl" aria-hidden />
-                <span className="beetle-bracket beetle-bracket-br" aria-hidden />
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-[13px] text-[#71717a]">Collections</span>
+              <div className="glue-card p-4 relative">                <div className="flex items-center justify-between mb-3">
+                  <span className="text-[13px] text-muted-foreground">Collections</span>
                   <button
                     type="button"
                     onClick={(e) => {
@@ -1303,10 +1293,10 @@ export default function ImageSearch() {
                         resetSidebarTimer();
                         toggleCollection(col.name);
                       }}
-                      className="w-full flex items-center justify-between py-2 text-left text-sm text-white/80 hover:text-white transition-colors"
+                      className="w-full flex items-center justify-between py-2 text-left text-sm text-foreground/80 hover:text-foreground transition-colors"
                     >
                       <span className="truncate">{col.name}</span>
-                      <span className="text-[13px] text-[#71717a] shrink-0 ml-2">{col.count}</span>
+                      <span className="text-[13px] text-muted-foreground shrink-0 ml-2">{col.count}</span>
                     </button>
                   ))}
                 </div>
@@ -1314,12 +1304,7 @@ export default function ImageSearch() {
             )}
 
             {/* Search tips */}
-            <div className="beetle-card p-4 relative">
-              <span className="beetle-bracket beetle-bracket-tl" aria-hidden />
-              <span className="beetle-bracket beetle-bracket-tr" aria-hidden />
-              <span className="beetle-bracket beetle-bracket-bl" aria-hidden />
-              <span className="beetle-bracket beetle-bracket-br" aria-hidden />
-              <p className="text-[13px] text-[#71717a] mb-3">Try broader terms or actions.</p>
+            <div className="glue-card p-4 relative">              <p className="text-[13px] text-muted-foreground mb-3">Try broader terms or actions.</p>
               <div className="flex flex-wrap gap-1.5">
                 {["person walking", "sunset landscape", "dramatic sky"].map((ex) => (
                   <button
@@ -1330,7 +1315,7 @@ export default function ImageSearch() {
                       resetSidebarTimer();
                       handleExampleClick(ex);
                     }}
-                    className="text-[13px] px-2.5 py-1 border border-[rgba(51,51,51,0.5)] text-white/70 hover:border-primary/40 hover:text-primary transition-colors duration-150"
+                    className="text-[13px] px-2.5 py-1 border border-border text-foreground/70 hover:border-primary/40 hover:text-primary transition-colors duration-150"
                   >
                     {ex}
                   </button>

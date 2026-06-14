@@ -186,12 +186,12 @@ export default function AdminAnalyticsPage() {
   }
 
   return (
-    <div className="min-h-svh bg-[#010010] dot-grid">
-      <header className="border-b border-[#333333] bg-[#010010]/90 backdrop-blur-xl px-4 py-3 flex items-center gap-4">
-        <Link href="/" className="text-white/60 hover:text-white">
+    <div className="min-h-svh bg-background ">
+      <header className="border-b border-border bg-background/90 backdrop-blur-xl px-4 py-3 flex items-center gap-4">
+        <Link href="/" className="text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <h1 className="text-sm font-mono uppercase tracking-wide text-white/90">Platform analytics</h1>
+        <h1 className="text-sm font-mono uppercase tracking-wide text-foreground">Platform analytics</h1>
         <Link href="/admin">
           <Button variant="beetle-green" size="sm">Prompts</Button>
         </Link>
@@ -201,7 +201,7 @@ export default function AdminAnalyticsPage() {
         <select
           value={range}
           onChange={(e) => setRange(e.target.value as Range)}
-          className="h-9 px-3 text-[13px] bg-[#0A090D] border border-[rgba(51,51,51,0.5)] text-white/80"
+          className="h-9 px-3 text-[13px] bg-input border border-border text-foreground/80"
         >
           <option value="7">7 days</option>
           <option value="30">30 days</option>
@@ -240,8 +240,8 @@ export default function AdminAnalyticsPage() {
               <BeetleSection title="Top events">
                 <div className="flex flex-wrap gap-2">
                   {overview.topEventNames.map(({ name, count }) => (
-                    <span key={name} className="inline-flex items-center border border-[rgba(51,51,51,0.5)] px-2.5 py-1 text-xs font-mono text-white/80">
-                      {name} <span className="ml-1.5 font-mono-beetle text-primary">{count}</span>
+                    <span key={name} className="inline-flex items-center border border-border px-2.5 py-1 text-xs font-mono text-foreground/80">
+                      {name} <span className="ml-1.5 font-mono text-primary">{count}</span>
                     </span>
                   ))}
                 </div>
@@ -252,24 +252,24 @@ export default function AdminAnalyticsPage() {
               <BeetleSection title="Daily trends" className="overflow-x-auto">
                 <table className="w-full min-w-[520px] text-sm">
                   <thead>
-                    <tr className="border-b border-[#333333]">
-                      <th className="text-left py-2 pr-4 text-[#71717a] font-medium text-[13px]">Date</th>
-                      <th className="text-right py-2 px-2 text-[#71717a] font-medium text-[13px]">Active users</th>
-                      <th className="text-right py-2 px-2 text-[#71717a] font-medium text-[13px]">Searches</th>
-                      <th className="text-right py-2 px-2 text-[#71717a] font-medium text-[13px]">Uploads</th>
-                      <th className="text-right py-2 px-2 text-[#71717a] font-medium text-[13px]">Page views</th>
-                      <th className="text-right py-2 px-2 text-[#71717a] font-medium text-[13px]">Events</th>
+                    <tr className="border-b border-border">
+                      <th className="text-left py-2 pr-4 text-muted-foreground font-medium text-[13px]">Date</th>
+                      <th className="text-right py-2 px-2 text-muted-foreground font-medium text-[13px]">Active users</th>
+                      <th className="text-right py-2 px-2 text-muted-foreground font-medium text-[13px]">Searches</th>
+                      <th className="text-right py-2 px-2 text-muted-foreground font-medium text-[13px]">Uploads</th>
+                      <th className="text-right py-2 px-2 text-muted-foreground font-medium text-[13px]">Page views</th>
+                      <th className="text-right py-2 px-2 text-muted-foreground font-medium text-[13px]">Events</th>
                     </tr>
                   </thead>
                   <tbody>
                     {[...(trends.byDay || [])].reverse().map((r) => (
-                      <tr key={r.date} className="border-b border-[#333333]">
+                      <tr key={r.date} className="border-b border-border">
                         <td className="py-2.5 pr-4 text-white">{r.date}</td>
-                        <td className="py-2.5 px-2 text-right font-mono-beetle text-white/80">{r.activeUsers}</td>
-                        <td className="py-2.5 px-2 text-right font-mono-beetle text-white/80">{r.searches}</td>
-                        <td className="py-2.5 px-2 text-right font-mono-beetle text-white/80">{r.uploads}</td>
-                        <td className="py-2.5 px-2 text-right font-mono-beetle text-white/80">{r.pageViews}</td>
-                        <td className="py-2.5 px-2 text-right font-mono-beetle text-white/80">{r.totalEvents}</td>
+                        <td className="py-2.5 px-2 text-right font-mono text-foreground/80">{r.activeUsers}</td>
+                        <td className="py-2.5 px-2 text-right font-mono text-foreground/80">{r.searches}</td>
+                        <td className="py-2.5 px-2 text-right font-mono text-foreground/80">{r.uploads}</td>
+                        <td className="py-2.5 px-2 text-right font-mono text-foreground/80">{r.pageViews}</td>
+                        <td className="py-2.5 px-2 text-right font-mono text-foreground/80">{r.totalEvents}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -278,7 +278,7 @@ export default function AdminAnalyticsPage() {
             )}
 
             <BeetleSection title="Search queries" className="overflow-x-auto">
-              <p className="text-[13px] text-[#71717a] mb-4">User queries and expanded semantic search text.</p>
+              <p className="text-[13px] text-muted-foreground mb-4">User queries and expanded semantic search text.</p>
               {!searchQueries?.queries?.length ? (
                 <p className="text-sm text-muted-foreground">No search queries in this period. Older events may not include query text.</p>
               ) : (
@@ -391,12 +391,7 @@ function BeetleSection({
   className?: string;
 }) {
   return (
-    <div className={`beetle-card p-4 relative ${className}`}>
-      <span className="beetle-bracket beetle-bracket-tl" aria-hidden />
-      <span className="beetle-bracket beetle-bracket-tr" aria-hidden />
-      <span className="beetle-bracket beetle-bracket-bl" aria-hidden />
-      <span className="beetle-bracket beetle-bracket-br" aria-hidden />
-      <h2 className="text-[13px] font-mono uppercase tracking-wide text-white/90 mb-4">{title}</h2>
+    <div className={`glue-card p-4 relative ${className}`}>      <h2 className="text-[13px] font-mono uppercase tracking-wide text-white/90 mb-4">{title}</h2>
       {children}
     </div>
   );
@@ -404,11 +399,11 @@ function BeetleSection({
 
 function Kpi({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: number; sub?: string }) {
   return (
-    <div className="border border-[rgba(51,51,51,0.5)] p-3">
+    <div className="border border-border p-3">
       <div className="flex items-center gap-1.5 text-primary mb-1">{icon}</div>
-      <div className="font-mono-beetle text-xl font-bold text-primary">{value}</div>
-      <div className="text-[13px] text-[#71717a]">{label}</div>
-      {sub != null && sub !== "" && <div className="text-xs text-[#71717a] mt-0.5">{sub}</div>}
+      <div className="font-mono text-xl font-bold text-primary">{value}</div>
+      <div className="text-[13px] text-muted-foreground">{label}</div>
+      {sub != null && sub !== "" && <div className="text-xs text-muted-foreground mt-0.5">{sub}</div>}
     </div>
   );
 }

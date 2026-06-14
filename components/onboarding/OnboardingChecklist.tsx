@@ -72,22 +72,22 @@ export function OnboardingChecklist() {
         handleClose();
       }
     }}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto rounded-none border border-[rgba(51,51,51,0.5)] bg-[#050505] p-6">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto rounded-[30px] border border-border bg-background p-6">
         <DialogHeader>
-          <DialogTitle className="text-lg font-medium text-white text-left">
+          <DialogTitle className="text-lg font-medium text-foreground text-left">
             Get started
           </DialogTitle>
-          <DialogDescription className="text-[13px] text-[#71717a] text-left pt-1">
+          <DialogDescription className="text-[13px] text-muted-foreground text-left pt-1">
             Upload, search, organize.
           </DialogDescription>
         </DialogHeader>
 
         <div className="mb-6 mt-4">
-          <div className="flex items-center justify-between text-[13px] text-[#71717a] mb-2">
+          <div className="flex items-center justify-between text-[13px] text-muted-foreground mb-2">
             <span>Progress</span>
-            <span className="font-mono-beetle text-primary">{completedCount}/{totalCount}</span>
+            <span className="font-mono text-primary">{completedCount}/{totalCount}</span>
           </div>
-          <div className="w-full h-1 bg-[#333333] overflow-hidden">
+          <div className="w-full h-1 bg-border overflow-hidden">
             <div
               className="h-full bg-primary transition-all duration-500"
               style={{ width: `${progress}%` }}
@@ -178,7 +178,7 @@ function ChecklistItem({
         "w-full text-left p-3 border transition-colors duration-150",
         completed
           ? "border-primary/30 bg-primary/5 cursor-default"
-          : "border-[rgba(51,51,51,0.5)] hover:border-primary/40 cursor-pointer"
+          : "border-border hover:border-primary/40 cursor-pointer"
       )}
     >
       <div className="flex items-center gap-3">
@@ -187,13 +187,13 @@ function ChecklistItem({
             "shrink-0 w-8 h-8 flex items-center justify-center border",
             completed
               ? "border-primary/40 text-primary bg-primary/10"
-              : "border-[rgba(51,51,51,0.5)] text-white/60"
+              : "border-border text-muted-foreground"
           )}
         >
           {completed ? <CheckCircle2 className="h-4 w-4" /> : icon}
         </div>
         <div className="flex-1 min-w-0 flex items-center gap-2">
-          <span className={cn("text-sm", completed ? "text-primary line-through" : "text-white/80")}>
+          <span className={cn("text-sm", completed ? "text-primary line-through" : "text-foreground/80")}>
             {title}
           </span>
           {optional && !completed && (

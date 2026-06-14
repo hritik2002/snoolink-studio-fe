@@ -108,19 +108,14 @@ export function SettingsPage() {
       </CommandBar>
 
       <PageBody className="px-4 sm:px-6 py-6 max-w-lg">
-        <div className="beetle-card p-6 relative backdrop-blur-3xl">
-          <span className="beetle-bracket beetle-bracket-tl" aria-hidden />
-          <span className="beetle-bracket beetle-bracket-tr" aria-hidden />
-          <span className="beetle-bracket beetle-bracket-bl" aria-hidden />
-          <span className="beetle-bracket beetle-bracket-br" aria-hidden />
-
+        <div className="glue-card p-6 relative backdrop-blur-3xl">
           <p className="text-[13px] font-mono uppercase tracking-wide text-white/90 mb-6">
             Model preferences
           </p>
 
           <div className="space-y-5">
             <div className="space-y-1.5">
-              <label className="text-[13px] text-[#71717a]">Search model</label>
+              <label className="text-[13px] text-muted-foreground">Search model</label>
               <Select
                 value={settings.search_model || ""}
                 onValueChange={(v) => setSettings((s) => ({ ...s, search_model: v || null }))}
@@ -138,7 +133,7 @@ export function SettingsPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[13px] text-[#71717a]">Ingestion model</label>
+              <label className="text-[13px] text-muted-foreground">Ingestion model</label>
               <Select
                 value={settings.ingestion_model || ""}
                 onValueChange={(v) => setSettings((s) => ({ ...s, ingestion_model: v || null }))}
@@ -156,7 +151,7 @@ export function SettingsPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-[13px] text-[#71717a]">Min. score (0–1)</label>
+              <label className="text-[13px] text-muted-foreground">Min. score (0–1)</label>
               <input
                 type="number"
                 min={0}
@@ -173,7 +168,7 @@ export function SettingsPage() {
                       setSettings((s) => ({ ...s, min_score: Math.max(0, Math.min(1, n)) }));
                   }
                 }}
-                className="w-full max-w-[8rem] h-11 px-3 bg-[#0A090D] border border-[rgba(51,51,51,0.5)] text-white text-sm focus:border-primary/50 focus:outline-none"
+                className="w-full max-w-[8rem] h-11 px-3 bg-input border border-border text-white text-sm focus:border-primary/50 focus:outline-none"
               />
             </div>
 

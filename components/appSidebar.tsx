@@ -113,7 +113,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
               className="w-full h-full object-contain"
             />
           </div>
-          <span className="font-semibold text-foreground truncate group-data-[collapsible=icon]:hidden">Snoolink</span>
+          <span className="font-semibold text-foreground truncate group-data-[collapsible=icon]:hidden font-[family-name:var(--font-display)]">Snoolink</span>
         </div>
       </SidebarHeader>
       <SidebarContent>

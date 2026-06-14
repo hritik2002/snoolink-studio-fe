@@ -103,12 +103,12 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-svh bg-[#010010] dot-grid">
-      <header className="border-b border-[#333333] bg-[#010010]/90 backdrop-blur-xl px-4 py-3 flex items-center gap-4">
-        <Link href="/" className="text-white/60 hover:text-white">
+    <div className="min-h-svh bg-background ">
+      <header className="border-b border-border bg-background/90 backdrop-blur-xl px-4 py-3 flex items-center gap-4">
+        <Link href="/" className="text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <h1 className="text-sm font-mono uppercase tracking-wide text-white/90">Admin / Prompts</h1>
+        <h1 className="text-sm font-mono uppercase tracking-wide text-foreground">Admin / Prompts</h1>
         <Link href="/admin-analytics" className="ml-auto">
           <Button variant="beetle-green" size="sm" className="gap-2">
             <BarChart2 className="h-4 w-4" /> Analytics
@@ -117,12 +117,8 @@ export default function AdminPage() {
       </header>
 
       <main className="max-w-2xl mx-auto p-4 sm:p-6 space-y-6">
-        <div className="beetle-card p-4 sm:p-6 relative backdrop-blur-3xl">
-          <span className="beetle-bracket beetle-bracket-tl" aria-hidden />
-          <span className="beetle-bracket beetle-bracket-tr" aria-hidden />
-          <span className="beetle-bracket beetle-bracket-bl" aria-hidden />
-          <span className="beetle-bracket beetle-bracket-br" aria-hidden />
-          <h2 className="text-[13px] font-mono uppercase tracking-wide text-white/90 mb-4">Add prompt</h2>
+        <div className="glue-card p-4 sm:p-6 relative">
+          <h2 className="text-[13px] font-mono uppercase tracking-wide text-muted-foreground mb-4">Add prompt</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label htmlFor="model" className="block text-sm font-medium text-foreground/80 mb-1">
@@ -159,18 +155,18 @@ export default function AdminPage() {
         </div>
 
         <div>
-          <h2 className="text-[13px] font-mono uppercase tracking-wide text-white/90 mb-3">Prompts</h2>
+          <h2 className="text-[13px] font-mono uppercase tracking-wide text-muted-foreground mb-3">Prompts</h2>
           <div className="space-y-2">
             {prompts.length === 0 ? (
-              <p className="text-sm text-[#71717a]">No prompts yet.</p>
+              <p className="text-sm text-muted-foreground">No prompts yet.</p>
             ) : (
               prompts.map((row) => (
-                <div key={row.id} className="beetle-card p-3 sm:p-4 relative">
+                <div key={row.id} className="glue-card p-3 sm:p-4 relative">
                   <div className="flex items-center justify-between gap-2 mb-1">
-                    <span className="font-medium text-white">{row.model}</span>
-                    <span className="text-xs text-[#71717a]">{row.creator}</span>
+                    <span className="font-medium text-foreground">{row.model}</span>
+                    <span className="text-xs text-muted-foreground">{row.creator}</span>
                   </div>
-                  <p className="text-sm text-white/60 line-clamp-3">{row.prompt}</p>
+                  <p className="text-sm text-muted-foreground line-clamp-3">{row.prompt}</p>
                 </div>
               ))
             )}

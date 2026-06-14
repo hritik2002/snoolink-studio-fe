@@ -83,23 +83,18 @@ export default function Profile() {
       </CommandBar>
 
       <PageBody className="px-4 sm:px-6 py-6 max-w-lg">
-        <div className="beetle-card p-6 relative backdrop-blur-3xl">
-          <span className="beetle-bracket beetle-bracket-tl" aria-hidden />
-          <span className="beetle-bracket beetle-bracket-tr" aria-hidden />
-          <span className="beetle-bracket beetle-bracket-bl" aria-hidden />
-          <span className="beetle-bracket beetle-bracket-br" aria-hidden />
-
+        <div className="glue-card p-6 relative backdrop-blur-3xl">
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="pb-5 border-b border-[#333333]">
-              <p className="text-white font-medium truncate">
+            <div className="pb-5 border-b border-border">
+              <p className="text-foreground font-medium truncate">
                 {profile.name || user?.email?.split("@")[0] || "User"}
               </p>
-              <p className="text-[13px] text-[#71717a] truncate mt-0.5">{user?.email}</p>
+              <p className="text-[13px] text-muted-foreground truncate mt-0.5">{user?.email}</p>
             </div>
 
             <div className="space-y-4">
               <div className="space-y-1.5">
-                <label htmlFor="name" className="text-[13px] text-[#71717a]">
+                <label htmlFor="name" className="text-[13px] text-muted-foreground">
                   Name
                 </label>
                 <Input
@@ -108,12 +103,12 @@ export default function Profile() {
                   placeholder="Your name"
                   value={profile.name}
                   onChange={(e) => setProfile((prev) => ({ ...prev, name: e.target.value }))}
-                  className="h-11 bg-[#0A090D] border-[rgba(51,51,51,0.5)]"
+                  className="h-11 bg-input border-border"
                 />
               </div>
 
               <div className="space-y-1.5">
-                <label htmlFor="email" className="text-[13px] text-[#71717a]">
+                <label htmlFor="email" className="text-[13px] text-muted-foreground">
                   Email
                 </label>
                 <Input
@@ -121,9 +116,9 @@ export default function Profile() {
                   type="email"
                   value={profile.email}
                   disabled
-                  className="h-11 bg-[#0A090D] border-[rgba(51,51,51,0.5)] text-white/50"
+                  className="h-11 bg-input border-border text-muted-foreground"
                 />
-                <p className="text-[13px] text-[#71717a]">Managed via Google.</p>
+                <p className="text-[13px] text-muted-foreground">Managed via Google.</p>
               </div>
             </div>
 

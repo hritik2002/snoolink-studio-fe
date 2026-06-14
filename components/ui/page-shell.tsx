@@ -10,12 +10,12 @@ function CommandBar({
   return (
     <div
       className={cn(
-        "sticky top-0 z-[200] flex-shrink-0 border-b border-[#333333] bg-[#010010]/90 backdrop-blur-xl",
+        "sticky top-0 z-[200] flex-shrink-0 border-b border-border bg-background/90 backdrop-blur-xl",
         className
       )}
       {...props}
     >
-      <div className="max-w-[1563px] mx-auto border-x border-[#333333] px-4 sm:px-6 py-4">
+      <div className="max-w-[1228px] mx-auto px-4 sm:px-6 lg:px-[60px] py-4">
         {children}
       </div>
     </div>
@@ -30,7 +30,7 @@ function PageTitle({
   return (
     <h1
       className={cn(
-        "text-lg font-medium text-white tracking-tight",
+        "text-xl font-semibold text-foreground tracking-tight font-[family-name:var(--font-display)]",
         className
       )}
       {...props}
@@ -47,7 +47,7 @@ function PageDescription({
 }: React.ComponentProps<"p">) {
   return (
     <p
-      className={cn("text-[13px] text-[#71717a] leading-relaxed", className)}
+      className={cn("text-[15px] text-muted-foreground leading-relaxed", className)}
       {...props}
     >
       {children}
@@ -63,7 +63,7 @@ function PageBody({
   return (
     <div
       className={cn(
-        "flex-1 min-h-0 max-w-[1563px] mx-auto w-full border-x border-[#333333]",
+        "flex-1 min-h-0 max-w-[1228px] mx-auto w-full",
         className
       )}
       {...props}
@@ -82,7 +82,7 @@ function SegmentedControl({
   return (
     <div
       className={cn(
-        "inline-flex border border-[rgba(51,51,51,0.5)]",
+        "inline-flex rounded-[18px] border border-border bg-secondary p-0.5",
         className
       )}
       {...props}
@@ -102,10 +102,10 @@ function SegmentedItem({
     <button
       type="button"
       className={cn(
-        "flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium transition-colors duration-150",
+        "flex items-center gap-1.5 px-3 py-1.5 text-[15px] font-medium rounded-[13px] transition-colors duration-200",
         active
-          ? "bg-primary text-black"
-          : "text-white/60 hover:text-white/80 hover:bg-white/5",
+          ? "bg-background text-foreground shadow-sm"
+          : "text-muted-foreground hover:text-foreground",
         className
       )}
       {...props}
@@ -126,10 +126,10 @@ function FilterChip({
     <button
       type="button"
       className={cn(
-        "shrink-0 px-2.5 py-1 text-[13px] font-medium border transition-colors duration-150",
+        "shrink-0 px-3 py-1 text-[15px] font-medium rounded-[13px] border transition-colors duration-200",
         active
-          ? "border-primary bg-primary/10 text-primary"
-          : "border-[rgba(51,51,51,0.5)] text-white/60 hover:text-white/80",
+          ? "border-[var(--color-accent-orange)] bg-[var(--color-accent-peach)]/30 text-foreground"
+          : "border-border text-muted-foreground hover:text-foreground hover:border-[var(--color-border-mid)]",
         className
       )}
       {...props}
@@ -151,12 +151,12 @@ function StatBlock({
   return (
     <div
       className={cn(
-        "border border-[rgba(51,51,51,0.5)] p-3",
+        "border border-border rounded-[24px] p-4 bg-background",
         className
       )}
     >
-      <p className="text-[13px] text-[#71717a] mb-1">{label}</p>
-      <p className="font-mono-beetle text-2xl font-bold text-primary">{value}</p>
+      <p className="text-[15px] text-muted-foreground mb-1">{label}</p>
+      <p className="font-mono text-2xl font-bold text-foreground">{value}</p>
     </div>
   );
 }
@@ -181,19 +181,15 @@ function EmptyPanel({
         className
       )}
     >
-      <div className="beetle-card max-w-sm w-full p-8 relative backdrop-blur-3xl">
-        <span className="beetle-bracket beetle-bracket-tl" aria-hidden />
-        <span className="beetle-bracket beetle-bracket-tr" aria-hidden />
-        <span className="beetle-bracket beetle-bracket-bl" aria-hidden />
-        <span className="beetle-bracket beetle-bracket-br" aria-hidden />
+      <div className="glue-card max-w-sm w-full p-8 relative">
         <div className="text-center space-y-4">
           {Icon && (
-            <Icon className="h-8 w-8 text-primary mx-auto" strokeWidth={1.5} aria-hidden />
+            <Icon className="h-8 w-8 text-[var(--color-accent-orange)] mx-auto" strokeWidth={1.5} aria-hidden />
           )}
           <div>
-            <h3 className="text-lg font-medium text-white mb-1">{title}</h3>
+            <h3 className="text-lg font-semibold text-foreground mb-1 font-[family-name:var(--font-display)]">{title}</h3>
             {description && (
-              <p className="text-sm text-white/60 leading-relaxed max-w-[28ch] mx-auto">
+              <p className="text-sm text-muted-foreground leading-relaxed max-w-[28ch] mx-auto">
                 {description}
               </p>
             )}

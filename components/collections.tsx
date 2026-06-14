@@ -488,16 +488,16 @@ export default function Collections() {
         style={{ left: fixedHeaderLeft }}
       >
         {/* Command bar header */}
-        <div className="border-b border-[#333333] bg-[#010010]/90 backdrop-blur-xl">
+        <div className="border-b border-border bg-background/90 backdrop-blur-xl">
           <div className="px-4 sm:px-6 py-4">
             <div className="flex items-center justify-between gap-3 mb-3">
-              <h1 className="text-lg font-medium text-white">Collections</h1>
+              <h1 className="text-lg font-medium text-foreground">Collections</h1>
               <div className="flex items-center gap-2">
                 {selectedCollection && (
                   <Button
                     size="sm"
                     variant="outline"
-                    className="h-9 border-[rgba(51,51,51,0.5)] text-white/80 hover:border-primary/40"
+                    className="h-9 border-border text-foreground/80 hover:border-primary/40"
                     onClick={() => setShowShareModal(true)}
                     aria-label="Share collection"
                   >
@@ -525,7 +525,7 @@ export default function Collections() {
           </div>
         </div>
 
-        <div className="border-b border-[#333333]">
+        <div className="border-b border-border">
           <div className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3 overflow-x-auto scrollbar-hide">
           <div 
             ref={scrollContainerRef}
@@ -538,11 +538,11 @@ export default function Collections() {
                 className={`shrink-0 px-2.5 py-1 text-[13px] font-medium border transition-colors duration-150 touch-manipulation ${
                   selectedCollection === collection.name
                     ? "border-primary bg-primary/10 text-primary"
-                    : "border-[rgba(51,51,51,0.5)] text-white/60 hover:text-white/80"
+                    : "border-border text-muted-foreground hover:text-foreground/80"
                 }`}
               >
                 <span className="truncate max-w-[120px] inline-block align-middle">{collection.name}</span>
-                <span className="ml-1 text-white/40">{collection.count}</span>
+                <span className="ml-1 text-muted-foreground/70">{collection.count}</span>
               </button>
             ))}
           </div>
@@ -551,13 +551,13 @@ export default function Collections() {
             onClick={() => setShowCreateModal(true)}
             variant="outline"
             size="sm"
-            className="shrink-0 h-8 border-[rgba(51,51,51,0.5)] text-primary hover:border-primary/40"
+            className="shrink-0 h-8 border-border text-primary hover:border-primary/40"
           >
             <Plus className="h-4 w-4" />
             <span className="hidden sm:inline">New</span>
           </Button>
 
-          <div className="w-px h-5 bg-[#333333] shrink-0" />
+          <div className="w-px h-5 bg-border shrink-0" />
 
           <Select value={filterType} onValueChange={(v) => setFilterType(v as FilterType)}>
             <SelectTrigger className="w-[90px] h-8 text-[13px] shrink-0">
@@ -578,7 +578,7 @@ export default function Collections() {
               className={`shrink-0 px-2 py-1 text-[13px] font-medium border transition-colors ${
                 dateFilter === d
                   ? "border-primary bg-primary/10 text-primary"
-                  : "border-[rgba(51,51,51,0.5)] text-white/60 hover:text-white/80"
+                  : "border-border text-muted-foreground hover:text-foreground/80"
               }`}
             >
               {d === "all" ? "All" : d === "7d" ? "7d" : d === "30d" ? "30d" : "Year"}
@@ -606,12 +606,12 @@ export default function Collections() {
             </SelectContent>
           </Select>
 
-          <div className="flex items-center border border-[rgba(51,51,51,0.5)] shrink-0">
+          <div className="flex items-center border border-border shrink-0">
             <button
               type="button"
               onClick={() => setViewMode("grid")}
               className={`p-1.5 transition-colors ${
-                viewMode === "grid" ? "bg-primary text-black" : "text-white/60 hover:text-white/80"
+                viewMode === "grid" ? "bg-primary text-black" : "text-muted-foreground hover:text-foreground/80"
               }`}
               aria-label="Grid view"
             >
@@ -620,8 +620,8 @@ export default function Collections() {
             <button
               type="button"
               onClick={() => setViewMode("list")}
-              className={`p-1.5 border-l border-[rgba(51,51,51,0.5)] transition-colors ${
-                viewMode === "list" ? "bg-primary text-black" : "text-white/60 hover:text-white/80"
+              className={`p-1.5 border-l border-border transition-colors ${
+                viewMode === "list" ? "bg-primary text-black" : "text-muted-foreground hover:text-foreground/80"
               }`}
               aria-label="List view"
             >
@@ -674,18 +674,13 @@ export default function Collections() {
           <CollectionsItemsSkeleton />
         ) : sortedAndFilteredItems.length === 0 ? (
           <div className="flex items-center justify-center py-16">
-            <div className="beetle-card max-w-sm w-full p-8 relative text-center backdrop-blur-3xl">
-              <span className="beetle-bracket beetle-bracket-tl" aria-hidden />
-              <span className="beetle-bracket beetle-bracket-tr" aria-hidden />
-              <span className="beetle-bracket beetle-bracket-bl" aria-hidden />
-              <span className="beetle-bracket beetle-bracket-br" aria-hidden />
-              <FolderOpen className="h-8 w-8 text-primary mx-auto mb-4" strokeWidth={1.5} />
-              <h2 className="text-lg font-medium text-white mb-2">
+            <div className="glue-card max-w-sm w-full p-8 relative text-center backdrop-blur-3xl">              <FolderOpen className="h-8 w-8 text-primary mx-auto mb-4" strokeWidth={1.5} />
+              <h2 className="text-lg font-medium text-foreground mb-2">
                 {items.length === 0
                   ? (selectedCollection ? `Empty collection` : "No collection selected")
                   : "No matches"}
               </h2>
-              <p className="text-sm text-white/60 mb-4">
+              <p className="text-sm text-muted-foreground mb-4">
                 {items.length === 0 ? "Upload files to populate this collection." : "Adjust filters."}
               </p>
               {items.length === 0 && selectedCollection && (
@@ -706,7 +701,7 @@ export default function Collections() {
               <div
                 key={item.id}
                 onClick={() => setDetailItem(item)}
-                className="group border border-border rounded-none p-2 xs:p-2.5 sm:p-3 hover:border-primary/30 hover:shadow-md transition-all bg-card touch-manipulation cursor-pointer min-w-0 w-full"
+                className="group border border-border rounded-[24px] p-2 xs:p-2.5 sm:p-3 hover:border-primary/30 hover:shadow-md transition-all bg-card touch-manipulation cursor-pointer min-w-0 w-full"
               >
                 <div
                   className="relative aspect-video min-h-[100px] xs:min-h-[120px] sm:min-h-[140px] md:min-h-[160px] lg:min-h-[180px] rounded-lg overflow-hidden bg-muted mb-2 xs:mb-2.5 sm:mb-3 max-w-full"
@@ -789,7 +784,7 @@ export default function Collections() {
               <div
                 key={item.id}
                 onClick={() => setDetailItem(item)}
-                className="flex items-center gap-2 sm:gap-4 p-3 sm:p-4 bg-card border-2 border-border rounded-none hover:border-primary/30 hover:shadow-md transition-all group touch-manipulation cursor-pointer"
+                className="flex items-center gap-2 sm:gap-4 p-3 sm:p-4 bg-card border border-border rounded-[24px] hover:border-primary/30 hover:shadow-md transition-all group touch-manipulation cursor-pointer"
               >
                 <button
                   type="button"
@@ -957,13 +952,13 @@ export default function Collections() {
                 {nextItem ? (
                   <button onClick={() => setDetailItem(nextItem)} className="p-1.5 rounded hover:bg-white/10 text-white" aria-label="Next"><ChevronRight className="h-5 w-5" /></button>
                 ) : <span className="w-8" />}
-                <h2 id="detail-title" className="font-medium text-white truncate">{detailItem.url.split("/").pop()?.split("?")[0] || "Untitled"}</h2>
+                <h2 id="detail-title" className="font-medium text-foreground truncate">{detailItem.url.split("/").pop()?.split("?")[0] || "Untitled"}</h2>
               </div>
               <div className="flex items-center gap-1">
                 {detailItem.type === "image" && (
                   <>
                     <button onClick={() => setImageZoom((z) => Math.max(0.5, z - 0.25))} className="p-1.5 rounded hover:bg-white/10 text-white" aria-label="Zoom out"><ZoomOut className="h-4 w-4" /></button>
-                    <span className="text-xs text-white/80 min-w-[3rem] text-center">{Math.round(imageZoom * 100)}%</span>
+                    <span className="text-xs text-foreground/80 min-w-[3rem] text-center">{Math.round(imageZoom * 100)}%</span>
                     <button onClick={() => setImageZoom((z) => Math.min(3, z + 0.25))} className="p-1.5 rounded hover:bg-white/10 text-white" aria-label="Zoom in"><ZoomIn className="h-4 w-4" /></button>
                     <button onClick={() => setImageZoom(1)} className="p-1.5 rounded hover:bg-white/10 text-white text-xs">Fit</button>
                   </>
@@ -1009,12 +1004,12 @@ export default function Collections() {
             <div className="flex-shrink-0 border-t border-white/10 bg-black/50 p-4 max-h-[40vh] overflow-y-auto">
               <div className="max-w-3xl mx-auto space-y-4">
                 <div>
-                  <p className="text-xs text-white/50 mb-0.5">{detailItem.type === "video" ? "Video" : "Image"} · {detailItem.collectionName}{detailItem.createdAt ? ` · Added ${formatDate(detailItem.createdAt)}` : ""}{detailItem.type === "video" && detailItem.duration != null ? ` · ${formatDuration(detailItem.duration)}` : ""}</p>
-                  <p className="text-xs font-medium text-white/60 uppercase tracking-wider mt-2 mb-1">Caption</p>
+                  <p className="text-xs text-muted-foreground mb-0.5">{detailItem.type === "video" ? "Video" : "Image"} · {detailItem.collectionName}{detailItem.createdAt ? ` · Added ${formatDate(detailItem.createdAt)}` : ""}{detailItem.type === "video" && detailItem.duration != null ? ` · ${formatDuration(detailItem.duration)}` : ""}</p>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mt-2 mb-1">Caption</p>
                   <p className="text-sm text-white">{detailItem.description || "No caption."}</p>
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-white/60 uppercase tracking-wider mb-2">Actions</p>
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">Actions</p>
                   <div className="flex flex-wrap gap-2">
                     <Button size="sm" variant="secondary" className="bg-white/10 text-white hover:bg-white/20 border-0" onClick={() => window.open(detailItem.url, "_blank")}><ExternalLink className="h-3.5 w-3.5 mr-1" /> Open in new tab</Button>
                     <Button size="sm" variant="secondary" className="bg-white/10 text-white hover:bg-white/20 border-0" onClick={() => handleDetailDownload(detailItem)}><Download className="h-3.5 w-3.5 mr-1" /> Download</Button>
@@ -1022,9 +1017,9 @@ export default function Collections() {
                     <Button size="sm" variant="secondary" className="bg-white/10 text-white hover:bg-white/20 border-0" onClick={() => handleDetailShare(detailItem)}><Share2 className="h-3.5 w-3.5 mr-1" /> Share</Button>
                   </div>
                 </div>
-                <details className="text-white/50">
-                  <summary className="text-xs font-medium text-white/60 cursor-pointer list-none">More (coming soon)</summary>
-                  <p className="mt-2 text-xs text-white/40">Crop, AI captions, tags, comments, edit metadata, Open in Adobe, Post to social.</p>
+                <details className="text-muted-foreground">
+                  <summary className="text-xs font-medium text-muted-foreground cursor-pointer list-none">More (coming soon)</summary>
+                  <p className="mt-2 text-xs text-muted-foreground/70">Crop, AI captions, tags, comments, edit metadata, Open in Adobe, Post to social.</p>
                 </details>
               </div>
             </div>

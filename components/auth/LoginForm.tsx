@@ -47,7 +47,7 @@ export function LoginForm() {
         type="button"
         onClick={handleGoogleLogin}
         disabled={loading}
-        className="w-full flex items-center justify-center gap-2 h-12 px-8 bg-primary text-black text-sm font-medium rounded-[6px] hover:bg-primary/90 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed group"
+        className="w-full flex items-center justify-center gap-2 h-12 px-8 bg-primary text-primary-foreground text-base font-medium rounded-[18px] shadow-[var(--shadow-btn-dark)] hover:-translate-y-0.5 transition-transform duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 group"
       >
         <svg
           className="w-4 h-4 shrink-0"
