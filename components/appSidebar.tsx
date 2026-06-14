@@ -99,9 +99,9 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
   };
 
   return (
-    <Sidebar className="border-r border-gray-200 bg-white" collapsible="icon">
+    <Sidebar className="border-r border-sidebar-border bg-sidebar" collapsible="icon">
       <SidebarRail />
-      <SidebarHeader className="px-2 md:px-4 py-4 md:py-6 border-b border-gray-200 flex flex-col items-center group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:py-3">
+      <SidebarHeader className="px-2 md:px-4 py-4 md:py-6 border-b border-sidebar-border flex flex-col items-center group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:py-3">
         <div className="flex items-center gap-2 w-full group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:gap-2 group-data-[collapsible=icon]:w-full">
           <SidebarTrigger className="size-8 shrink-0" aria-label="Collapse or expand sidebar" />
           <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 group-data-[collapsible=icon]:w-7 group-data-[collapsible=icon]:h-7 overflow-hidden">
@@ -113,13 +113,13 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
               className="w-full h-full object-contain"
             />
           </div>
-          <span className="font-semibold text-gray-900 truncate group-data-[collapsible=icon]:hidden">Snoolink</span>
+          <span className="font-semibold text-foreground truncate group-data-[collapsible=icon]:hidden">Snoolink</span>
         </div>
       </SidebarHeader>
       <SidebarContent>
         {!isMobile && (
           <SidebarGroup>
-            <SidebarGroupLabel className="text-gray-500 text-xs font-semibold uppercase tracking-wider px-4 py-2">
+            <SidebarGroupLabel className="text-muted-foreground text-xs font-semibold uppercase tracking-wider px-4 py-2">
               Platform
             </SidebarGroupLabel>
             <SidebarGroupContent>
@@ -129,7 +129,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                     asChild
                     isActive={activeView === "search"}
                     tooltip="Search"
-                    className="text-gray-700 hover:text-gray-900 hover:bg-gray-50 data-[active=true]:bg-purple-50 data-[active=true]:text-purple-600 data-[active=true]:font-medium"
+                    className="text-foreground/80 hover:text-foreground hover:bg-primary/5 data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:font-medium"
                   >
                     <button onClick={() => handleViewChange("search")} aria-label="Search">
                       <Search className="h-4 w-4 shrink-0" />
@@ -142,7 +142,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                     asChild
                     isActive={activeView === "collections"}
                     tooltip="Collections"
-                    className="text-gray-700 hover:text-gray-900 hover:bg-gray-50 data-[active=true]:bg-purple-50 data-[active=true]:text-purple-600 data-[active=true]:font-medium"
+                    className="text-foreground/80 hover:text-foreground hover:bg-primary/5 data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:font-medium"
                   >
                     <button onClick={() => handleViewChange("collections")} aria-label="Collections">
                       <FolderOpen className="h-4 w-4 shrink-0" />
@@ -155,7 +155,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                     asChild
                     isActive={activeView === "uploads"}
                     tooltip="Uploads"
-                    className="text-gray-700 hover:text-gray-900 hover:bg-gray-50 data-[active=true]:bg-purple-50 data-[active=true]:text-purple-600 data-[active=true]:font-medium"
+                    className="text-foreground/80 hover:text-foreground hover:bg-primary/5 data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:font-medium"
                   >
                     <button onClick={() => handleViewChange("uploads")} aria-label="Uploads">
                       <Upload className="h-4 w-4 shrink-0" />
@@ -173,7 +173,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
           </SidebarGroup>
         )}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-gray-500 text-xs font-semibold uppercase tracking-wider px-4 py-2">
+          <SidebarGroupLabel className="text-muted-foreground text-xs font-semibold uppercase tracking-wider px-4 py-2">
             Coming soon
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -183,7 +183,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                   asChild
                   isActive={activeView === "history"}
                   tooltip="History"
-                  className="text-gray-500 hover:text-gray-700 hover:bg-gray-50 data-[active=true]:bg-purple-50 data-[active=true]:text-purple-600"
+                  className="text-muted-foreground hover:text-foreground/80 hover:bg-primary/5 data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
                 >
                   <button onClick={() => handleViewChange("history")} aria-label="History (coming soon)">
                     <History className="h-4 w-4 shrink-0" />
@@ -196,7 +196,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                   asChild
                   isActive={activeView === "analytics"}
                   tooltip="Analytics"
-                  className="text-gray-500 hover:text-gray-700 hover:bg-gray-50 data-[active=true]:bg-purple-50 data-[active=true]:text-purple-600"
+                  className="text-muted-foreground hover:text-foreground/80 hover:bg-primary/5 data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
                 >
                   <button onClick={() => handleViewChange("analytics")} aria-label="Analytics">
                     <BarChart3 className="h-4 w-4 shrink-0" />
@@ -208,7 +208,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-gray-500 text-xs font-semibold uppercase tracking-wider px-4 py-2">
+          <SidebarGroupLabel className="text-muted-foreground text-xs font-semibold uppercase tracking-wider px-4 py-2">
             Account
           </SidebarGroupLabel>
           <SidebarGroupContent>
@@ -218,7 +218,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                     asChild
                     isActive={activeView === "settings"}
                     tooltip="Settings"
-                    className="text-gray-500 hover:text-gray-700 hover:bg-gray-50 data-[active=true]:bg-purple-50 data-[active=true]:text-purple-600"
+                    className="text-muted-foreground hover:text-foreground/80 hover:bg-primary/5 data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
                   >
                     <button onClick={() => handleViewChange("settings")} aria-label="Settings">
                       <Settings className="h-4 w-4 shrink-0" />
@@ -231,12 +231,12 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                     asChild
                     isActive={activeView === "billing"}
                     tooltip="Billing"
-                    className="text-gray-500 hover:text-gray-700 hover:bg-gray-50 data-[active=true]:bg-purple-50 data-[active=true]:text-purple-600"
+                    className="text-muted-foreground hover:text-foreground/80 hover:bg-primary/5 data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
                   >
                     <button onClick={() => handleViewChange("billing")} aria-label="Billing (coming soon)">
                       <CreditCard className="h-4 w-4 shrink-0" />
                       <span>Billing</span>
-                      <span className="ml-1 text-[10px] text-gray-400 font-normal">Soon</span>
+                      <span className="ml-1 text-[10px] text-muted-foreground font-normal">Soon</span>
                     </button>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -244,7 +244,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                   <SidebarMenuButton
                     asChild
                     tooltip="Admin"
-                    className="text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                    className="text-muted-foreground hover:text-foreground/80 hover:bg-primary/5"
                   >
                     <button
                       onClick={() => { setOpenMobile(false); router.push("/admin"); }}
@@ -259,25 +259,25 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="border-t border-gray-200 p-2 md:p-4">
+      <SidebarFooter className="border-t border-sidebar-border p-2 md:p-4">
         {/* Expanded: full footer */}
         <div className="group-data-[collapsible=icon]:hidden">
           <div className="flex items-center gap-3 mb-2">
-            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-purple-100 shrink-0">
-              <User className="h-5 w-5 text-purple-600" />
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10 shrink-0">
+              <User className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
+              <p className="text-sm font-medium text-foreground truncate">
                 {user?.email?.split("@")[0] || "User"}
               </p>
-              <p className="text-xs text-gray-500 font-medium truncate">
+              <p className="text-xs text-muted-foreground font-medium truncate">
                 Pro
               </p>
             </div>
           </div>
           <button
             onClick={handleSignOut}
-            className="w-full text-left text-sm text-gray-600 hover:text-gray-900 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
+            className="w-full text-left text-sm text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
           >
             Sign out
           </button>
@@ -286,7 +286,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
         <div className="hidden group-data-[collapsible=icon]:flex flex-col items-center gap-2 py-1">
           <button
             onClick={() => handleViewChange("profile")}
-            className="size-8 flex items-center justify-center rounded-md hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition-colors"
+            className="size-8 flex items-center justify-center rounded-md hover:bg-primary/10 text-muted-foreground hover:text-foreground transition-colors"
             title="Profile"
             aria-label="Profile"
           >
@@ -294,7 +294,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
           </button>
           <button
             onClick={handleSignOut}
-            className="size-8 flex items-center justify-center rounded-md hover:bg-gray-100 text-gray-600 hover:text-gray-900 transition-colors"
+            className="size-8 flex items-center justify-center rounded-md hover:bg-primary/10 text-muted-foreground hover:text-foreground transition-colors"
             title="Sign out"
             aria-label="Sign out"
           >

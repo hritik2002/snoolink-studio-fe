@@ -86,7 +86,7 @@ export function AnalyticsDashboard() {
   if (loading) {
     return (
       <div className="flex-1 flex items-center justify-center min-h-[50vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -95,11 +95,11 @@ export function AnalyticsDashboard() {
     <div className="flex-1 flex flex-col min-w-0 max-w-5xl mx-auto w-full py-6 sm:py-8 px-4 sm:px-6 overflow-x-hidden">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <BarChart3 className="h-7 w-7 text-purple-600" />
+          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+            <BarChart3 className="h-7 w-7 text-primary" />
             Analytics Dashboard
           </h1>
-          <p className="text-gray-600 text-sm mt-1">
+          <p className="text-muted-foreground text-sm mt-1">
             Usage, search patterns, and content performance.
           </p>
         </div>
@@ -107,7 +107,7 @@ export function AnalyticsDashboard() {
           <select
             value={range}
             onChange={(e) => setRange(e.target.value as Range)}
-            className="rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 bg-white focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+            className="rounded-md border border-border px-3 py-2 text-sm text-foreground bg-input focus:border-primary focus:ring-1 focus:ring-primary"
             aria-label="Date range"
           >
             <option value="7">Last 7 days</option>
@@ -117,7 +117,7 @@ export function AnalyticsDashboard() {
           <button
             onClick={handleExport}
             disabled={exporting}
-            className="inline-flex items-center gap-2 rounded-md bg-[#7c3aed] px-3 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-60"
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-60"
           >
             {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
             Export
@@ -163,28 +163,28 @@ export function AnalyticsDashboard() {
 
       {/* Activity over time */}
       {summary?.byDay && summary.byDay.length > 0 && (
-        <Card className="p-4 sm:p-6 border border-gray-200 mb-6">
-          <h2 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-purple-600" />
+        <Card className="p-4 sm:p-6 border border-border mb-6">
+          <h2 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2">
+            <Calendar className="h-4 w-4 text-primary" />
             Activity over time
           </h2>
           <div className="overflow-x-auto -mx-2">
             <table className="w-full min-w-[360px] text-sm">
               <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-2 px-2 text-gray-600 font-medium">Date</th>
-                  <th className="text-right py-2 px-2 text-gray-600 font-medium">Searches</th>
-                  <th className="text-right py-2 px-2 text-gray-600 font-medium">Uploads</th>
-                  <th className="text-right py-2 px-2 text-gray-600 font-medium">Page views</th>
+                <tr className="border-b border-border">
+                  <th className="text-left py-2 px-2 text-muted-foreground font-medium">Date</th>
+                  <th className="text-right py-2 px-2 text-muted-foreground font-medium">Searches</th>
+                  <th className="text-right py-2 px-2 text-muted-foreground font-medium">Uploads</th>
+                  <th className="text-right py-2 px-2 text-muted-foreground font-medium">Page views</th>
                 </tr>
               </thead>
               <tbody>
                 {[...(summary.byDay || [])].reverse().map((r) => (
-                  <tr key={r.date} className="border-b border-gray-100">
-                    <td className="py-2.5 px-2 text-gray-900">{r.date}</td>
-                    <td className="py-2.5 px-2 text-right text-gray-700">{r.searches}</td>
-                    <td className="py-2.5 px-2 text-right text-gray-700">{r.uploads}</td>
-                    <td className="py-2.5 px-2 text-right text-gray-700">{r.pageViews}</td>
+                  <tr key={r.date} className="border-b border-border">
+                    <td className="py-2.5 px-2 text-foreground">{r.date}</td>
+                    <td className="py-2.5 px-2 text-right text-foreground/80">{r.searches}</td>
+                    <td className="py-2.5 px-2 text-right text-foreground/80">{r.uploads}</td>
+                    <td className="py-2.5 px-2 text-right text-foreground/80">{r.pageViews}</td>
                   </tr>
                 ))}
               </tbody>
@@ -195,13 +195,13 @@ export function AnalyticsDashboard() {
 
       {/* Top events */}
       {overview?.topEventNames && overview.topEventNames.length > 0 && (
-        <Card className="p-4 sm:p-6 border border-gray-200">
-          <h2 className="text-base font-semibold text-gray-900 mb-4">Top events</h2>
+        <Card className="p-4 sm:p-6 border border-border">
+          <h2 className="text-base font-semibold text-foreground mb-4">Top events</h2>
           <ul className="space-y-2">
             {overview.topEventNames.map(({ name, count }) => (
               <li key={name} className="flex justify-between items-center text-sm">
-                <span className="text-gray-700 font-mono">{name}</span>
-                <span className="text-gray-900 font-medium">{count}</span>
+                <span className="text-foreground/80 font-mono">{name}</span>
+                <span className="text-foreground font-medium">{count}</span>
               </li>
             ))}
           </ul>
@@ -209,10 +209,10 @@ export function AnalyticsDashboard() {
       )}
 
       {!loading && !error && (overview?.totalEvents ?? 0) === 0 && (
-        <Card className="p-8 border border-gray-200 border-dashed text-center">
-          <BarChart3 className="h-12 w-12 text-gray-300 mx-auto mb-3" />
-          <p className="text-gray-600">No analytics data yet for this period.</p>
-          <p className="text-gray-500 text-sm mt-1">Searches, uploads, and page views will appear here.</p>
+        <Card className="p-8 border border-border border-dashed text-center">
+          <BarChart3 className="h-12 w-12 text-muted-foreground/60 mx-auto mb-3" />
+          <p className="text-muted-foreground">No analytics data yet for this period.</p>
+          <p className="text-muted-foreground text-sm mt-1">Searches, uploads, and page views will appear here.</p>
         </Card>
       )}
     </div>
@@ -226,11 +226,11 @@ function StatCard({
   sub,
 }: { icon: React.ReactNode; label: string; value: number; sub?: string }) {
   return (
-    <Card className="p-4 border border-gray-200">
-      <div className="flex items-center gap-2 text-purple-600 mb-1">{icon}</div>
-      <div className="text-2xl font-bold text-gray-900">{value}</div>
-      <div className="text-sm text-gray-600">{label}</div>
-      {sub != null && sub !== "" && <div className="text-xs text-gray-500 mt-0.5">{sub}</div>}
+    <Card className="p-4 border border-border">
+      <div className="flex items-center gap-2 text-primary mb-1">{icon}</div>
+      <div className="text-2xl font-bold text-foreground">{value}</div>
+      <div className="text-sm text-muted-foreground">{label}</div>
+      {sub != null && sub !== "" && <div className="text-xs text-muted-foreground mt-0.5">{sub}</div>}
     </Card>
   );
 }

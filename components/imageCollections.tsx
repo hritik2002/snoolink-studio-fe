@@ -1002,12 +1002,12 @@ export default function ImageCollections() {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full min-w-0 py-3 sm:py-4 md:py-6 lg:py-8 bg-white px-3 sm:px-4 md:px-6 lg:px-8 overflow-x-hidden">
+    <div className="flex-1 flex flex-col h-full min-w-0 py-3 sm:py-4 md:py-6 lg:py-8 bg-background px-3 sm:px-4 md:px-6 lg:px-8 overflow-x-hidden">
       {/* Breadcrumbs */}
-      <div className="mb-3 sm:mb-4 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-gray-500">
+      <div className="mb-3 sm:mb-4 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
         <span>Uploads</span>
         <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
-        <span className="text-gray-900 font-medium">Upload Queue</span>
+        <span className="text-foreground font-medium">Upload Queue</span>
       </div>
 
       {/* Premium Header */}
@@ -1023,7 +1023,7 @@ export default function ImageCollections() {
               Upload Queue
             </h1>
             {hasAssets ? (
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 text-xs sm:text-sm text-gray-600">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 text-xs sm:text-sm text-muted-foreground">
                 <span className="flex items-center gap-1 sm:gap-1.5">
                   <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500" />
                   <span className="font-medium">{files.filter(f => f.status === "processing").length}</span>
@@ -1037,14 +1037,14 @@ export default function ImageCollections() {
                   <span className="sm:hidden">fail</span>
                 </span>
                     <span className="hidden sm:inline">•</span>
-                <span className="text-gray-500 text-xs hidden sm:inline">
+                <span className="text-muted-foreground text-xs hidden sm:inline">
                   Completed uploads appear in Collections
                 </span>
               </div>
             ) : (
-              <p className="text-gray-600 text-xs sm:text-sm md:text-base">
+              <p className="text-muted-foreground text-xs sm:text-sm md:text-base">
                 Processing and failed jobs. Ready files appear in{" "}
-                <Link href="/?view=collections" className="text-purple-600 hover:text-purple-700 font-medium underline underline-offset-2">
+                <Link href="/?view=collections" className="text-primary hover:text-primary font-medium underline underline-offset-2">
                   Collections
                 </Link>
                 .
@@ -1056,14 +1056,14 @@ export default function ImageCollections() {
 
       {/* Global Progress Indicator */}
       {files.length > 0 && (processingCount > 0 || failedCount > 0) && (
-        <div className="mb-4 sm:mb-6 p-4 rounded-xl border border-purple-200 bg-gradient-to-r from-purple-50 via-white to-purple-50 shadow-sm">
+        <div className="mb-4 sm:mb-6 p-4 rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 via-background to-primary/5 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
                 {processingCount > 0 && (
                   <div className="flex items-center gap-1.5">
                     <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
-                    <span className="text-sm font-semibold text-gray-900">
+                    <span className="text-sm font-semibold text-foreground">
                       {processingCount} Processing
                     </span>
                   </div>
@@ -1079,23 +1079,23 @@ export default function ImageCollections() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold text-purple-600 tabular-nums">{totalProgress}%</span>
-              <span className="text-xs text-gray-500">complete</span>
+              <span className="text-2xl font-bold text-primary tabular-nums">{totalProgress}%</span>
+              <span className="text-xs text-muted-foreground">complete</span>
             </div>
           </div>
           
           {/* Animated progress bar */}
-          <div className="h-2.5 rounded-full bg-gray-200 overflow-hidden">
+          <div className="h-2.5 rounded-full bg-muted overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-purple-600 to-purple-500 transition-all duration-500 ease-out relative overflow-hidden"
+              className="h-full bg-gradient-to-r from-primary to-primary/50 transition-all duration-500 ease-out relative overflow-hidden"
               style={{ width: `${totalProgress}%` }}
             >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent" style={{ animation: 'shimmer 2s infinite' }} />
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-background/30 to-transparent" style={{ animation: 'shimmer 2s infinite' }} />
             </div>
           </div>
           
           {processingCount > 0 && (
-            <p className="text-xs text-gray-500 mt-2 flex items-center gap-1.5">
+            <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1.5">
               <Clock className="h-3.5 w-3.5" />
               <span>Processing usually completes in under a minute per file</span>
             </p>
@@ -1108,11 +1108,11 @@ export default function ImageCollections() {
         <div className="mb-4 sm:mb-6">
           <div
             ref={dropZoneRef}
-            className={`relative p-4 sm:p-6 md:p-8 border-2 border-dashed rounded-lg sm:rounded-xl transition-all ${
+            className={`relative p-4 sm:p-6 md:p-8 border-2 border-dashed rounded-none transition-all ${
               isDragActive
-                ? "border-purple-500 bg-purple-50 border-solid scale-[1.01] ring-4 ring-purple-400/40 dropzone-active"
-                : `border-purple-400 bg-gray-50/50 hover:border-purple-500 hover:bg-purple-50/40 hover:ring-2 hover:ring-purple-300/50 ${showPulse ? "dropzone-pulse" : ""}`
-            } focus-within:ring-2 focus-within:ring-purple-400 focus-within:border-purple-500`}
+                ? "border-primary bg-primary/5 border-solid scale-[1.01] ring-4 ring-primary/40/40 dropzone-active"
+                : `border-primary/40 bg-muted/30/50 hover:border-primary hover:bg-primary/5/40 hover:ring-2 hover:ring-primary/30/50 ${showPulse ? "dropzone-pulse" : ""}`
+            } focus-within:ring-2 focus-within:ring-primary/40 focus-within:border-primary`}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
@@ -1128,33 +1128,33 @@ export default function ImageCollections() {
           >
             {/* Drop here overlay */}
             {isDragActive && (
-              <div className="absolute inset-0 z-10 flex items-center justify-center bg-purple-100/90 backdrop-blur-sm rounded-lg sm:rounded-xl">
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-primary/10/90 backdrop-blur-sm rounded-none">
                 <div className="text-center">
-                  <FileUp className="h-16 w-16 text-purple-600 mx-auto mb-3 animate-bounce" />
-                  <p className="text-xl sm:text-2xl font-bold text-purple-900">Drop here!</p>
-                  <p className="text-sm text-purple-700 mt-1">Release to upload files</p>
+                  <FileUp className="h-16 w-16 text-primary mx-auto mb-3 animate-bounce" />
+                  <p className="text-xl sm:text-2xl font-bold text-primary">Drop here!</p>
+                  <p className="text-sm text-primary mt-1">Release to upload files</p>
                 </div>
               </div>
             )}
         <div className="flex flex-col items-center justify-center text-center">
-              <div className={`mb-2 sm:mb-3 p-3 sm:p-4 rounded-full bg-purple-100 transition-transform ${isDragActive ? "scale-110" : ""}`}>
-                <FileUp className={`h-7 w-7 sm:h-9 sm:w-9 text-purple-600 ${isDragActive ? "animate-bounce" : ""}`} />
+              <div className={`mb-2 sm:mb-3 p-3 sm:p-4 rounded-full bg-primary/10 transition-transform ${isDragActive ? "scale-110" : ""}`}>
+                <FileUp className={`h-7 w-7 sm:h-9 sm:w-9 text-primary ${isDragActive ? "animate-bounce" : ""}`} />
               </div>
-              <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2">
+              <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2">
                 {!hasAssets ? "Ready to upload your first media?" : "Upload Files"}
           </h3>
-              <p className="text-gray-700 text-sm sm:text-base mb-2 max-w-md px-2 font-medium">
+              <p className="text-foreground/80 text-sm sm:text-base mb-2 max-w-md px-2 font-medium">
                 {!hasAssets 
                   ? "Drag and drop images or videos here. Your media will be automatically indexed with AI, making it searchable by meaning."
                   : "Drag and drop images or videos here, or click to select from your computer."}
               </p>
               
               {/* File restrictions */}
-              <div className="mb-3 px-3 py-2 bg-white border border-purple-200 rounded-lg max-w-md">
-                <p className="text-xs text-gray-600 mb-1">
-                  <span className="font-semibold text-purple-700">Accepted:</span> JPG, PNG, HEIC, WebP, MP4, MOV, AVI, WebM
+              <div className="mb-3 px-3 py-2 bg-card border border-primary/20 rounded-lg max-w-md">
+                <p className="text-xs text-muted-foreground mb-1">
+                  <span className="font-semibold text-primary">Accepted:</span> JPG, PNG, HEIC, WebP, MP4, MOV, AVI, WebM
                 </p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   <span className="font-semibold">Max size:</span> 100MB per file · <span className="font-semibold">Auto-indexed</span> for semantic search
                 </p>
               </div>
@@ -1175,7 +1175,7 @@ export default function ImageCollections() {
               
               {/* Selected file count indicator */}
               {selectedFileCount > 0 && (
-                <div className="mb-3 px-4 py-2 bg-purple-600 text-white rounded-full text-sm font-semibold animate-in fade-in slide-in-from-bottom-2">
+                <div className="mb-3 px-4 py-2 bg-primary text-white rounded-full text-sm font-semibold animate-in fade-in slide-in-from-bottom-2">
                   {selectedFileCount} file{selectedFileCount !== 1 ? "s" : ""} selected
                 </div>
               )}
@@ -1183,7 +1183,7 @@ export default function ImageCollections() {
                 <button
                   type="button"
                   onClick={() => { setSelectedCollection(suggestedCollection); setSuggestedCollection(null); }}
-                  className="mb-3 sm:mb-4 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors"
+                  className="mb-3 sm:mb-4 inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
                 >
                   <Sparkles className="h-3.5 w-3.5" />
                   Suggested: {suggestedCollection}
@@ -1192,25 +1192,25 @@ export default function ImageCollections() {
 
               {/* Collection Selector */}
               <div className="flex flex-col sm:flex-row items-center gap-2 mb-3 sm:mb-4 w-full sm:w-auto">
-                <span className="text-xs sm:text-sm text-gray-600">Upload to:</span>
+                <span className="text-xs sm:text-sm text-muted-foreground">Upload to:</span>
                 <Select value={selectedCollection} onValueChange={setSelectedCollection}>
-                  <SelectTrigger className="w-full sm:w-[200px] bg-white border-gray-300 text-sm">
-                    <Folder className="h-4 w-4 mr-2 text-purple-600" />
+                  <SelectTrigger className="w-full sm:w-[200px] bg-card border-border text-sm">
+                    <Folder className="h-4 w-4 mr-2 text-primary" />
                     <span className="truncate">{selectedCollection}</span>
                   </SelectTrigger>
                   <SelectContent>
                     {isLoadingCollections ? (
                       <div className="flex items-center justify-center py-2">
-                        <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                       </div>
                     ) : (
                       <>
                         {collections.map((collection) => (
                           <SelectItem key={collection.name} value={collection.name}>
                             <div className="flex items-center gap-2">
-                              <Folder className="h-4 w-4 text-purple-600" />
+                              <Folder className="h-4 w-4 text-primary" />
                               <span>{collection.name}</span>
-                              <span className="text-xs text-gray-400">
+                              <span className="text-xs text-muted-foreground">
                                 ({collection.imageCount + collection.videoCount})
                               </span>
                             </div>
@@ -1219,19 +1219,19 @@ export default function ImageCollections() {
                         {collections.length === 0 && (
                           <SelectItem value="Default">
                             <div className="flex items-center gap-2">
-                              <Folder className="h-4 w-4 text-purple-600" />
+                              <Folder className="h-4 w-4 text-primary" />
                               <span>Default</span>
                             </div>
                           </SelectItem>
                         )}
-                        <div className="border-t border-gray-200 mt-1 pt-1">
+                        <div className="border-t border-border mt-1 pt-1">
                           <button
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
                               setShowCreateCollectionModal(true);
                             }}
-                            className="w-full flex items-center gap-2 px-2 py-1.5 text-sm text-purple-600 hover:bg-purple-50 rounded-md transition-colors"
+                            className="w-full flex items-center gap-2 px-2 py-1.5 text-sm text-primary hover:bg-primary/5 rounded-md transition-colors"
                           >
                             <Plus className="h-4 w-4" />
                             <span>Create new collection</span>
@@ -1243,7 +1243,7 @@ export default function ImageCollections() {
                 </Select>
               </div>
               {(collections.length === 0 || (collections.length === 1 && collections[0].name === "Default")) && (
-                <p className="text-xs text-gray-500 mb-3 text-center">Default is a catch‑all when you have no collections. Create one to organize.</p>
+                <p className="text-xs text-muted-foreground mb-3 text-center">Default is a catch‑all when you have no collections. Create one to organize.</p>
               )}
 
               <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
@@ -1251,7 +1251,7 @@ export default function ImageCollections() {
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isUploading}
                   size="lg"
-                  className="bg-[#7c3aed] hover:bg-purple-700 active:bg-purple-800 text-white touch-manipulation font-semibold text-base px-6 py-3 h-12"
+                  className="bg-primary hover:bg-primary/90 active:bg-primary/80 text-white touch-manipulation font-semibold text-base px-6 py-3 h-12"
                 >
                   {isUploading ? (
                     <>
@@ -1267,18 +1267,18 @@ export default function ImageCollections() {
                   )}
                 </Button>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-500 hidden sm:inline font-medium">Also:</span>
+                  <span className="text-xs text-muted-foreground hidden sm:inline font-medium">Also:</span>
                   <Button
                     type="button"
                     variant="outline"
                     size="icon"
                     onClick={() => folderInputRef.current?.click()}
                     disabled={isUploading}
-                    className="border-gray-300 touch-manipulation h-10 w-10"
+                    className="border-border touch-manipulation h-10 w-10"
                     title="Upload a whole folder (supported in Chrome, Edge)"
                     aria-label="Upload folder"
                   >
-                    <FolderUp className="h-5 w-5 text-purple-600" />
+                    <FolderUp className="h-5 w-5 text-primary" />
                   </Button>
                   <Button
                     type="button"
@@ -1286,11 +1286,11 @@ export default function ImageCollections() {
                     size="icon"
                     onClick={() => cameraInputRef.current?.click()}
                     disabled={isUploading}
-                    className="border-gray-300 touch-manipulation h-10 w-10"
+                    className="border-border touch-manipulation h-10 w-10"
                     title="Take photo or record video (mobile)"
                     aria-label="Take photo or record video"
                   >
-                    <Camera className="h-5 w-5 text-purple-600" />
+                    <Camera className="h-5 w-5 text-primary" />
                   </Button>
                 </div>
               </div>
@@ -1325,9 +1325,9 @@ export default function ImageCollections() {
 
       {/* Upload progress panel */}
       {uploadProgress && (
-        <div className="mb-4 sm:mb-6 p-4 rounded-xl border border-purple-200 bg-purple-50/50">
+        <div className="mb-4 sm:mb-6 p-4 rounded-xl border border-primary/20 bg-primary/5/50">
           <div className="flex items-center justify-between gap-2 mb-2">
-            <span className="text-sm font-medium text-gray-900">
+            <span className="text-sm font-medium text-foreground">
               {uploadProgress.phase === "embedding"
                 ? "Indexing for search…"
                 : uploadProgress.phase === "queuing"
@@ -1336,17 +1336,17 @@ export default function ImageCollections() {
                     ? "Done"
                     : "Uploading…"}
             </span>
-            <span className="text-xs text-gray-600">
+            <span className="text-xs text-muted-foreground">
               {uploadProgress.done}/{uploadProgress.total}
               {uploadProgress.failed > 0 && ` · ${uploadProgress.failed} failed`}
             </span>
           </div>
           {(uploadProgress.phase === "embedding" || uploadProgress.phase === "queuing") && (
-            <p className="text-xs text-gray-500 mb-2">Usually ready in under a minute.</p>
+            <p className="text-xs text-muted-foreground mb-2">Usually ready in under a minute.</p>
           )}
-          <div className="h-2 rounded-full bg-gray-200 overflow-hidden mb-3">
+          <div className="h-2 rounded-full bg-muted overflow-hidden mb-3">
             <div
-              className="h-full bg-purple-600 rounded-full transition-all duration-300"
+              className="h-full bg-primary rounded-full transition-all duration-300"
               style={{ width: `${uploadProgress.total ? (uploadProgress.done / uploadProgress.total) * 100 : 0}%` }}
             />
           </div>
@@ -1354,19 +1354,19 @@ export default function ImageCollections() {
             {uploadProgress.files.slice(0, 12).map((f) => (
               <div
                 key={f.id}
-                className="w-10 h-10 rounded overflow-hidden bg-gray-200 flex-shrink-0 border border-gray-300"
+                className="w-10 h-10 rounded overflow-hidden bg-muted flex-shrink-0 border border-border"
               >
                 {f.type.startsWith("image/") ? (
                   <img src={f.previewUrl} alt="" className="w-full h-full object-cover" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <Video className="h-4 w-4 text-gray-500" />
+                    <Video className="h-4 w-4 text-muted-foreground" />
                   </div>
                 )}
               </div>
             ))}
             {uploadProgress.files.length > 12 && (
-              <span className="self-center text-xs text-gray-500">+{uploadProgress.files.length - 12}</span>
+              <span className="self-center text-xs text-muted-foreground">+{uploadProgress.files.length - 12}</span>
             )}
           </div>
           <div className="flex items-center gap-2 flex-wrap">
@@ -1384,7 +1384,7 @@ export default function ImageCollections() {
                   <Button
                     size="sm"
                     onClick={() => { isPausedRef.current = false; setUploadProgress((p) => (p ? { ...p, isPaused: false } : null)); }}
-                    className="text-xs bg-[#7c3aed]"
+                    className="text-xs bg-primary"
                   >
                     Resume
                   </Button>
@@ -1392,12 +1392,12 @@ export default function ImageCollections() {
               </>
             )}
             {uploadProgress.phase === "done" && uploadProgress.failedFiles.length > 0 && (
-              <Button size="sm" onClick={handleRetryFromProgress} className="text-xs bg-[#7c3aed]">
+              <Button size="sm" onClick={handleRetryFromProgress} className="text-xs bg-primary">
                 <RotateCcw className="h-3 w-3 mr-1" />
                 Retry {uploadProgress.failedFiles.length} failed
               </Button>
             )}
-            <span className="text-xs text-gray-500 ml-auto">Adding to {selectedCollection}</span>
+            <span className="text-xs text-muted-foreground ml-auto">Adding to {selectedCollection}</span>
           </div>
         </div>
       )}
@@ -1419,62 +1419,62 @@ export default function ImageCollections() {
           />
           
           <div className="fixed bottom-8 left-1/2 -translate-x-1/2 max-w-md w-full mx-4">
-            <div className="bg-white rounded-2xl shadow-2xl p-6 flex flex-col gap-4 animate-in slide-in-from-bottom-4">
+            <div className="bg-popover rounded-none border border-border shadow-2xl p-6 flex flex-col gap-4 animate-in slide-in-from-bottom-4">
               {tourStep === 1 && (
                 <>
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-purple-100 rounded-full">
-                        <FileUp className="h-6 w-6 text-purple-600" />
+                      <div className="p-2 bg-primary/10 rounded-full">
+                        <FileUp className="h-6 w-6 text-primary" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-bold text-gray-900">Step 1: Add files</h3>
-                        <p className="text-xs text-gray-500">1 of 3</p>
+                        <h3 className="text-lg font-bold text-foreground">Step 1: Add files</h3>
+                        <p className="text-xs text-muted-foreground">1 of 3</p>
                       </div>
                     </div>
-                    <button onClick={() => setTourStep(null)} className="text-gray-400 hover:text-gray-600">
+                    <button onClick={() => setTourStep(null)} className="text-muted-foreground hover:text-muted-foreground">
                       <X className="h-5 w-5" />
                     </button>
                   </div>
-                  <p className="text-gray-600 text-sm">Drag and drop images or videos, or tap <strong>Select Files</strong>. You can also upload a folder or use your camera on mobile.</p>
+                  <p className="text-muted-foreground text-sm">Drag and drop images or videos, or tap <strong>Select Files</strong>. You can also upload a folder or use your camera on mobile.</p>
                 </>
               )}
               {tourStep === 2 && (
                 <>
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-purple-100 rounded-full">
-                        <Folder className="h-6 w-6 text-purple-600" />
+                      <div className="p-2 bg-primary/10 rounded-full">
+                        <Folder className="h-6 w-6 text-primary" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-bold text-gray-900">Step 2: Choose a collection</h3>
-                        <p className="text-xs text-gray-500">2 of 3</p>
+                        <h3 className="text-lg font-bold text-foreground">Step 2: Choose a collection</h3>
+                        <p className="text-xs text-muted-foreground">2 of 3</p>
                       </div>
                     </div>
-                    <button onClick={() => setTourStep(null)} className="text-gray-400 hover:text-gray-600">
+                    <button onClick={() => setTourStep(null)} className="text-muted-foreground hover:text-muted-foreground">
                       <X className="h-5 w-5" />
                     </button>
                   </div>
-                  <p className="text-gray-600 text-sm">Pick which collection to add uploads to. We'll suggest one when your filenames match (e.g. <strong>&quot;mumbai-travel&quot;</strong>).</p>
+                  <p className="text-muted-foreground text-sm">Pick which collection to add uploads to. We'll suggest one when your filenames match (e.g. <strong>&quot;mumbai-travel&quot;</strong>).</p>
                 </>
               )}
               {tourStep === 3 && (
                 <>
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-3">
-                      <div className="p-2 bg-purple-100 rounded-full">
-                        <Sparkles className="h-6 w-6 text-purple-600" />
+                      <div className="p-2 bg-primary/10 rounded-full">
+                        <Sparkles className="h-6 w-6 text-primary" />
                       </div>
                       <div>
-                        <h3 className="text-lg font-bold text-gray-900">Step 3: Search by meaning</h3>
-                        <p className="text-xs text-gray-500">3 of 3</p>
+                        <h3 className="text-lg font-bold text-foreground">Step 3: Search by meaning</h3>
+                        <p className="text-xs text-muted-foreground">3 of 3</p>
                       </div>
                     </div>
-                    <button onClick={() => setTourStep(null)} className="text-gray-400 hover:text-gray-600">
+                    <button onClick={() => setTourStep(null)} className="text-muted-foreground hover:text-muted-foreground">
                       <X className="h-5 w-5" />
                     </button>
                   </div>
-                  <p className="text-gray-600 text-sm">Once indexed, search in <strong>Search</strong> by meaning (e.g. <strong>&quot;person walking at sunset&quot;</strong>). Images are ready in seconds; videos in ~1 minute.</p>
+                  <p className="text-muted-foreground text-sm">Once indexed, search in <strong>Search</strong> by meaning (e.g. <strong>&quot;person walking at sunset&quot;</strong>). Images are ready in seconds; videos in ~1 minute.</p>
                 </>
               )}
               <div className="flex justify-between items-center gap-2">
@@ -1482,7 +1482,7 @@ export default function ImageCollections() {
                   variant="ghost" 
                   size="sm"
                   onClick={() => tourStep > 1 ? setTourStep((s) => (s ?? 2) - 1) : setTourStep(null)}
-                  className="text-gray-600"
+                  className="text-muted-foreground"
                 >
                   {tourStep > 1 ? "Back" : "Skip"}
                 </Button>
@@ -1490,14 +1490,14 @@ export default function ImageCollections() {
                   {[1, 2, 3].map((step) => (
                     <div 
                       key={step} 
-                      className={`h-1.5 w-8 rounded-full transition-colors ${step === tourStep ? "bg-purple-600" : "bg-gray-300"}`}
+                      className={`h-1.5 w-8 rounded-full transition-colors ${step === tourStep ? "bg-primary" : "bg-muted"}`}
                     />
                   ))}
                 </div>
                 <Button 
                   size="sm"
                   onClick={() => tourStep < 3 ? setTourStep((s) => (s ?? 1) + 1) : setTourStep(null)} 
-                  className="bg-[#7c3aed] hover:bg-purple-700"
+                  className="bg-primary hover:bg-primary/90"
                 >
                   {tourStep < 3 ? "Next" : "Got it"}
                 </Button>
@@ -1508,11 +1508,11 @@ export default function ImageCollections() {
       )}
 
       {/* Filters - Sticky and always visible */}
-      <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm py-3 mb-4 sm:mb-6 -mx-3 sm:-mx-4 px-3 sm:px-4 border-b border-gray-200">
+      <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm py-3 mb-4 sm:mb-6 -mx-3 sm:-mx-4 px-3 sm:px-4 border-b border-border">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-            <span className="text-xs sm:text-sm text-gray-700 font-semibold flex items-center gap-1.5">
-              <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-600" />
+            <span className="text-xs sm:text-sm text-foreground/80 font-semibold flex items-center gap-1.5">
+              <Filter className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
               <span className="hidden sm:inline">Filter:</span>
             </span>
           {(["all", "processing", "failed"] as FilterStatus[]).map((status) => {
@@ -1529,10 +1529,10 @@ export default function ImageCollections() {
                 title={isDisabled ? "Upload files to use filters" : undefined}
                 className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-full transition-all cursor-pointer touch-manipulation ${
                   isDisabled
-                    ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                    ? "bg-muted text-muted-foreground cursor-not-allowed"
                     : filterStatus === status
-                      ? "bg-[#7c3aed] text-white shadow-md active:bg-purple-700"
-                      : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300"
+                      ? "bg-primary text-white shadow-md active:bg-primary/90"
+                      : "bg-muted text-foreground/80 hover:bg-muted active:bg-muted"
                 }`}
               >
                 {status === "all" ? "All" : status.charAt(0).toUpperCase() + status.slice(1)}
@@ -1543,7 +1543,7 @@ export default function ImageCollections() {
           </div>
           <div className={files.length === 0 ? "opacity-50 pointer-events-none" : ""}>
             <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortBy)}>
-              <SelectTrigger className="w-full sm:w-[200px] border-gray-300 bg-white text-gray-700 text-xs sm:text-sm">
+              <SelectTrigger className="w-full sm:w-[200px] border-border bg-input text-foreground/80 text-xs sm:text-sm">
               <span className="hidden sm:inline font-medium">SORT: </span>
               <span>
                 {sortBy === "date" ? "Date Added" : 
@@ -1565,7 +1565,7 @@ export default function ImageCollections() {
 
       {/* Selection Bar for Failed Files */}
       {failedFiles.length > 0 && (
-        <div className="mb-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between bg-gray-50 border border-gray-200 rounded-lg px-3 sm:px-4 py-2 sm:py-3 gap-2 sm:gap-0">
+        <div className="mb-4 flex flex-col sm:flex-row items-stretch sm:items-center justify-between bg-muted/30 border border-border rounded-lg px-3 sm:px-4 py-2 sm:py-3 gap-2 sm:gap-0">
           <div className="flex items-center gap-2 sm:gap-4">
             <Button variant="outline" size="sm" onClick={toggleSelectAllFailed} className="flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm touch-manipulation">
               {allFailedSelected ? <CheckSquare className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : <Square className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
@@ -1573,7 +1573,7 @@ export default function ImageCollections() {
               <span className="sm:hidden">{allFailedSelected ? "Deselect" : "Select All"}</span>
             </Button>
             {selectedFiles.size > 0 && (
-              <span className="text-xs sm:text-sm text-gray-600">{selectedFiles.size} selected</span>
+              <span className="text-xs sm:text-sm text-muted-foreground">{selectedFiles.size} selected</span>
             )}
         </div>
           {selectedFiles.size > 0 && (
@@ -1592,7 +1592,7 @@ export default function ImageCollections() {
                 size="sm"
                 onClick={handleRetryFailed}
                 disabled={isProcessingAction}
-                className="flex items-center gap-1.5 sm:gap-2 bg-[#7c3aed] hover:bg-purple-700 active:bg-purple-800 text-xs sm:text-sm touch-manipulation flex-1 sm:flex-initial"
+                className="flex items-center gap-1.5 sm:gap-2 bg-primary hover:bg-primary/90 active:bg-primary/80 text-xs sm:text-sm touch-manipulation flex-1 sm:flex-initial"
               >
                 {isProcessingAction ? <Loader2 className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
                 <span>Retry</span>
@@ -1606,44 +1606,44 @@ export default function ImageCollections() {
       {isLoading ? (
         <UploadsListSkeleton />
       ) : filteredFiles.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed border-gray-200 rounded-xl bg-gray-50/50">
+        <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed border-border rounded-xl bg-muted/30/50">
           {filterStatus === "processing" ? (
             <>
               <Clock className="h-12 w-12 text-yellow-500 mb-4" />
-            <p className="text-gray-900 font-medium text-lg mb-2">
+            <p className="text-foreground font-medium text-lg mb-2">
                 No files currently processing
               </p>
-              <p className="text-gray-500 text-sm max-w-md">
+              <p className="text-muted-foreground text-sm max-w-md">
                 When you upload new videos, they will appear here while being indexed for semantic search. Processing typically takes up to a minute.
               </p>
             </>
           ) : filterStatus === "failed" ? (
             <>
               <CheckCircle2 className="h-12 w-12 text-green-500 mb-4" />
-          <p className="text-gray-900 font-medium text-lg mb-2">
+          <p className="text-foreground font-medium text-lg mb-2">
                 No failed uploads
               </p>
-              <p className="text-gray-500 text-sm max-w-md">
+              <p className="text-muted-foreground text-sm max-w-md">
                 Great news! All your uploads have been processed successfully. If any uploads fail in the future, they will appear here for you to retry.
               </p>
             </>
           ) : (
             <>
               <CheckCircle2 className="h-12 w-12 text-green-500 mb-4" />
-              <p className="text-gray-900 font-bold text-xl mb-2">
+              <p className="text-foreground font-bold text-xl mb-2">
                 All caught up!
               </p>
-              <p className="text-gray-600 text-sm sm:text-base max-w-md mb-4">
+              <p className="text-muted-foreground text-sm sm:text-base max-w-md mb-4">
                 Upload files above to get started. Once indexed, search by meaning in Search.
               </p>
               
               {/* Recent uploads teaser */}
               {recentUploads.length > 0 && (
                 <div className="mb-6 w-full max-w-2xl">
-                  <p className="text-sm font-semibold text-gray-700 mb-3">Recent from {recentUploads[0].collectionName}:</p>
+                  <p className="text-sm font-semibold text-foreground/80 mb-3">Recent from {recentUploads[0].collectionName}:</p>
                   <div className="grid grid-cols-4 gap-2 mb-3">
                     {recentUploads.map((upload, idx) => (
-                      <div key={idx} className="aspect-square rounded-lg overflow-hidden border-2 border-gray-200 hover:border-purple-400 transition-colors">
+                      <div key={idx} className="aspect-square rounded-lg overflow-hidden border-2 border-border hover:border-primary/40 transition-colors">
                         <Image 
                           src={upload.url} 
                           alt="Recent upload" 
@@ -1658,7 +1658,7 @@ export default function ImageCollections() {
                     ))}
                   </div>
                   <Link href={`/?view=collections`}>
-                    <Button variant="link" size="sm" className="text-purple-600">
+                    <Button variant="link" size="sm" className="text-primary">
                       Continue uploading to {recentUploads[0].collectionName}? →
                     </Button>
                   </Link>
@@ -1668,18 +1668,18 @@ export default function ImageCollections() {
               <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
                 <Button
                   size="default"
-                  className="bg-[#7c3aed] hover:bg-purple-700 text-white font-semibold px-6"
+                  className="bg-primary hover:bg-primary/90 text-white font-semibold px-6"
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <Folder className="h-4 w-4 mr-2" />
                   Select files
                 </Button>
                 <Link href="/?view=collections">
-                  <Button variant="outline" size="default" className="border-gray-300 text-gray-700 hover:bg-gray-50">
+                  <Button variant="outline" size="default" className="border-border text-foreground/80 hover:bg-muted/30">
                     Browse Collections
                   </Button>
                 </Link>
-                <Button variant="ghost" size="default" className="text-gray-600 hover:text-purple-600" onClick={() => setTourStep(1)}>
+                <Button variant="ghost" size="default" className="text-muted-foreground hover:text-primary" onClick={() => setTourStep(1)}>
                   <Play className="h-4 w-4 mr-2" />
                   Take a quick tour
                 </Button>
@@ -1702,16 +1702,16 @@ export default function ImageCollections() {
               <div
                 key={file.id}
                 onClick={isFailed ? () => toggleFileSelection(file.id) : undefined}
-                className={`flex items-center gap-2 sm:gap-3 md:gap-4 p-3 sm:p-4 bg-white border-2 rounded-xl sm:rounded-2xl transition-all touch-manipulation animate-in fade-in slide-in-from-bottom-2 ${
+                className={`flex items-center gap-2 sm:gap-3 md:gap-4 p-3 sm:p-4 bg-card border-2 rounded-xl sm:rounded-2xl transition-all touch-manipulation animate-in fade-in slide-in-from-bottom-2 ${
                   isSelected 
-                    ? "border-purple-500 bg-purple-50/30" 
-                    : "border-gray-200 hover:border-purple-300 hover:shadow-md active:border-purple-400"
+                    ? "border-primary bg-primary/5/30" 
+                    : "border-border hover:border-primary/30 hover:shadow-md active:border-primary/40"
                 } ${isFailed ? "cursor-pointer" : ""}`}
               >
                 {/* Status Indicator / Selection */}
                 <div className={`flex-shrink-0 w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center transition-colors ${
                   isSelected 
-                    ? "bg-purple-500" 
+                    ? "bg-primary" 
                     : isProcessing 
                       ? "bg-yellow-500" 
                       : "bg-red-500 hover:bg-red-600 active:bg-red-700"
@@ -1726,7 +1726,7 @@ export default function ImageCollections() {
                 </div>
 
                 {/* Thumbnail */}
-                <div className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden bg-gray-100">
+                <div className="flex-shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden bg-muted">
                   {file.type === "video" ? (
                     <video
                       src={file.url} 
@@ -1757,20 +1757,20 @@ export default function ImageCollections() {
                 {/* File Info */}
                 <div className="flex-1 min-w-0">
                   <p 
-                    className="text-sm sm:text-base font-medium text-purple-600 truncate group relative cursor-help"
+                    className="text-sm sm:text-base font-medium text-primary truncate group relative cursor-help"
                     title={fullname !== filename ? fullname : undefined}
                   >
                       {filename}
                     {fullname !== filename && (
-                      <span className="absolute left-0 bottom-full mb-2 hidden group-hover:block bg-gray-900 text-white text-xs px-3 py-2 rounded whitespace-nowrap z-20 shadow-lg max-w-sm truncate">
+                      <span className="absolute left-0 bottom-full mb-2 hidden group-hover:block bg-[#050505] text-white text-xs px-3 py-2 rounded whitespace-nowrap z-20 shadow-lg max-w-sm truncate">
                         {fullname}
                       </span>
                     )}
                     </p>
-                  <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500">
+                  <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
                     <span>{file.type === "video" ? "Video" : "Image"}</span>
                     <span>•</span>
-                    <span className="text-gray-400">{formatFileSize(estimatedSize)}</span>
+                    <span className="text-muted-foreground">{formatFileSize(estimatedSize)}</span>
                     {isFailed && (
                       <>
                         <span>•</span>
@@ -1787,7 +1787,7 @@ export default function ImageCollections() {
                   {isProcessing && (
                     <div className="mt-2 space-y-1">
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 h-1.5 rounded-full bg-gray-200 overflow-hidden">
+                        <div className="flex-1 h-1.5 rounded-full bg-muted overflow-hidden">
                           <div
                             className="h-full bg-gradient-to-r from-yellow-500 to-yellow-400 rounded-full transition-all duration-300 animate-pulse"
                             style={{ width: `${fileProgress[file.id] || 45}%` }}
@@ -1797,7 +1797,7 @@ export default function ImageCollections() {
                           {fileProgress[file.id] || 45}%
                         </span>
                       </div>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         Indexing... ~{Math.max(1, Math.ceil((100 - (fileProgress[file.id] || 45)) / 50))} min remaining
                       </p>
                     </div>
@@ -1817,10 +1817,10 @@ export default function ImageCollections() {
                     e.stopPropagation();
                     window.open(file.url, '_blank');
                   }}
-                  className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-purple-100 hover:bg-purple-200 active:bg-purple-300 flex items-center justify-center transition-colors touch-manipulation"
+                  className="flex-shrink-0 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-primary/10 hover:bg-primary/20 active:bg-primary/30 flex items-center justify-center transition-colors touch-manipulation"
                   title="Open in new tab"
                 >
-                  <ExternalLink className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-purple-600" />
+                  <ExternalLink className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-primary" />
                 </button>
               </div>
               );
@@ -1831,20 +1831,20 @@ export default function ImageCollections() {
       {/* Create Collection Modal */}
       {showCreateCollectionModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl sm:rounded-2xl p-4 sm:p-6 w-full max-w-md shadow-xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-card rounded-none sm:rounded-2xl p-4 sm:p-6 w-full max-w-md shadow-xl max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Create Collection</h2>
+              <h2 className="text-lg font-semibold text-foreground">Create Collection</h2>
               <button 
                 onClick={() => {
                   setShowCreateCollectionModal(false);
                   setNewCollectionName("");
                 }}
-                className="p-1 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-1 hover:bg-muted rounded-lg transition-colors"
               >
-                <X className="h-5 w-5 text-gray-500" />
+                <X className="h-5 w-5 text-muted-foreground" />
               </button>
             </div>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-muted-foreground mb-4">
               Create a new collection to organize your uploads.
             </p>
             <Input
@@ -1872,7 +1872,7 @@ export default function ImageCollections() {
               <Button 
                 onClick={handleCreateCollection}
                 disabled={!newCollectionName.trim() || isCreatingCollection}
-                className="bg-[#7c3aed] hover:bg-purple-700"
+                className="bg-primary hover:bg-primary/90"
               >
                 {isCreatingCollection ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                 Create

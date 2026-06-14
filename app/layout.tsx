@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
-import { Inter, Sora } from "next/font/google";
+import { Inter } from "next/font/google";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { OnboardingProvider } from "@/contexts/OnboardingContext";
@@ -10,13 +12,7 @@ import { PopupManagerWrapper } from "@/components/popups/PopupManagerWrapper";
 
 const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-sans",
-  display: "swap",
-});
-
-const sora = Sora({
-  subsets: ["latin"],
-  variable: "--font-popup",
+  variable: "--font-display",
   display: "swap",
   weight: ["400", "500", "600", "700"],
 });
@@ -131,10 +127,10 @@ export const metadata: Metadata = {
     "apple-mobile-web-app-title": "Snoolink",
     "format-detection": "telephone=no",
     "mobile-web-app-capable": "yes",
-    "msapplication-TileColor": "#7c3aed",
+    "msapplication-TileColor": "#2BC8B7",
     "msapplication-config": "/browserconfig.xml",
     "msapplication-tap-highlight": "no",
-    "theme-color": "#7c3aed",
+    "theme-color": "#010010",
   },
 };
 
@@ -183,7 +179,7 @@ export default function RootLayout({
   };
 
   return (
-    <html lang="en">
+    <html lang="en" className="dark">
       <head>
         <script
           type="application/ld+json"
@@ -195,7 +191,13 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${inter.variable} ${sora.variable} font-sans antialiased min-h-screen bg-background text-foreground overflow-x-hidden`}
+        className={`${inter.variable} ${GeistSans.variable} ${GeistMono.variable} font-sans antialiased min-h-screen bg-background text-foreground overflow-x-hidden`}
+        style={{
+          ["--font-sans" as string]: "var(--font-display), system-ui, sans-serif",
+          ["--font-body" as string]: "var(--font-geist-sans), var(--font-display), system-ui, sans-serif",
+          ["--font-mono" as string]: "var(--font-geist-mono), ui-monospace, monospace",
+          ["--font-popup" as string]: "var(--font-body)",
+        }}
       >
         <a
           href="#main"

@@ -729,7 +729,7 @@ export default function ImageSearch() {
                 Find specific moments in your media library instantly.
               </p>
               {collections && collections.length > 0 && !isLoadingCollections && collections.reduce((a, c) => a + c.count, 0) === 0 && (
-                <p className="text-sm text-purple-600 mt-2">
+                <p className="text-sm text-primary mt-2">
                   <button
                     type="button"
                     onClick={() => router.push("/?view=uploads")}
@@ -744,7 +744,7 @@ export default function ImageSearch() {
             <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
               <Button
                 size="sm"
-                className="flex items-center gap-2 bg-[#7c3aed] hover:bg-purple-700 text-white flex-1 sm:flex-initial text-xs sm:text-sm"
+                className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white flex-1 sm:flex-initial text-xs sm:text-sm"
                 onClick={() => router.push("/?view=uploads")}
                 aria-label="Go to Uploads to add media"
               >
@@ -878,29 +878,29 @@ export default function ImageSearch() {
                 type="checkbox"
                 checked={expandQuery}
                 onChange={(e) => setExpandQuery(e.target.checked)}
-                className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                className="rounded border-border text-primary focus:ring-primary"
                 aria-label="Expand query with AI"
               />
-              <span className="text-xs sm:text-sm text-gray-600 whitespace-nowrap">Expand query</span>
+              <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">Expand query</span>
             </label>
 
             {/* Divider */}
-            <div className="hidden sm:block w-px h-8 bg-gray-200 flex-shrink-0" />
+            <div className="hidden sm:block w-px h-8 bg-muted flex-shrink-0" />
 
             {/* Collection Chips - Horizontal Scrollable */}
             <div className="flex items-center gap-2 flex-1 min-w-0 w-full sm:w-auto">
               {/* Label */}
-              <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider flex-shrink-0 hidden sm:inline">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex-shrink-0 hidden sm:inline">
                 in:
               </span>
 
               {/* Scroll Left Button */}
               <button
                 onClick={() => scrollCollectionChips("left")}
-                className="flex-shrink-0 w-8 h-8 sm:w-7 sm:h-7 rounded-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 flex items-center justify-center transition-colors touch-manipulation"
+                className="flex-shrink-0 w-8 h-8 sm:w-7 sm:h-7 rounded-full bg-muted hover:bg-muted active:bg-muted flex items-center justify-center transition-colors touch-manipulation"
                 aria-label="Scroll left"
               >
-                <ChevronLeft className="h-4 w-4 text-gray-600" />
+                <ChevronLeft className="h-4 w-4 text-muted-foreground" />
               </button>
 
               {/* Scrollable Collection Chips */}
@@ -922,14 +922,14 @@ export default function ImageSearch() {
                     <button
                       onClick={() => toggleCollection("all")}
                       className={`flex-shrink-0 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all touch-manipulation ${selectedCollections.includes("all")
-                          ? "bg-[#7c3aed] text-white"
-                          : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300"
+                          ? "bg-primary text-white"
+                          : "bg-muted text-foreground/80 hover:bg-muted active:bg-muted"
                         }`}
                     >
                       <span>All</span>
                       <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedCollections.includes("all")
-                          ? "bg-purple-500 text-purple-100"
-                          : "bg-gray-200 text-gray-500"
+                          ? "bg-primary text-primary-foreground/80"
+                          : "bg-muted text-muted-foreground"
                         }`}>
                         {collections.reduce((acc, c) => acc + c.count, 0)}
                       </span>
@@ -941,14 +941,14 @@ export default function ImageSearch() {
                         key={collection.name}
                         onClick={() => toggleCollection(collection.name)}
                         className={`flex-shrink-0 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all touch-manipulation ${selectedCollections.includes(collection.name)
-                            ? "bg-[#7c3aed] text-white"
-                            : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300"
+                            ? "bg-primary text-white"
+                            : "bg-muted text-foreground/80 hover:bg-muted active:bg-muted"
                           }`}
                       >
                         <span className="truncate max-w-[100px] sm:max-w-[120px]">{collection.name}</span>
                         <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedCollections.includes(collection.name)
-                            ? "bg-purple-500 text-purple-100"
-                            : "bg-gray-200 text-gray-500"
+                            ? "bg-primary text-primary-foreground/80"
+                            : "bg-muted text-muted-foreground"
                           }`}>
                           {collection.count}
                         </span>
@@ -961,15 +961,15 @@ export default function ImageSearch() {
               {/* Scroll Right Button */}
               <button
                 onClick={() => scrollCollectionChips("right")}
-                className="flex-shrink-0 w-8 h-8 sm:w-7 sm:h-7 rounded-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 flex items-center justify-center transition-colors touch-manipulation"
+                className="flex-shrink-0 w-8 h-8 sm:w-7 sm:h-7 rounded-full bg-muted hover:bg-muted active:bg-muted flex items-center justify-center transition-colors touch-manipulation"
                 aria-label="Scroll right"
               >
-                <ChevronRight className="h-4 w-4 text-gray-600" />
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </button>
 
               {/* Selection Info */}
               {!selectedCollections.includes("all") && selectedCollections.length > 0 && (
-                <span className="flex-shrink-0 text-xs text-purple-600 font-medium whitespace-nowrap hidden sm:inline">
+                <span className="flex-shrink-0 text-xs text-primary font-medium whitespace-nowrap hidden sm:inline">
                   {selectedCollections.length}/3
                 </span>
               )}
@@ -985,10 +985,10 @@ export default function ImageSearch() {
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           {/* Search Results Header - Sticky */}
           {!isSearching && hasResults && (
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between py-3 sm:py-4 px-4 sm:px-6 bg-white sticky top-0 z-10 border-b border-gray-100 flex-shrink-0 gap-2 sm:gap-0">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between py-3 sm:py-4 px-4 sm:px-6 bg-background sticky top-0 z-10 border-b border-border flex-shrink-0 gap-2 sm:gap-0">
               <div className="flex items-center gap-2">
-                <h2 className="text-lg sm:text-xl font-bold text-gray-900">Results</h2>
-                <span className="w-6 h-6 rounded-full bg-purple-100 text-purple-700 text-xs font-bold flex items-center justify-center">
+                <h2 className="text-lg sm:text-xl font-bold text-foreground">Results</h2>
+                <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center">
                   {mode === "image" ? imageResults.length : Object.keys(videoResults).length}
                 </span>
               </div>
@@ -1003,10 +1003,10 @@ export default function ImageSearch() {
                   <Sparkles className="h-4 w-4" />
                   <span>Insights</span>
                 </Button>
-                <div className="flex items-center text-xs sm:text-sm text-gray-500">
+                <div className="flex items-center text-xs sm:text-sm text-muted-foreground">
                   <span className="hidden sm:inline">Sort by:</span>
                   <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="w-auto border-0 bg-transparent text-gray-900 hover:bg-gray-50 rounded-lg gap-1 pl-1 pr-0 h-auto py-0 font-medium text-xs sm:text-sm">
+                    <SelectTrigger className="w-auto border-0 bg-transparent text-foreground hover:bg-muted/30 rounded-lg gap-1 pl-1 pr-0 h-auto py-0 font-medium text-xs sm:text-sm">
                       <span className="hidden sm:inline">Relevance</span>
                       <span className="sm:hidden">Sort</span>
                     </SelectTrigger>
@@ -1050,7 +1050,7 @@ export default function ImageSearch() {
                       >
                         <div className={`flex ${viewMode === "grid" ? "flex-col" : "flex-col sm:flex-row"} gap-3 sm:gap-5`}>
                           {/* Thumbnail */}
-                          <div className={`relative ${viewMode === "grid" ? "w-full aspect-square" : "w-full xs:w-32 h-48 xs:h-32"} flex-shrink-0 rounded-lg sm:rounded-xl overflow-hidden bg-gray-100`}>
+                          <div className={`relative ${viewMode === "grid" ? "w-full aspect-square" : "w-full xs:w-32 h-48 xs:h-32"} flex-shrink-0 rounded-none overflow-hidden bg-muted`}>
                             {viewMode === "list" ? (
                               <Image
                                 src={result.imageUrl}
@@ -1076,9 +1076,9 @@ export default function ImageSearch() {
                               />
                             )}
                             {matchPercentage > 0 && (
-                              <div className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 bg-purple-600 text-white text-xs font-medium px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full flex items-center gap-1 group">
+                              <div className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 bg-primary text-white text-xs font-medium px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-full flex items-center gap-1 group">
                                 {matchPercentage}% Match
-                                <div className="absolute left-0 top-6 w-48 p-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 hidden sm:block">
+                                <div className="absolute left-0 top-6 w-48 p-2 bg-[#050505] text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 hidden sm:block">
                                   Semantic similarity score between your query and this image
                                 </div>
                               </div>
@@ -1088,29 +1088,29 @@ export default function ImageSearch() {
                           {/* Content */}
                           <div className="flex-1 flex flex-col justify-between min-w-0">
                             <div>
-                              <h3 className="text-sm sm:text-base font-semibold text-gray-900 mb-1 sm:mb-1.5">
+                              <h3 className="text-sm sm:text-base font-semibold text-foreground mb-1 sm:mb-1.5">
                                 {sceneSummary}
                               </h3>
                               {!compactMode && (
                                 <>
                                   {matchReasons.matched.length > 0 && (
-                                    <div className="mb-3 p-2 bg-gray-50 rounded border border-gray-200">
-                                      <p className="text-xs font-medium text-gray-700 mb-1.5">Why this matched:</p>
-                                      <ul className="text-xs text-gray-600 space-y-0.5 mb-2">
+                                    <div className="mb-3 p-2 bg-muted/30 rounded border border-border">
+                                      <p className="text-xs font-medium text-foreground/80 mb-1.5">Why this matched:</p>
+                                      <ul className="text-xs text-muted-foreground space-y-0.5 mb-2">
                                         {matchReasons.matched.map((reason, idx) => (
                                           <li key={idx} className="flex items-start gap-1">
-                                            <span className="text-purple-600">•</span>
+                                            <span className="text-primary">•</span>
                                             <span>{reason}</span>
                                           </li>
                                         ))}
                                       </ul>
                                       {matchReasons.additional.length > 0 && (
                                         <>
-                                          <p className="text-xs font-medium text-gray-600 mb-1">Additional context detected:</p>
-                                          <ul className="text-xs text-gray-500 space-y-0.5">
+                                          <p className="text-xs font-medium text-muted-foreground mb-1">Additional context detected:</p>
+                                          <ul className="text-xs text-muted-foreground space-y-0.5">
                                             {matchReasons.additional.map((reason, idx) => (
                                               <li key={idx} className="flex items-start gap-1">
-                                                <span className="text-gray-400">•</span>
+                                                <span className="text-muted-foreground">•</span>
                                                 <span>{reason}</span>
                                               </li>
                                             ))}
@@ -1127,7 +1127,7 @@ export default function ImageSearch() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="h-8 text-xs text-gray-600 hover:text-gray-900"
+                                  className="h-8 text-xs text-muted-foreground hover:text-foreground"
                                   onClick={() => handleDownloadImage(result.imageUrl)}
                                 >
                                   <Download className="h-3.5 w-3.5 mr-1.5" />
@@ -1136,13 +1136,13 @@ export default function ImageSearch() {
                                 <Button
                                   variant="ghost"
                                   size="sm"
-                                  className="h-8 text-xs text-gray-600 hover:text-gray-900"
+                                  className="h-8 text-xs text-muted-foreground hover:text-foreground"
                                 >
                                   <Share2 className="h-3.5 w-3.5 mr-1.5" />
                                   Share
                                 </Button>
                               </div>
-                              <Button variant="ghost" size="icon" className="h-8 w-8 text-gray-500 hover:text-gray-700">
+                              <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground/80">
                                 <MoreVertical className="h-4 w-4" />
                               </Button>
                             </div>
@@ -1185,7 +1185,7 @@ export default function ImageSearch() {
                       >
                         <div className={`flex ${viewMode === "grid" ? "flex-col" : "flex-col sm:flex-row"} gap-3 sm:gap-5`}>
                           {/* Thumbnail */}
-                          <div className="relative w-[300px] h-[250px] flex-shrink-0 rounded-lg sm:rounded-xl overflow-hidden bg-gray-900 flex items-center justify-center shadow-lg border border-gray-200 transition-all duration-200 group-hover:shadow-2xl group-hover:border-purple-200">
+                          <div className="relative w-[300px] h-[250px] flex-shrink-0 rounded-none overflow-hidden bg-[#050505] flex items-center justify-center shadow-lg border border-border transition-all duration-200 group-hover:shadow-2xl group-hover:border-primary/20">
                             {videoResult.videoUrl ? (
                               <>
                                 <video
@@ -1223,7 +1223,7 @@ export default function ImageSearch() {
                                 />
                                 {/* Match badge */}
                                 {matchPercentage > 0 && (
-                                  <div className="absolute top-3 left-3 bg-purple-600 text-white text-xs font-semibold px-3 py-1.5 rounded-lg z-10 pointer-events-none shadow-lg backdrop-blur-sm border border-purple-500/30">
+                                  <div className="absolute top-3 left-3 bg-primary text-white text-xs font-semibold px-3 py-1.5 rounded-lg z-10 pointer-events-none shadow-lg backdrop-blur-sm border border-primary/30">
                                     {matchPercentage}% Match
                                   </div>
                                 )}
@@ -1236,7 +1236,7 @@ export default function ImageSearch() {
                               </>
                             ) : (
                               <div className="w-full h-full flex items-center justify-center">
-                                <Video className="h-8 w-8 text-gray-400" />
+                                <Video className="h-8 w-8 text-muted-foreground" />
                               </div>
                             )}
                           </div>
@@ -1245,11 +1245,11 @@ export default function ImageSearch() {
                           <div className="flex-1 flex flex-col justify-between min-w-0 pr-6 sm:pr-8">
                             <div>
                               <div className="flex flex-col mb-1.5 sm:mb-2">
-                                <h3 className="text-sm sm:text-base md:text-lg font-bold text-gray-900">
+                                <h3 className="text-sm sm:text-base md:text-lg font-bold text-foreground">
                                   {videoTitle}
                                 </h3>
                                 {videoDuration > 0 && (
-                                  <p className="text-xs text-gray-500 mt-0.5">
+                                  <p className="text-xs text-muted-foreground mt-0.5">
                                     Duration: {formatTime(videoDuration)}
                                   </p>
                                 )}
@@ -1259,19 +1259,19 @@ export default function ImageSearch() {
                               {clips.length > 0 && (
                                 <div className="mt-3 sm:mt-4 space-y-3">
                                   <div className="flex items-center gap-2">
-                                    <span className="bg-purple-50 border border-purple-200 text-purple-700 rounded-full px-3 py-1 text-xs font-medium">
+                                    <span className="bg-primary/5 border border-primary/20 text-primary rounded-full px-3 py-1 text-xs font-medium">
                                       {clips.length} Matches
                                     </span>
-                                    <span className="text-xs text-gray-600 font-medium">Found in this video</span>
+                                    <span className="text-xs text-muted-foreground font-medium">Found in this video</span>
                                   </div>
 
                                   {/* Progress Bar */}
                                   {videoDuration > 0 && (
-                                    <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
+                                    <div className="relative h-2 bg-muted rounded-full overflow-hidden">
                                       {progressSegments.map((segment, idx) => (
                                         <div
                                           key={idx}
-                                          className="absolute h-full bg-purple-600 rounded-full"
+                                          className="absolute h-full bg-primary rounded-full"
                                           style={{
                                             left: `${segment.startPercent}%`,
                                             width: `${segment.widthPercent}%`,
@@ -1293,12 +1293,12 @@ export default function ImageSearch() {
                                         <div
                                           key={clip.id}
                                           className={`flex items-start gap-2 p-2 rounded-lg transition-all duration-200 cursor-pointer group ${isSelected
-                                              ? 'bg-purple-50 border border-purple-200 hover:bg-purple-100 hover:border-purple-400 hover:shadow-md hover:scale-[1.02]'
-                                              : 'bg-white border border-transparent hover:bg-purple-50 hover:border-purple-200 hover:shadow-md hover:scale-[1.02]'
+                                              ? 'bg-primary/5 border border-primary/20 hover:bg-primary/10 hover:border-primary/40 hover:shadow-md hover:scale-[1.02]'
+                                              : 'bg-card border border-transparent hover:bg-primary/5 hover:border-primary/20 hover:shadow-md hover:scale-[1.02]'
                                             }`}
                                           onClick={() => handleClipClick(videoResult.videoUrl, clip.id, startTime, endTime)}
                                         >
-                                          <div className="w-12 h-12 rounded-full bg-gray-200 flex-shrink-0 overflow-hidden">
+                                          <div className="w-12 h-12 rounded-full bg-muted flex-shrink-0 overflow-hidden">
                                             <video
                                               src={videoResult.videoUrl}
                                               className="w-full h-full object-cover"
@@ -1314,19 +1314,19 @@ export default function ImageSearch() {
                                           <div className="flex-1 min-w-0 flex items-center justify-between gap-2">
                                             <div className="flex flex-col flex-1 min-w-0 gap-0.5">
                                               <div className="flex items-center gap-2">
-                                                <Clock className={`h-3 w-3 flex-shrink-0 transition-colors duration-200 ${isSelected ? 'text-purple-600' : 'text-gray-400'}`} />
-                                                <span className={`text-xs font-medium transition-colors duration-200 ${isSelected ? 'text-purple-700' : 'text-gray-600'}`}>
+                                                <Clock className={`h-3 w-3 flex-shrink-0 transition-colors duration-200 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
+                                                <span className={`text-xs font-medium transition-colors duration-200 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`}>
                                                   {formatTime(startTime)} - {formatTime(endTime)}
                                                 </span>
                                               </div>
-                                              <span className={`text-xs truncate transition-colors duration-200 ${isSelected ? 'text-purple-600' : 'text-gray-500'}`} title={videoTitle}>
+                                              <span className={`text-xs truncate transition-colors duration-200 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} title={videoTitle}>
                                                 {videoTitle}
                                               </span>
                                             </div>
                                             <Button
                                               variant="ghost"
                                               size="icon"
-                                              className="h-7 w-7 flex-shrink-0 text-gray-500 hover:text-purple-600 hover:bg-purple-50 transition-all duration-200"
+                                              className="h-7 w-7 flex-shrink-0 text-muted-foreground hover:text-primary hover:bg-primary/5 transition-all duration-200"
                                               onClick={(e) => {
                                                 e.stopPropagation();
                                                 if (videoResult.videoUrl && startTime >= 0 && endTime > startTime) {
@@ -1375,11 +1375,11 @@ export default function ImageSearch() {
             onClick={resetSidebarTimer}
           >
             {/* Search Insights */}
-            <Card className="p-4 bg-white border border-gray-200 rounded-xl shadow-sm">
+            <Card className="p-4 bg-card border border-border rounded-none">
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-purple-600" />
-                  <h3 className="text-sm font-semibold text-gray-900">Search Insights</h3>
+                  <Sparkles className="h-4 w-4 text-primary" />
+                  <h3 className="text-sm font-semibold text-foreground">Search Insights</h3>
                 </div>
                 <Button
                   variant="ghost"
@@ -1394,26 +1394,26 @@ export default function ImageSearch() {
 
               {/* Stats Grid */}
               <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 mb-4">
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-xs text-gray-500 mb-1">Total Hits</p>
-                  <p className="text-2xl font-bold text-gray-900">
+                <div className="bg-muted/30 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground mb-1">Total Hits</p>
+                  <p className="text-2xl font-bold text-foreground">
                     {(mode === "image" ? imageResults.length : Object.keys(videoResults).length).toLocaleString()}
                   </p>
                 </div>
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-xs text-gray-500 mb-1">Avg. Conf.</p>
-                  <p className="text-2xl font-bold text-gray-900">{Math.round(avgConfidence)}%</p>
+                <div className="bg-muted/30 rounded-lg p-3">
+                  <p className="text-xs text-muted-foreground mb-1">Avg. Conf.</p>
+                  <p className="text-2xl font-bold text-foreground">{Math.round(avgConfidence)}%</p>
                 </div>
               </div>
 
               {/* Dominant Concepts */}
-              <div className="pt-3 border-t border-gray-100">
-                <p className="text-xs text-gray-500 mb-2">Dominant Concepts</p>
+              <div className="pt-3 border-t border-border">
+                <p className="text-xs text-muted-foreground mb-2">Dominant Concepts</p>
                 <div className="flex flex-wrap gap-2">
                   {(queryInterpretation.length > 0 ? queryInterpretation.slice(0, 3) : ["Snow", "Nature", "Cold"]).map((concept, idx) => (
                     <span
                       key={idx}
-                      className="px-3 py-1 text-xs bg-purple-100 text-purple-700 rounded-full font-medium"
+                      className="px-3 py-1 text-xs bg-primary/10 text-primary rounded-full font-medium"
                     >
                       {concept}
                     </span>
@@ -1424,9 +1424,9 @@ export default function ImageSearch() {
 
             {/* Your collections (real data) */}
             {collections.length > 0 && (
-              <Card className="p-4 bg-white border border-gray-200 rounded-xl shadow-sm">
+              <Card className="p-4 bg-card border border-border rounded-none">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-semibold text-gray-900">Your collections</h3>
+                  <h3 className="text-sm font-semibold text-foreground">Your collections</h3>
                   <button
                     type="button"
                     onClick={(e) => {
@@ -1434,7 +1434,7 @@ export default function ImageSearch() {
                       resetSidebarTimer();
                       router.push("/?view=collections");
                     }}
-                    className="text-xs text-purple-600 hover:text-purple-700 font-medium"
+                    className="text-xs text-primary hover:text-primary font-medium"
                   >
                     View all
                   </button>
@@ -1449,18 +1449,18 @@ export default function ImageSearch() {
                         resetSidebarTimer();
                         toggleCollection(col.name);
                       }}
-                      className="w-full flex items-center justify-between cursor-pointer hover:bg-gray-50 -mx-2 px-2 py-2 rounded-lg transition-colors text-left"
+                      className="w-full flex items-center justify-between cursor-pointer hover:bg-muted/30 -mx-2 px-2 py-2 rounded-lg transition-colors text-left"
                     >
                       <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
-                          <Folder className="h-4 w-4 text-purple-600" />
+                        <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
+                          <Folder className="h-4 w-4 text-primary" />
                         </div>
                         <div>
-                          <span className="text-sm font-medium text-gray-800">{col.name}</span>
-                          <p className="text-xs text-gray-500">{col.count} items</p>
+                          <span className="text-sm font-medium text-foreground">{col.name}</span>
+                          <p className="text-xs text-muted-foreground">{col.count} items</p>
                         </div>
                       </div>
-                      <ChevronRight className="h-4 w-4 text-gray-400" />
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
                     </button>
                   ))}
                 </div>
@@ -1468,14 +1468,14 @@ export default function ImageSearch() {
             )}
 
             {/* Search tips */}
-            <Card className="p-4 bg-purple-50 border border-purple-100 rounded-xl relative overflow-hidden">
+            <Card className="p-4 bg-primary/5 border border-primary/10 rounded-xl relative overflow-hidden">
               <div className="flex items-start gap-3">
-                <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Lightbulb className="h-4 w-4 text-purple-600" />
+                <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Lightbulb className="h-4 w-4 text-primary" />
                 </div>
                 <div className="flex-1 pr-8">
-                  <h4 className="text-sm font-semibold text-gray-900 mb-1">Refine your search</h4>
-                  <p className="text-sm text-gray-600 mb-2">
+                  <h4 className="text-sm font-semibold text-foreground mb-1">Refine your search</h4>
+                  <p className="text-sm text-muted-foreground mb-2">
                     Try: broader terms, emotions, or actions.
                   </p>
                   <div className="flex flex-wrap gap-1.5">
@@ -1488,7 +1488,7 @@ export default function ImageSearch() {
                           resetSidebarTimer();
                           handleExampleClick(ex);
                         }}
-                        className="text-xs px-2.5 py-1 bg-white/80 hover:bg-white border border-purple-200 rounded-full text-purple-700 font-medium"
+                        className="text-xs px-2.5 py-1 bg-white/80 hover:bg-card border border-primary/20 rounded-full text-primary font-medium"
                       >
                         {ex}
                       </button>

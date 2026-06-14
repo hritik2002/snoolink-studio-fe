@@ -13,38 +13,38 @@ interface ComingSoonProps {
 export function ComingSoon({ title, description, icon, features }: ComingSoonProps) {
   return (
     <div className="flex-1 flex items-center justify-center min-h-[60vh] min-w-0 py-12 overflow-x-hidden">
-      <Card className="max-w-2xl w-full p-8 md:p-12 bg-white border border-gray-200">
+      <Card className="max-w-2xl w-full p-8 md:p-12 bg-card border border-border">
         <div className="flex flex-col items-center text-center space-y-6">
           {/* Icon */}
-          <div className="w-20 h-20 rounded-full bg-purple-100 flex items-center justify-center">
-            <div className="text-purple-600">
+          <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
+            <div className="text-primary">
               {icon}
             </div>
           </div>
 
           {/* Title and Description */}
           <div className="space-y-2">
-            <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
-            <p className="text-lg text-gray-600 max-w-md mx-auto">
+            <h1 className="text-3xl font-medium text-foreground">{title}</h1>
+            <p className="text-lg text-muted-foreground max-w-md mx-auto">
               {description}
             </p>
           </div>
 
           {/* Coming Soon Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-50 border border-purple-200 rounded-full">
-            <Sparkles className="h-4 w-4 text-purple-600" />
-            <span className="text-sm font-medium text-purple-700">Coming Soon</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/5 border border-primary/20 rounded-full">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium text-primary">Coming Soon</span>
           </div>
 
           {/* Features Preview */}
           {features && features.length > 0 && (
-            <div className="w-full mt-8 pt-8 border-t border-gray-200">
-              <p className="text-sm font-semibold text-gray-700 mb-4">What to expect:</p>
+            <div className="w-full mt-8 pt-8 border-t border-border">
+              <p className="text-sm font-semibold text-foreground/80 mb-4">What to expect:</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-left">
                 {features.map((feature, idx) => (
                   <div key={idx} className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-purple-600 mt-2 flex-shrink-0" />
-                    <span className="text-sm text-gray-600">{feature}</span>
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
+                    <span className="text-sm text-muted-foreground">{feature}</span>
                   </div>
                 ))}
               </div>
@@ -52,8 +52,8 @@ export function ComingSoon({ title, description, icon, features }: ComingSoonPro
           )}
 
           {/* Status Message */}
-          <div className="mt-8 pt-6 border-t border-gray-200 w-full">
-            <div className="flex items-center justify-center gap-2 text-sm text-gray-500">
+          <div className="mt-8 pt-6 border-t border-border w-full">
+            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
               <Clock className="h-4 w-4" />
               <span>We&apos;re working hard to bring you this feature</span>
             </div>

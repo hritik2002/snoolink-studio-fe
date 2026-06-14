@@ -83,7 +83,7 @@ export default function AdminPage() {
   if (loading) {
     return (
       <div className="min-h-svh flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -91,9 +91,9 @@ export default function AdminPage() {
   if (!isAdmin) {
     return (
       <div className="min-h-svh flex flex-col items-center justify-center p-6">
-        <Shield className="h-12 w-12 text-gray-400 mb-4" />
-        <h1 className="text-xl font-semibold text-gray-900 mb-2">Access denied</h1>
-        <p className="text-gray-600 mb-6">Only admins can access this page.</p>
+        <Shield className="h-12 w-12 text-muted-foreground mb-4" />
+        <h1 className="text-xl font-semibold text-foreground mb-2">Access denied</h1>
+        <p className="text-muted-foreground mb-6">Only admins can access this page.</p>
         <Link href="/">
           <Button variant="outline" className="gap-2">
             <ArrowLeft className="h-4 w-4" /> Back to app
@@ -104,12 +104,12 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-svh bg-gray-50">
-      <header className="border-b border-gray-200 bg-white px-4 py-3 flex items-center gap-4">
-        <Link href="/" className="text-gray-600 hover:text-gray-900">
+    <div className="min-h-svh bg-muted/30">
+      <header className="border-b border-border bg-background px-4 py-3 flex items-center gap-4">
+        <Link href="/" className="text-muted-foreground hover:text-foreground">
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <h1 className="text-lg font-semibold text-gray-900">Admin – Prompts</h1>
+        <h1 className="text-lg font-semibold text-foreground">Admin – Prompts</h1>
         <Link href="/admin-analytics" className="ml-auto">
           <Button variant="outline" size="sm" className="gap-2">
             <BarChart2 className="h-4 w-4" /> Platform Analytics
@@ -119,10 +119,10 @@ export default function AdminPage() {
 
       <main className="max-w-2xl mx-auto p-4 sm:p-6 space-y-6">
         <Card className="p-4 sm:p-6">
-          <h2 className="text-base font-medium text-gray-900 mb-4">Add new prompt</h2>
+          <h2 className="text-base font-medium text-foreground mb-4">Add new prompt</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label htmlFor="model" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="model" className="block text-sm font-medium text-foreground/80 mb-1">
                 Model name (unique)
               </label>
               <Input
@@ -134,7 +134,7 @@ export default function AdminPage() {
               />
             </div>
             <div>
-              <label htmlFor="prompt" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="prompt" className="block text-sm font-medium text-foreground/80 mb-1">
                 Prompt
               </label>
               <textarea
@@ -156,18 +156,18 @@ export default function AdminPage() {
         </Card>
 
         <div>
-          <h2 className="text-base font-medium text-gray-900 mb-3">Prompts by model</h2>
+          <h2 className="text-base font-medium text-foreground mb-3">Prompts by model</h2>
           <div className="space-y-3">
             {prompts.length === 0 ? (
-              <p className="text-sm text-gray-500">No prompts yet. Add one above.</p>
+              <p className="text-sm text-muted-foreground">No prompts yet. Add one above.</p>
             ) : (
               prompts.map((row) => (
                 <Card key={row.id} className="p-3 sm:p-4">
                   <div className="flex items-center justify-between gap-2 mb-1">
-                    <span className="font-medium text-gray-900">{row.model}</span>
-                    <span className="text-xs text-gray-500">{row.creator}</span>
+                    <span className="font-medium text-foreground">{row.model}</span>
+                    <span className="text-xs text-muted-foreground">{row.creator}</span>
                   </div>
-                  <p className="text-sm text-gray-600 line-clamp-3">{row.prompt}</p>
+                  <p className="text-sm text-muted-foreground line-clamp-3">{row.prompt}</p>
                 </Card>
               ))
             )}

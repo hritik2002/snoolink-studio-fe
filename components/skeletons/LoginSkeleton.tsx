@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function LoginSkeleton() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-white relative overflow-hidden">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background dot-grid relative overflow-hidden">
       <div className="relative z-10 flex flex-col items-center w-full max-w-lg px-6">
         <div className="flex flex-col items-center mb-6">
           <Skeleton className="h-20 w-20 rounded-full mb-4" />
@@ -17,7 +17,7 @@ export function LoginSkeleton() {
           ))}
         </div>
         <Skeleton className="w-full max-w-sm h-px mb-8" />
-        <div className="w-full bg-white p-8 space-y-6">
+        <div className="w-full bg-card p-8 space-y-6">
           <div className="text-center space-y-2">
             <Skeleton className="h-6 w-24 mx-auto" />
             <Skeleton className="h-4 w-48 mx-auto" />

@@ -406,7 +406,7 @@ export default function UnifiedUpload() {
             <Button
               onClick={handleUpload}
               disabled={uploading}
-              className="w-full bg-white text-black hover:bg-white/90"
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {uploading ? (
                 <>

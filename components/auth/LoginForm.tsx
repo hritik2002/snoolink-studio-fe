@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ArrowUpRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 export function LoginForm() {
@@ -37,7 +38,7 @@ export function LoginForm() {
   return (
     <div className="w-full">
       {error && (
-        <div className="text-red-600 text-sm bg-red-50 border border-red-200 rounded-lg p-3 mb-4">
+        <div className="text-red-400 text-sm bg-red-950/50 border border-red-900/50 rounded-[6px] p-3 mb-4">
           {error}
         </div>
       )}
@@ -46,9 +47,8 @@ export function LoginForm() {
         type="button"
         onClick={handleGoogleLogin}
         disabled={loading}
-        className="w-full flex items-center justify-center gap-3 px-6 py-3.5 bg-gradient-to-r from-purple-600 to-purple-700 text-white rounded-xl hover:from-purple-700 hover:to-purple-800 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl font-semibold text-sm"
+        className="w-full flex items-center justify-center gap-3 px-6 h-12 bg-primary text-primary-foreground rounded-[6px] hover:bg-primary/90 transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed font-medium text-sm"
       >
-        {/* Google Icon */}
         <svg
           className="w-5 h-5"
           viewBox="0 0 24 24"
@@ -72,9 +72,8 @@ export function LoginForm() {
             fill="#EA4335"
           />
         </svg>
-        <span className="text-white font-semibold text-sm">
-          {loading ? "Signing in..." : "Start Free Trial"}
-        </span>
+        <span>{loading ? "Signing in..." : "Start Free Trial"}</span>
+        <ArrowUpRight className="w-4 h-4" />
       </button>
     </div>
   );

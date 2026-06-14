@@ -41,7 +41,7 @@ export function SearchHeaderSkeleton() {
           </div>
         </div>
         
-        <div className="flex items-center gap-2 pb-4 border-b border-gray-100">
+        <div className="flex items-center gap-2 pb-4 border-b border-border">
           <Skeleton className="h-4 w-12" />
           {[1, 2, 3].map((i) => (
             <Skeleton key={i} className="h-7 w-32 rounded-full" />

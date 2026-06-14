@@ -51,12 +51,12 @@ export function AnnouncementBanner({
 
   const variantConfig = {
     default: {
-      bg: "bg-gradient-to-r from-[var(--popup-accent-1)] via-[var(--popup-accent-2)] to-[var(--popup-accent-3)]",
+      bg: "announcement-bar",
       text: "text-white",
       icon: Sparkles,
-      iconBg: "bg-white/20",
+      iconBg: "bg-primary/20",
       link: "text-white/90 hover:text-white underline-offset-4",
-      border: "border-b border-white/20",
+      border: "border-b border-white/10",
     },
     info: {
       bg: "bg-gradient-to-r from-blue-500 via-cyan-500 to-blue-600",

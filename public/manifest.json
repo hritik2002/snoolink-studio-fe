@@ -4,8 +4,8 @@
   "description": "Transform how you find content with AI-powered semantic search. Upload videos and images, search by meaning instantly.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#7c3aed",
+  "background_color": "#010010",
+  "theme_color": "#2BC8B7",
   "orientation": "portrait-primary",
   "icons": [
     {

@@ -122,7 +122,7 @@ export function EmailCapturePopup({
             "absolute right-4 top-4 z-50 rounded-full p-2",
             "bg-white/80 dark:bg-black/40 backdrop-blur-sm",
             "border border-white/20 dark:border-white/10",
-            "hover:bg-white dark:hover:bg-black/60",
+            "hover:bg-primary/10 dark:hover:bg-black/60",
             "transition-all duration-200",
             "popup-animate-stagger-3"
           )}
@@ -250,7 +250,7 @@ export function EmailCapturePopup({
                     </>
                   )}
                 </span>
-                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-background/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
               </Button>
 
               <Button

@@ -75,7 +75,7 @@ export function OnboardingChecklist() {
       <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center justify-center mb-4">
-            <div className="rounded-full bg-gradient-to-br from-purple-500 to-purple-600 p-3 shadow-lg">
+            <div className="rounded-full bg-gradient-to-br from-primary to-primary p-3 shadow-lg">
               <Sparkles className="h-6 w-6 text-white" />
             </div>
           </div>
@@ -89,15 +89,15 @@ export function OnboardingChecklist() {
 
         {/* Progress */}
         <div className="mb-6">
-          <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+          <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
             <span>Progress</span>
-            <span className="font-semibold text-purple-600">
+            <span className="font-semibold text-primary">
               {completedCount} of {totalCount} complete
             </span>
           </div>
-          <div className="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
+          <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-purple-500 to-purple-600 transition-all duration-500 rounded-full"
+              className="h-full bg-gradient-to-r from-primary to-primary transition-all duration-500 rounded-full"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -148,7 +148,7 @@ export function OnboardingChecklist() {
               handleClose();
               router.push("/?view=uploads");
             }}
-            className="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white"
+            className="flex-1 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-white"
             size="lg"
           >
             Get Started
@@ -192,7 +192,7 @@ function ChecklistItem({
         "w-full text-left p-4 rounded-lg border-2 transition-all duration-200",
         completed
           ? "bg-green-50 border-green-200 cursor-default"
-          : "bg-white border-gray-200 hover:border-purple-400 hover:shadow-md cursor-pointer active:scale-[0.98]"
+          : "bg-card border-border hover:border-primary/40 hover:shadow-md cursor-pointer active:scale-[0.98]"
       )}
     >
       <div className="flex items-center gap-4">
@@ -201,7 +201,7 @@ function ChecklistItem({
             "flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all",
             completed
               ? "bg-green-100 text-green-600"
-              : "bg-purple-100 text-purple-600"
+              : "bg-primary/10 text-primary"
           )}
         >
           {completed ? (
@@ -215,13 +215,13 @@ function ChecklistItem({
             <h4
               className={cn(
                 "text-base font-semibold",
-                completed ? "text-green-900 line-through" : "text-gray-900"
+                completed ? "text-green-900 line-through" : "text-foreground"
               )}
             >
               {title}
             </h4>
             {optional && !completed && (
-              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+              <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                 Optional
               </span>
             )}
@@ -229,7 +229,7 @@ function ChecklistItem({
           <p
             className={cn(
               "text-sm",
-              completed ? "text-green-700" : "text-gray-600"
+              completed ? "text-green-700" : "text-muted-foreground"
             )}
           >
             {description}
@@ -239,7 +239,7 @@ function ChecklistItem({
           <Button
             variant="ghost"
             size="sm"
-            className="text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+            className="text-primary hover:text-primary hover:bg-primary/5"
             onClick={(e) => {
               e.stopPropagation();
               onClick();

@@ -63,18 +63,15 @@ export function SelectTrigger({ children, className }: { children: React.ReactNo
       onClick={() => context.setIsOpen(!context.isOpen)}
       className={cn(
         "flex items-center justify-between gap-2 px-3 py-2 text-sm",
-        "bg-transparent border border-white/10 rounded-md",
-        "hover:border-white/20 transition-colors",
-        "text-white/80",
-        "dark:bg-transparent dark:border-white/10 dark:text-white/80",
-        "bg-white border-gray-300 text-gray-700",
-        "hover:border-gray-400",
+        "bg-input border border-border rounded-[6px]",
+        "hover:border-primary/40 transition-colors",
+        "text-foreground/80",
         "cursor-pointer",
         className
       )}
     >
       {children}
-      <ChevronDown className={cn("h-4 w-4 text-white/60 transition-transform", context.isOpen && "rotate-180")} />
+      <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", context.isOpen && "rotate-180")} />
     </button>
   );
 }
@@ -89,9 +86,7 @@ export function SelectContent({ children, className }: { children: React.ReactNo
     <div
       className={cn(
         "absolute top-full mt-1 right-0 z-50",
-        "bg-[#1a1a1a] border border-white/10 rounded-md shadow-lg",
-        "dark:bg-[#1a1a1a] dark:border-white/10",
-        "bg-white border-gray-200 shadow-xl",
+        "bg-popover border border-border rounded-none shadow-lg",
         "min-w-[150px]",
         className
       )}
@@ -116,16 +111,14 @@ export function SelectItem({ value, children, className }: SelectItemProps) {
       }}
       className={cn(
         "w-full flex items-center justify-between gap-2 px-3 py-2 text-sm",
-        "hover:bg-white/5 transition-colors",
-        "text-white/80",
-        "dark:hover:bg-white/5 dark:text-white/80",
-        "hover:bg-gray-50 text-gray-700",
+        "hover:bg-primary/10 transition-colors",
+        "text-foreground/80",
         "cursor-pointer",
         className
       )}
     >
       <span>{children}</span>
-      {isSelected && <Check className="h-4 w-4 text-white/60" />}
+      {isSelected && <Check className="h-4 w-4 text-primary" />}
     </button>
   );
 }

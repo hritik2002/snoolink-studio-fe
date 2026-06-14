@@ -21,12 +21,12 @@ export function BottomNav() {
   const base =
     "flex flex-col items-center justify-center gap-0.5 flex-1 py-2 text-xs font-medium transition-colors min-h-[44px] touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset rounded-lg";
 
-  const active = "text-purple-600";
+  const active = "text-primary";
   const inactive = "text-muted-foreground";
 
   return (
     <nav
-      className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border safe-area-pb"
+      className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-t border-border safe-area-pb"
       aria-label="Primary"
     >
       <div className="flex">

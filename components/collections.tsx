@@ -490,11 +490,11 @@ export default function Collections() {
     isMobile ? "0" : (sidebarState === "collapsed" ? "var(--sidebar-width-icon)" : "var(--sidebar-width)");
 
   return (
-    <div className="flex-1 flex flex-col h-full min-h-0 min-w-0 bg-white overflow-hidden">
+    <div className="flex-1 flex flex-col h-full min-h-0 min-w-0 bg-background overflow-hidden">
       {/* Fixed header: title, actions, chips, filters, bulk — only the items area scrolls */}
       <div
         ref={headerRef}
-        className="fixed top-0 right-0 z-30 bg-white"
+        className="fixed top-0 right-0 z-30 bg-card"
         style={{ left: fixedHeaderLeft }}
       >
         {/* Header with Premium Gradient Background */}
@@ -541,7 +541,7 @@ export default function Collections() {
                 <Button
                   size="sm"
                   variant="outline"
-                  className="flex items-center gap-2 border-purple-300 text-gray-900 hover:bg-purple-50"
+                  className="flex items-center gap-2 border-primary/30 text-foreground hover:bg-primary/5"
                   onClick={() => setShowShareModal(true)}
                   aria-label="Share collection"
                 >
@@ -576,15 +576,15 @@ export default function Collections() {
         </div>
 
         {/* Collection Chips + Filters */}
-        <div className="border-b border-gray-200">
+        <div className="border-b border-border">
           <div className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3">
             {/* Scroll Left Button */}
             <button
               onClick={() => scrollChips("left")}
-              className="flex-shrink-0 w-8 h-8 sm:w-8 sm:h-8 rounded-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 flex items-center justify-center transition-colors touch-manipulation"
+              className="flex-shrink-0 w-8 h-8 sm:w-8 sm:h-8 rounded-full bg-muted hover:bg-muted active:bg-muted flex items-center justify-center transition-colors touch-manipulation"
               aria-label="Scroll left"
             >
-              <ChevronLeft className="h-4 w-4 text-gray-600" />
+              <ChevronLeft className="h-4 w-4 text-muted-foreground" />
             </button>
 
             {/* Scrollable Collection Chips */}
@@ -599,15 +599,15 @@ export default function Collections() {
                 onClick={() => setSelectedCollection(collection.name)}
                 className={`flex-shrink-0 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all touch-manipulation ${
                   selectedCollection === collection.name
-                    ? "bg-gray-900 text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300"
+                    ? "bg-[#050505] text-white"
+                    : "bg-muted text-foreground/80 hover:bg-muted active:bg-muted"
                 }`}
               >
                 <span className="truncate max-w-[70px] xs:max-w-[90px] sm:max-w-[120px] md:max-w-[150px]">{collection.name}</span>
                 <span className={`text-xs px-1.5 py-0.5 rounded-full ${
                   selectedCollection === collection.name
-                    ? "bg-gray-700 text-gray-300"
-                    : "bg-gray-200 text-gray-500"
+                    ? "bg-[#262626] text-muted-foreground/60"
+                    : "bg-muted text-muted-foreground"
                 }`}>
                   {collection.count}
                 </span>
@@ -618,20 +618,20 @@ export default function Collections() {
           {/* Scroll Right Button */}
           <button
             onClick={() => scrollChips("right")}
-            className="flex-shrink-0 w-8 h-8 sm:w-8 sm:h-8 rounded-full bg-gray-100 hover:bg-gray-200 active:bg-gray-300 flex items-center justify-center transition-colors touch-manipulation"
+            className="flex-shrink-0 w-8 h-8 sm:w-8 sm:h-8 rounded-full bg-muted hover:bg-muted active:bg-muted flex items-center justify-center transition-colors touch-manipulation"
             aria-label="Scroll right"
           >
-            <ChevronRight className="h-4 w-4 text-gray-600" />
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
           </button>
 
           {/* Divider */}
-          <div className="w-px h-8 bg-gray-200 flex-shrink-0" />
+          <div className="w-px h-8 bg-muted flex-shrink-0" />
 
           {/* New Collection Button */}
           <Button
             onClick={() => setShowCreateModal(true)}
             variant="outline"
-            className="flex-shrink-0 border-purple-300 text-purple-600 hover:bg-purple-50 hover:border-purple-400 active:bg-purple-100 text-xs sm:text-sm touch-manipulation"
+            className="flex-shrink-0 border-primary/30 text-primary hover:bg-primary/5 hover:border-primary/40 active:bg-primary/10 text-xs sm:text-sm touch-manipulation"
           >
             <Plus className="h-4 w-4 mr-1 sm:mr-2" />
             <span className="hidden sm:inline">New Collection</span>
@@ -640,20 +640,20 @@ export default function Collections() {
           <button
             type="button"
             onClick={() => toast({ title: "Coming soon", description: "AI grouping (e.g. by scene, faces) will be available soon." })}
-            className="flex-shrink-0 flex items-center gap-1 px-2 py-1.5 text-xs text-muted-foreground hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+            className="flex-shrink-0 flex items-center gap-1 px-2 py-1.5 text-xs text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"
             title="Create from AI"
           >
             <Sparkles className="h-3.5 w-3.5" /> <span className="hidden sm:inline">From AI</span>
           </button>
 
           {/* Divider */}
-          <div className="w-px h-8 bg-gray-200 flex-shrink-0" />
+          <div className="w-px h-8 bg-muted flex-shrink-0" />
 
           {/* Filter by Type */}
           <div className="flex items-center gap-1 flex-shrink-0">
-            <SlidersHorizontal className="h-4 w-4 text-gray-400" />
+            <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
             <Select value={filterType} onValueChange={(v) => setFilterType(v as FilterType)}>
-              <SelectTrigger className="w-[100px] h-8 text-xs border-gray-200">
+              <SelectTrigger className="w-[100px] h-8 text-xs border-border">
                 <span>{filterType === "all" ? "All Types" : filterType === "image" ? "Images" : "Videos"}</span>
               </SelectTrigger>
               <SelectContent>
@@ -666,13 +666,13 @@ export default function Collections() {
 
           {/* Date facet */}
           <div className="flex items-center gap-1 flex-shrink-0">
-            <Clock className="h-4 w-4 text-gray-400" />
+            <Clock className="h-4 w-4 text-muted-foreground" />
             {(["all", "7d", "30d", "year"] as DateFilter[]).map((d) => (
               <button
                 key={d}
                 onClick={() => setDateFilter(d)}
                 className={`px-2 py-1 text-xs font-medium rounded-full ${
-                  dateFilter === d ? "bg-gray-800 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  dateFilter === d ? "bg-[#171717] text-white" : "bg-muted text-muted-foreground hover:bg-muted"
                 }`}
               >
                 {d === "all" ? "All" : d === "7d" ? "7d" : d === "30d" ? "30d" : "Year"}
@@ -682,9 +682,9 @@ export default function Collections() {
 
           {/* Sort By */}
           <div className="flex items-center gap-1 flex-shrink-0">
-            <ArrowUpDown className="h-4 w-4 text-gray-400" />
+            <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
             <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
-              <SelectTrigger className="w-[160px] h-8 text-xs border-gray-200">
+              <SelectTrigger className="w-[160px] h-8 text-xs border-border">
                 <span>
                   {sortBy === "date-desc" && "Newest First"}
                   {sortBy === "date-asc" && "Oldest First"}
@@ -706,14 +706,14 @@ export default function Collections() {
           </div>
 
           {/* Divider */}
-          <div className="w-px h-8 bg-gray-200 flex-shrink-0" />
+          <div className="w-px h-8 bg-muted flex-shrink-0" />
 
           {/* View Mode Toggle */}
           <div className="flex items-center gap-1 flex-shrink-0">
             <button
               onClick={() => setViewMode("grid")}
               className={`p-2 rounded-md transition-colors ${
-                viewMode === "grid" ? "bg-gray-200 text-gray-900" : "text-gray-400 hover:text-gray-600"
+                viewMode === "grid" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-muted-foreground"
               }`}
             >
               <Grid3X3 className="h-4 w-4" />
@@ -721,7 +721,7 @@ export default function Collections() {
             <button
               onClick={() => setViewMode("list")}
               className={`p-2 rounded-md transition-colors ${
-                viewMode === "list" ? "bg-gray-200 text-gray-900" : "text-gray-400 hover:text-gray-600"
+                viewMode === "list" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-muted-foreground"
               }`}
             >
               <List className="h-4 w-4" />
@@ -732,13 +732,13 @@ export default function Collections() {
 
         {/* Bulk actions bar — fixed when visible */}
         {selectedIds.size > 0 && (
-          <div className="flex items-center justify-between gap-2 px-3 sm:px-4 py-2 bg-purple-50 border-b border-purple-200">
+          <div className="flex items-center justify-between gap-2 px-3 sm:px-4 py-2 bg-primary/5 border-b border-primary/20">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-900">{selectedIds.size} selected</span>
+              <span className="text-sm font-medium text-foreground">{selectedIds.size} selected</span>
               <button
                 type="button"
                 onClick={selectAllOnPage}
-                className="text-xs text-purple-600 hover:underline"
+                className="text-xs text-primary hover:underline"
               >
                 {sortedAndFilteredItems.every((i) => selectedIds.has(toId(i))) ? "Deselect page" : "Select page"}
               </button>
@@ -753,7 +753,7 @@ export default function Collections() {
               <button
                 type="button"
                 onClick={() => toast({ title: "Coming soon", description: "Bulk tagging will be available soon." })}
-                className="px-2 py-1 text-xs text-gray-500 hover:text-gray-700 flex items-center gap-1"
+                className="px-2 py-1 text-xs text-muted-foreground hover:text-foreground/80 flex items-center gap-1"
                 title="Coming soon"
               >
                 <Tag className="h-3.5 w-3.5" /> Tag (soon)
@@ -774,16 +774,16 @@ export default function Collections() {
         ) : sortedAndFilteredItems.length === 0 ? (
           <div className="flex-1 flex items-center justify-center py-12 sm:py-16">
             <div className="text-center max-w-md px-4">
-              <div className="mx-auto mb-4 sm:mb-6 p-4 sm:p-6 rounded-full bg-purple-50 w-fit">
-                <FolderOpen className="h-10 w-10 sm:h-12 sm:w-12 text-purple-400" />
+              <div className="mx-auto mb-4 sm:mb-6 p-4 sm:p-6 rounded-full bg-primary/5 w-fit">
+                <FolderOpen className="h-10 w-10 sm:h-12 sm:w-12 text-primary/80" />
               </div>
-              <h2 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">
+              <h2 className="text-base sm:text-lg font-semibold text-foreground mb-2">
                 {items.length === 0 
                   ? (selectedCollection ? `No items in "${selectedCollection}"` : "No collection selected")
                   : "No items match your filters"
                 }
               </h2>
-              <p className="text-gray-500 text-xs sm:text-sm mb-4">
+              <p className="text-muted-foreground text-xs sm:text-sm mb-4">
                 {items.length === 0 
                   ? "Upload files to this collection to see them here"
                   : "Try changing your filter or sort options"
@@ -792,7 +792,7 @@ export default function Collections() {
               {items.length === 0 && selectedCollection && (
                 <Button
                   size="sm"
-                  className="bg-[#7c3aed] hover:bg-purple-700 text-white"
+                  className="bg-primary hover:bg-primary/90 text-white"
                   onClick={() => router.push(`/?view=uploads&collection=${encodeURIComponent(selectedCollection)}`)}
                 >
                   <CloudUpload className="h-4 w-4 mr-2" />
@@ -807,7 +807,7 @@ export default function Collections() {
               <div
                 key={item.id}
                 onClick={() => setDetailItem(item)}
-                className="group border border-gray-200 rounded-lg sm:rounded-xl p-2 xs:p-2.5 sm:p-3 hover:border-purple-300 hover:shadow-md transition-all bg-white touch-manipulation cursor-pointer min-w-0 w-full"
+                className="group border border-border rounded-none p-2 xs:p-2.5 sm:p-3 hover:border-primary/30 hover:shadow-md transition-all bg-card touch-manipulation cursor-pointer min-w-0 w-full"
               >
                 <div
                   className="relative aspect-video min-h-[100px] xs:min-h-[120px] sm:min-h-[140px] md:min-h-[160px] lg:min-h-[180px] rounded-lg overflow-hidden bg-muted mb-2 xs:mb-2.5 sm:mb-3 max-w-full"
@@ -856,10 +856,10 @@ export default function Collections() {
                     <button
                       type="button"
                       onClick={(e) => { e.stopPropagation(); toggleSelect(toId(item)); }}
-                      className="p-0.5 rounded bg-white/90 hover:bg-white text-gray-700"
+                      className="p-0.5 rounded bg-white/90 hover:bg-input text-foreground/80"
                       aria-label={selectedIds.has(toId(item)) ? "Deselect" : "Select"}
                     >
-                      {selectedIds.has(toId(item)) ? <CheckSquare className="h-4 w-4 text-purple-600" /> : <Square className="h-4 w-4" />}
+                      {selectedIds.has(toId(item)) ? <CheckSquare className="h-4 w-4 text-primary" /> : <Square className="h-4 w-4" />}
                     </button>
                     <div className="bg-black/50 rounded-md p-1">
                       {item.type === "video" ? <Video className="h-3.5 w-3.5 text-white" /> : <ImageIcon className="h-3.5 w-3.5 text-white" />}
@@ -867,11 +867,11 @@ export default function Collections() {
                   </div>
                   <button
                     onClick={(e) => { e.stopPropagation(); window.open(item.url, "_blank"); }}
-                    className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 bg-white/90 hover:bg-white active:bg-white rounded-lg p-1.5 opacity-0 group-hover:opacity-100 sm:group-hover:opacity-100 active:opacity-100 transition-all shadow-sm hover:shadow-md touch-manipulation"
+                    className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 bg-popover/90 hover:bg-popover active:bg-card rounded-none p-1.5 opacity-0 group-hover:opacity-100 sm:group-hover:opacity-100 active:opacity-100 transition-all touch-manipulation border border-border"
                     title="Open in new tab"
                     aria-label="Open in new tab"
                   >
-                    <ExternalLink className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-gray-700" />
+                    <ExternalLink className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-foreground/80" />
                   </button>
                 </div>
                 {item.type === "video" && (item.duration || item.resolution) && (
@@ -890,15 +890,15 @@ export default function Collections() {
               <div
                 key={item.id}
                 onClick={() => setDetailItem(item)}
-                className="flex items-center gap-2 sm:gap-4 p-3 sm:p-4 bg-white border-2 border-gray-200 rounded-lg sm:rounded-xl hover:border-purple-300 hover:shadow-md transition-all group touch-manipulation cursor-pointer"
+                className="flex items-center gap-2 sm:gap-4 p-3 sm:p-4 bg-card border-2 border-border rounded-none hover:border-primary/30 hover:shadow-md transition-all group touch-manipulation cursor-pointer"
               >
                 <button
                   type="button"
                   onClick={(e) => { e.stopPropagation(); toggleSelect(toId(item)); }}
-                  className="p-1 rounded flex-shrink-0 text-gray-600 hover:bg-gray-100"
+                  className="p-1 rounded flex-shrink-0 text-muted-foreground hover:bg-muted"
                   aria-label={selectedIds.has(toId(item)) ? "Deselect" : "Select"}
                 >
-                  {selectedIds.has(toId(item)) ? <CheckSquare className="h-5 w-5 text-purple-600" /> : <Square className="h-5 w-5" />}
+                  {selectedIds.has(toId(item)) ? <CheckSquare className="h-5 w-5 text-primary" /> : <Square className="h-5 w-5" />}
                 </button>
                 <div className="flex-shrink-0 w-16 h-12 sm:w-20 sm:h-14 rounded-lg overflow-hidden bg-muted relative">
                   {item.type === "video" ? (
@@ -922,8 +922,8 @@ export default function Collections() {
                     </div>
                   )}
                 </div>
-                <button onClick={(e) => { e.stopPropagation(); window.open(item.url, "_blank"); }} className="opacity-0 group-hover:opacity-100 active:opacity-100 sm:group-hover:opacity-100 transition-opacity p-1.5 sm:p-2 hover:bg-purple-100 rounded-lg flex-shrink-0 touch-manipulation" title="Open in new tab" aria-label="Open in new tab">
-                  <ExternalLink className="h-4 w-4 text-purple-600" />
+                <button onClick={(e) => { e.stopPropagation(); window.open(item.url, "_blank"); }} className="opacity-0 group-hover:opacity-100 active:opacity-100 sm:group-hover:opacity-100 transition-opacity p-1.5 sm:p-2 hover:bg-primary/10 rounded-lg flex-shrink-0 touch-manipulation" title="Open in new tab" aria-label="Open in new tab">
+                  <ExternalLink className="h-4 w-4 text-primary" />
                 </button>
               </div>
             ))}
@@ -935,7 +935,7 @@ export default function Collections() {
           {isLoadingMore && (
             <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 xs:gap-2.5 sm:gap-3 md:gap-4 lg:gap-5">
               {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="rounded-lg sm:rounded-xl p-2 xs:p-2.5 sm:p-3 border border-gray-200 min-w-0">
+                <div key={i} className="rounded-none p-2 xs:p-2.5 sm:p-3 border border-border min-w-0">
                   <Skeleton className="aspect-video min-h-[100px] xs:min-h-[120px] sm:min-h-[140px] md:min-h-[160px] lg:min-h-[180px] w-full rounded-lg mb-2 xs:mb-2.5 sm:mb-3" />
                   <Skeleton className="h-4 w-3/4 mb-1 xs:mb-1.5 sm:mb-2" />
                   <Skeleton className="h-3 w-1/2" />
@@ -944,7 +944,7 @@ export default function Collections() {
             </div>
           )}
           {!hasMore && items.length > 0 && (
-            <p className="text-sm text-gray-400 text-center">
+            <p className="text-sm text-muted-foreground text-center">
               Showing all {totalCount} items
             </p>
           )}
@@ -952,11 +952,11 @@ export default function Collections() {
       </div>
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+          <div className="bg-popover rounded-none border border-border p-6 w-full max-w-md shadow-xl">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold text-gray-900">Create Collection</h2>
-              <button onClick={() => { setShowCreateModal(false); setNewCollectionName(""); }} className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
-                <X className="h-5 w-5 text-gray-500" />
+              <h2 className="text-lg font-semibold text-foreground">Create Collection</h2>
+              <button onClick={() => { setShowCreateModal(false); setNewCollectionName(""); }} className="p-1 hover:bg-muted rounded-lg transition-colors">
+                <X className="h-5 w-5 text-muted-foreground" />
               </button>
             </div>
             <p className="text-xs text-muted-foreground mb-2">Parent collection (nested): Coming soon</p>
@@ -972,7 +972,7 @@ export default function Collections() {
                 <Sparkles className="h-3.5 w-3.5" /> Smart collection
               </Button>
               <Button variant="outline" onClick={() => setShowCreateModal(false)}>Cancel</Button>
-              <Button onClick={createCollection} disabled={!newCollectionName.trim() || isCreating} className="bg-[#7c3aed] hover:bg-purple-700">
+              <Button onClick={createCollection} disabled={!newCollectionName.trim() || isCreating} className="bg-primary hover:bg-primary/90">
                 {isCreating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                 Create
               </Button>
@@ -983,9 +983,9 @@ export default function Collections() {
 
       {showSmartModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Create Smart Collection</h2>
-            <p className="text-sm text-gray-500 mb-4">Auto-populate from filters (e.g. &quot;All videos with snow&quot;). Coming soon.</p>
+          <div className="bg-popover rounded-none border border-border p-6 w-full max-w-md shadow-xl">
+            <h2 className="text-lg font-semibold text-foreground mb-2">Create Smart Collection</h2>
+            <p className="text-sm text-muted-foreground mb-4">Auto-populate from filters (e.g. &quot;All videos with snow&quot;). Coming soon.</p>
             <Button onClick={() => { setShowSmartModal(false); setShowCreateModal(true); }} variant="outline">Back</Button>
           </div>
         </div>
@@ -993,9 +993,9 @@ export default function Collections() {
 
       {showMoveModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Move to collection</h2>
-            <p className="text-sm text-gray-500 mb-4">{selectedIds.size} item(s) will be moved and will leave the current collection.</p>
+          <div className="bg-popover rounded-none border border-border p-6 w-full max-w-md shadow-xl">
+            <h2 className="text-lg font-semibold text-foreground mb-2">Move to collection</h2>
+            <p className="text-sm text-muted-foreground mb-4">{selectedIds.size} item(s) will be moved and will leave the current collection.</p>
             <Select value={moveTarget} onValueChange={setMoveTarget}>
               <SelectTrigger className="w-full mb-4">
                 <span className={!moveTarget ? "text-muted-foreground" : ""}>{moveTarget || "Select collection"}</span>
@@ -1008,7 +1008,7 @@ export default function Collections() {
             </Select>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => { setShowMoveModal(false); setMoveTarget(""); }}>Cancel</Button>
-              <Button onClick={handleMove} disabled={!moveTarget || isBulkActioning} className="bg-[#7c3aed]">
+              <Button onClick={handleMove} disabled={!moveTarget || isBulkActioning} className="bg-primary">
                 {isBulkActioning ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
                 Move
               </Button>
@@ -1019,9 +1019,9 @@ export default function Collections() {
 
       {showShareModal && selectedCollection && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Share &quot;{selectedCollection}&quot;</h2>
-            <p className="text-sm text-gray-500 mb-4">View-only and Can edit permissions. Invite by link or email. Coming soon.</p>
+          <div className="bg-popover rounded-none border border-border p-6 w-full max-w-md shadow-xl">
+            <h2 className="text-lg font-semibold text-foreground mb-2">Share &quot;{selectedCollection}&quot;</h2>
+            <p className="text-sm text-muted-foreground mb-4">View-only and Can edit permissions. Invite by link or email. Coming soon.</p>
             <Button variant="outline" onClick={() => setShowShareModal(false)}>Close</Button>
           </div>
         </div>
@@ -1029,9 +1029,9 @@ export default function Collections() {
 
       {showRemoveConfirm && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Remove from collection</h2>
-            <p className="text-sm text-gray-500 mb-4">{selectedIds.size} item(s) will be removed from this collection and will no longer appear here.</p>
+          <div className="bg-popover rounded-none border border-border p-6 w-full max-w-md shadow-xl">
+            <h2 className="text-lg font-semibold text-foreground mb-2">Remove from collection</h2>
+            <p className="text-sm text-muted-foreground mb-4">{selectedIds.size} item(s) will be removed from this collection and will no longer appear here.</p>
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => setShowRemoveConfirm(false)}>Cancel</Button>
               <Button onClick={handleRemoveFromCollection} disabled={isBulkActioning} className="bg-red-600 hover:bg-red-700 text-white">

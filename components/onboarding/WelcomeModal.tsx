@@ -43,7 +43,7 @@ export function WelcomeModal() {
       onClick={handleDismiss}
     >
       <Card
-        className={`w-full max-w-lg bg-white shadow-2xl rounded-2xl overflow-hidden transition-transform duration-200 ${
+        className={`w-full max-w-lg bg-card-2xl rounded-none overflow-hidden transition-transform duration-200 ${
           isClosing ? "scale-95" : "scale-100"
         }`}
         onClick={(e) => e.stopPropagation()}
@@ -51,35 +51,35 @@ export function WelcomeModal() {
         <div className="relative p-6 sm:p-8">
           <button
             onClick={handleDismiss}
-            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+            className="absolute top-4 right-4 text-muted-foreground hover:text-muted-foreground transition-colors"
             aria-label="Close"
           >
             <X className="h-5 w-5" />
           </button>
 
           <div className="text-center mb-6">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 mb-4 shadow-lg">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-primary to-primary mb-4 shadow-lg">
               <Sparkles className="h-8 w-8 text-white" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            <h2 className="text-2xl font-bold text-foreground mb-2">
               Welcome to Snoolink!
             </h2>
-            <p className="text-gray-600 text-sm sm:text-base">
+            <p className="text-muted-foreground text-sm sm:text-base">
               Let's get you set up in 2 minutes. Upload your media, and we'll make it searchable by meaning.
             </p>
           </div>
 
           {/* Progress Bar */}
           <div className="mb-6">
-            <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+            <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
               <span>Progress</span>
               <span className="font-semibold">
                 {completedCount} of {totalCount} complete
               </span>
             </div>
-            <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+            <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-purple-500 to-purple-600 transition-all duration-500 rounded-full"
+                className="h-full bg-gradient-to-r from-primary to-primary transition-all duration-500 rounded-full"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -124,7 +124,7 @@ export function WelcomeModal() {
           <div className="flex flex-col sm:flex-row gap-3">
             <Button
               onClick={handleGetStarted}
-              className="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white"
+              className="flex-1 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-white"
               size="lg"
             >
               Get Started
@@ -170,7 +170,7 @@ function ChecklistItem({
       className={`w-full text-left p-4 rounded-lg border-2 transition-all duration-200 ${
         completed
           ? "bg-green-50 border-green-200 cursor-default"
-          : "bg-white border-gray-200 hover:border-purple-300 hover:shadow-md cursor-pointer"
+          : "bg-card border-border hover:border-primary/30 hover:shadow-md cursor-pointer"
       }`}
     >
       <div className="flex items-start gap-3">
@@ -178,7 +178,7 @@ function ChecklistItem({
           className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
             completed
               ? "bg-green-100 text-green-600"
-              : "bg-purple-100 text-purple-600"
+              : "bg-primary/10 text-primary"
           }`}
         >
           {completed ? (
@@ -191,25 +191,25 @@ function ChecklistItem({
           <div className="flex items-center gap-2 mb-1">
             <h3
               className={`font-semibold text-sm ${
-                completed ? "text-green-900 line-through" : "text-gray-900"
+                completed ? "text-green-900 line-through" : "text-foreground"
               }`}
             >
               {title}
             </h3>
             {optional && (
-              <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">
+              <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                 Optional
               </span>
             )}
           </div>
           <p
             className={`text-xs ${
-              completed ? "text-green-700" : "text-gray-600"
+              completed ? "text-green-700" : "text-muted-foreground"
             }`}
           >
             {description}
           </p>
-          <p className="text-xs text-gray-500 mt-1">~{time}</p>
+          <p className="text-xs text-muted-foreground mt-1">~{time}</p>
         </div>
       </div>
     </button>

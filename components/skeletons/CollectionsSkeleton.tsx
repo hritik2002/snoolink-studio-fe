@@ -5,9 +5,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 /** Full-page skeleton when collections list is loading (initial fetch). */
 export function CollectionsPageSkeleton() {
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-white overflow-hidden">
+    <div className="flex-1 flex flex-col min-h-0 bg-background overflow-hidden">
       {/* Header with gradient — matches fixed header in Collections */}
-      <div className="flex-shrink-0 pt-4 sm:pt-6 pb-4 px-4 sm:px-6 overflow-hidden bg-white">
+      <div className="flex-shrink-0 pt-4 sm:pt-6 pb-4 px-4 sm:px-6 overflow-hidden bg-card">
         <div 
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -29,7 +29,7 @@ export function CollectionsPageSkeleton() {
       </div>
 
       {/* Chips bar — fixed; matches Collections */}
-      <div className="flex-shrink-0 border-b border-gray-200 bg-white px-3 sm:px-4 py-2 sm:py-3 flex items-center gap-2">
+      <div className="flex-shrink-0 border-b border-border bg-background px-3 sm:px-4 py-2 sm:py-3 flex items-center gap-2">
         <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />
         <div className="flex gap-2 flex-1 overflow-hidden">
           {[1, 2, 3, 4, 5].map((i) => (
@@ -47,7 +47,7 @@ export function CollectionsPageSkeleton() {
       <div className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 md:p-6">
         <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 xs:gap-2.5 sm:gap-3 md:gap-4 lg:gap-5">
           {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((i) => (
-            <div key={i} className="rounded-lg sm:rounded-xl p-2 xs:p-2.5 sm:p-3 border border-gray-200 min-w-0">
+            <div key={i} className="rounded-none p-2 xs:p-2.5 sm:p-3 border border-border min-w-0">
               <Skeleton className="aspect-video min-h-[100px] xs:min-h-[120px] sm:min-h-[140px] md:min-h-[160px] lg:min-h-[180px] w-full rounded-lg mb-2 xs:mb-2.5 sm:mb-3" />
               <Skeleton className="h-4 w-3/4 mb-1 xs:mb-1.5 sm:mb-2" />
               <Skeleton className="h-3 w-1/2" />
@@ -64,7 +64,7 @@ export function CollectionsItemsSkeleton() {
   return (
     <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 xs:gap-2.5 sm:gap-3 md:gap-4 lg:gap-5">
       {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((i) => (
-        <div key={i} className="rounded-lg sm:rounded-xl p-2 xs:p-2.5 sm:p-3 border border-gray-200 min-w-0">
+        <div key={i} className="rounded-none p-2 xs:p-2.5 sm:p-3 border border-border min-w-0">
           <Skeleton className="aspect-video min-h-[100px] xs:min-h-[120px] sm:min-h-[140px] md:min-h-[160px] lg:min-h-[180px] w-full rounded-lg mb-2 xs:mb-2.5 sm:mb-3" />
           <Skeleton className="h-4 w-3/4 mb-1 xs:mb-1.5 sm:mb-2" />
           <Skeleton className="h-3 w-1/2" />

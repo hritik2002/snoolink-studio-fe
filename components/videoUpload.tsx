@@ -83,7 +83,7 @@ export default function VideoUploader() {
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-white rounded-2xl shadow-lg">
+    <div className="max-w-md mx-auto p-6 bg-popover rounded-none border border-border shadow-lg">
       <h2 className="text-xl font-bold mb-4">Upload Video</h2>
 
       <input
@@ -110,9 +110,9 @@ export default function VideoUploader() {
       </button>
 
       {response && (
-        <div className="mt-4 p-3 bg-gray-100 rounded-lg">
+        <div className="mt-4 p-3 bg-muted rounded-lg">
           <h3 className="font-semibold">Server Response:</h3>
-          <pre className="text-sm text-gray-700 overflow-auto">
+          <pre className="text-sm text-foreground/80 overflow-auto">
             {JSON.stringify(response, null, 2)}
           </pre>
         </div>

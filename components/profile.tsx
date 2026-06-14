@@ -96,23 +96,23 @@ export default function Profile() {
   return (
     <div className="flex-1 flex flex-col h-full w-full min-w-0 max-w-2xl mx-auto py-4 sm:py-8 px-4 sm:px-6 overflow-x-hidden">
       <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl font-light text-gray-900 mb-2">Profile</h1>
-        <p className="text-gray-600 text-xs sm:text-sm">
+        <h1 className="text-2xl sm:text-3xl font-light text-foreground mb-2">Profile</h1>
+        <p className="text-muted-foreground text-xs sm:text-sm">
           Manage your account information
         </p>
       </div>
 
-      <Card className="bg-white border border-gray-200 p-4 sm:p-6 shadow-sm">
+      <Card className="bg-card border border-border p-4 sm:p-6 shadow-sm">
         <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-          <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-gray-200">
-            <div className="flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-purple-100 flex-shrink-0">
-              <UserIcon className="h-7 w-7 sm:h-8 sm:w-8 text-purple-600" />
+          <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6 pb-4 sm:pb-6 border-b border-border">
+            <div className="flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-primary/10 flex-shrink-0">
+              <UserIcon className="h-7 w-7 sm:h-8 sm:w-8 text-primary" />
             </div>
             <div className="min-w-0 flex-1">
-              <h2 className="text-lg sm:text-xl font-medium text-gray-900 truncate">
+              <h2 className="text-lg sm:text-xl font-medium text-foreground truncate">
                 {profile.name || user?.email?.split("@")[0] || "User"}
               </h2>
-              <p className="text-xs sm:text-sm text-gray-500 truncate">{user?.email}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground truncate">{user?.email}</p>
             </div>
           </div>
 
@@ -120,7 +120,7 @@ export default function Profile() {
             <div className="space-y-2">
               <label
                 htmlFor="name"
-                className="text-xs sm:text-sm font-medium text-gray-700"
+                className="text-xs sm:text-sm font-medium text-foreground/80"
               >
                 Full Name
               </label>
@@ -132,14 +132,14 @@ export default function Profile() {
                 onChange={(e) =>
                   setProfile((prev) => ({ ...prev, name: e.target.value }))
                 }
-                className="bg-gray-50 border-gray-200 text-gray-900 h-11 sm:h-12 text-base touch-manipulation"
+                className="bg-muted/30 border-border text-foreground h-11 sm:h-12 text-base touch-manipulation"
               />
             </div>
 
             <div className="space-y-2">
               <label
                 htmlFor="email"
-                className="text-xs sm:text-sm font-medium text-gray-700"
+                className="text-xs sm:text-sm font-medium text-foreground/80"
               >
                 Email
               </label>
@@ -151,10 +151,10 @@ export default function Profile() {
                 onChange={(e) =>
                   setProfile((prev) => ({ ...prev, email: e.target.value }))
                 }
-                className="bg-gray-50 border-gray-200 text-gray-500 h-11 sm:h-12 text-base"
+                className="bg-muted/30 border-border text-muted-foreground h-11 sm:h-12 text-base"
                 disabled
               />
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 Managed via Google. Email cannot be changed here.
               </p>
             </div>
@@ -175,7 +175,7 @@ export default function Profile() {
           <Button
             type="submit"
             disabled={saving}
-            className="w-full bg-[#7c3aed] hover:bg-purple-700 text-white h-11 sm:h-12 text-sm sm:text-base touch-manipulation"
+            className="w-full bg-primary hover:bg-primary/90 text-white h-11 sm:h-12 text-sm sm:text-base touch-manipulation"
           >
             {saving ? (
               <>

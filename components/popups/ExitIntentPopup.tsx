@@ -134,7 +134,7 @@ export function ExitIntentPopup({
             "absolute right-4 top-4 z-50 rounded-full p-2",
             "bg-white/90 dark:bg-black/50 backdrop-blur-sm",
             "border border-amber-200/50 dark:border-amber-800/30",
-            "hover:bg-white dark:hover:bg-black/70",
+            "hover:bg-primary/10 dark:hover:bg-black/70",
             "transition-all duration-200",
             "popup-animate-stagger-3"
           )}
@@ -272,7 +272,7 @@ export function ExitIntentPopup({
                       </>
                     )}
                   </span>
-                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                  <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-background/20 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
                 </Button>
 
                 <Button
