@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import { Suspense } from 'react'
-import HomeClient from './home-client'
-import { AppShellSkeleton } from '@/components/skeletons'
+import HomeRouter from './home-router'
+import { MarketingSkeleton } from '@/components/marketing/marketing-skeleton'
 
 type Props = {
   searchParams: Promise<{ view?: string }>
@@ -11,6 +11,27 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
   const params = await searchParams
   const view = params?.view || 'search'
   
+  const landingMetadata: Metadata = {
+    title: 'Snoolink — Semantic Video & Image Search for AI',
+    description:
+      'Structure, search, and discover video and image content by meaning. AI-powered semantic search for media libraries.',
+    openGraph: {
+      title: 'Snoolink — Semantic Video & Image Search for AI',
+      description:
+        'The easiest way to structure, search, and discover video and image content by meaning.',
+      url: 'https://app.snoolink.com',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: 'Snoolink — Semantic Video & Image Search for AI',
+      description:
+        'Structure, search, and discover media by meaning — not keywords.',
+    },
+    alternates: {
+      canonical: 'https://app.snoolink.com',
+    },
+  }
+
   const metadataMap: Record<string, Metadata> = {
     search: {
       title: 'AI-Powered Semantic Search | Snoolink',
@@ -65,13 +86,13 @@ export async function generateMetadata({ searchParams }: Props): Promise<Metadat
     },
   }
 
-  return metadataMap[view] || metadataMap.search
+  return metadataMap[view] || landingMetadata
 }
 
 export default async function Home({ searchParams }: Props) {
   return (
-    <Suspense fallback={<AppShellSkeleton />}>
-      <HomeClient />
+    <Suspense fallback={<MarketingSkeleton />}>
+      <HomeRouter />
     </Suspense>
   )
 }

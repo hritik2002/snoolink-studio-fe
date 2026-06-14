@@ -300,11 +300,20 @@
   .hero-blob::before {
     content: "";
     position: absolute;
-    inset: -20% -10% auto -10%;
-    height: 60%;
-    background: var(--gradient-hero-blob);
-    opacity: 0.18;
-    filter: blur(80px);
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: min(92vw, 920px);
+    height: min(55vh, 480px);
+    background: radial-gradient(
+      ellipse at center,
+      rgba(255, 179, 64, 0.55) 0%,
+      rgba(255, 228, 191, 0.45) 30%,
+      rgba(232, 160, 160, 0.25) 55%,
+      transparent 72%
+    );
+    opacity: 0.42;
+    filter: blur(48px);
     pointer-events: none;
     z-index: 0;
   }
@@ -659,5 +668,38 @@
   }
   .onboarding-checklist-container > * {
     animation: page-fade-in 0.3s ease-out;
+  }
+
+  /* Logo marquee — fade edges, continuous scroll */
+  @keyframes logo-marquee-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  .logo-marquee {
+    mask-image: linear-gradient(
+      to right,
+      rgba(0, 0, 0, 0) 0%,
+      #000 12.5%,
+      #000 87.5%,
+      rgba(0, 0, 0, 0) 100%
+    );
+    -webkit-mask-image: linear-gradient(
+      to right,
+      rgba(0, 0, 0, 0) 0%,
+      #000 12.5%,
+      #000 87.5%,
+      rgba(0, 0, 0, 0) 100%
+    );
+  }
+
+  .logo-marquee-track {
+    animation: logo-marquee-scroll 35s linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .logo-marquee-track {
+      animation: none;
+    }
   }
 }

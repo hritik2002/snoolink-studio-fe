@@ -19,11 +19,13 @@ interface SectionProps {
   children: React.ReactNode
   theme?: "light" | "alt"
   className?: string
+  id?: string
 }
 
-export function Section({ children, theme = "light", className }: SectionProps) {
+export function Section({ children, theme = "light", className, id }: SectionProps) {
   return (
     <section
+      id={id}
       className={cn(
         "w-full flex flex-col items-center",
         theme === "light" ? "bg-cg-bg" : "bg-cg-bg-alt",

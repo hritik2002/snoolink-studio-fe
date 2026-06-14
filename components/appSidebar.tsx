@@ -95,7 +95,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
 
   const handleSignOut = async () => {
     await signOut();
-    router.push("/login");
+    router.push("/");
   };
 
   return (

@@ -1,6 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+const PROTECTED_PREFIXES = ["/admin"];
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -29,54 +31,34 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // IMPORTANT: Avoid writing any logic between createServerClient and
-  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
-  // issues with users being randomly logged out.
-
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // If user is authenticated and on login page, redirect to ?next= or home
-  if (user && request.nextUrl.pathname.startsWith("/login")) {
-    const next = request.nextUrl.searchParams.get("next") || request.nextUrl.searchParams.get("redirect");
-    const target =
-      next && next.startsWith("/")
-        ? new URL(next, request.nextUrl.origin)
-        : new URL("/", request.nextUrl.origin);
-    return NextResponse.redirect(target);
+  const { pathname, search } = request.nextUrl;
+
+  // Legacy login route → homepage
+  if (pathname.startsWith("/login")) {
+    const home = request.nextUrl.clone();
+    home.pathname = "/";
+    const next = request.nextUrl.searchParams.get("next");
+    const reason = request.nextUrl.searchParams.get("reason");
+    if (next) home.searchParams.set("next", next);
+    if (reason) home.searchParams.set("reason", reason);
+    return NextResponse.redirect(home);
   }
 
-  // If user is not authenticated and not on login page, redirect to login
-  // with ?next= so we can restore destination after sign-in
-  // Exclude /auth/callback from this check as it handles authentication
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith("/login") &&
-    !request.nextUrl.pathname.startsWith("/auth/callback")
-  ) {
-    const loginUrl = request.nextUrl.clone();
-    loginUrl.pathname = "/login";
-    const next = request.nextUrl.pathname + request.nextUrl.search;
+  const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p));
+
+  if (!user && isProtected) {
+    const home = request.nextUrl.clone();
+    home.pathname = "/";
+    const next = pathname + search;
     if (next && next !== "/") {
-      loginUrl.searchParams.set("next", next);
+      home.searchParams.set("next", next);
     }
-    return NextResponse.redirect(loginUrl);
+    return NextResponse.redirect(home);
   }
-
-  // IMPORTANT: You *must* return the supabaseResponse object as it is. If you're
-  // creating a new response object with NextResponse.next() make sure to:
-  // 1. Pass the request in it, like so:
-  //    const myNewResponse = NextResponse.next({ request })
-  // 2. Copy over the cookies, like so:
-  //    myNewResponse.cookies.setAll(supabaseResponse.cookies.getAll())
-  // 3. Change the myNewResponse object to fit your needs, but avoid changing
-  //    the cookies!
-  // 4. Finally:
-  //    return myNewResponse
-  // If this is not done, you may be causing the browser and server to go out
-  // of sync and terminate the user's session prematurely.
 
   return supabaseResponse;
 }
-
