@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Urbanist } from "next/font/google";
 import { Fragment_Mono } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "@/contexts/AuthContext";
+import { AuthProviderShell } from "@/components/auth/auth-provider-shell";
 import { OnboardingProvider } from "@/contexts/OnboardingContext";
 import { AnalyticsProvider } from "@/components/AnalyticsProvider";
 import { Toaster } from "@/components/ui/toaster";
@@ -208,7 +208,7 @@ export default function RootLayout({
           Skip to main content
         </a>
         <GoogleAnalytics />
-        <AuthProvider>
+        <AuthProviderShell>
           <OnboardingProvider>
             <AnalyticsProvider>
               {children}
@@ -216,7 +216,7 @@ export default function RootLayout({
               <PopupManagerWrapper />
             </AnalyticsProvider>
           </OnboardingProvider>
-        </AuthProvider>
+        </AuthProviderShell>
       </body>
     </html>
   );

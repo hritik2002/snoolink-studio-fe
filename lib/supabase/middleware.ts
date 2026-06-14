@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { ensureCallbackNextParam } from "@/lib/auth/constants";
 
 const PROTECTED_PREFIXES = ["/admin"];
 
@@ -12,6 +13,7 @@ export async function updateSession(request: NextRequest) {
   if (code && pathname !== "/auth/callback") {
     const callback = request.nextUrl.clone();
     callback.pathname = "/auth/callback";
+    ensureCallbackNextParam(callback);
     return NextResponse.redirect(callback);
   }
 

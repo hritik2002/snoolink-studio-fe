@@ -1,6 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { sanitizePostLoginPath } from "@/lib/auth/constants";
+import { resolvePostLoginPath } from "@/lib/auth/constants";
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
@@ -9,7 +9,11 @@ export async function GET(request: NextRequest) {
   const nextParam =
     requestUrl.searchParams.get("next") ||
     requestUrl.searchParams.get("redirect");
-  const postLoginPath = sanitizePostLoginPath(nextParam);
+  const postLoginPath = resolvePostLoginPath({
+    next: nextParam,
+    redirect: requestUrl.searchParams.get("redirect"),
+    view: requestUrl.searchParams.get("view"),
+  });
 
   if (oauthError) {
     const home = new URL("/", requestUrl.origin);
