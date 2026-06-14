@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
   Search, Loader2, Image as ImageIcon, Video, Clock, Download, Share2,
-  MoreVertical, Sparkles, ChevronDown, ChevronUp, ChevronLeft, ChevronRight, List as ListIcon, Play, Star, ArrowRight, Plus, Lightbulb, CloudUpload, Folder, X
+  MoreVertical, Sparkles, ChevronDown, ChevronUp, List as ListIcon, Play, Star, ArrowRight, Plus, CloudUpload, X
 } from "lucide-react";
 import Image from "next/image";
 import { useToast } from "@/lib/hooks/use-toast";
@@ -247,25 +247,13 @@ export default function ImageSearch() {
   const [collections, setCollections] = useState<CollectionOption[]>([]);
   const [selectedCollections, setSelectedCollections] = useState<string[]>(["all"]);
   const [isLoadingCollections, setIsLoadingCollections] = useState(false);
-  const collectionScrollRef = useRef<HTMLDivElement>(null);
 
-  // Expand query: when true, backend expands the search query with AI (e.g. "water" → "water, liquid, aquatic"); when false, uses the raw query.
+  // Expand query: when true, backend expands the search query with AI
   const [expandQuery, setExpandQuery] = useState(true);
 
   // Right sidebar state
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState(false);
   const sidebarTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Scroll collection chips
-  const scrollCollectionChips = (direction: "left" | "right") => {
-    if (collectionScrollRef.current) {
-      const scrollAmount = 200;
-      collectionScrollRef.current.scrollBy({
-        left: direction === "left" ? -scrollAmount : scrollAmount,
-        behavior: "smooth"
-      });
-    }
-  };
 
   // Fetch collections on mount
   const fetchCollections = useCallback(async () => {
@@ -688,144 +676,55 @@ export default function ImageSearch() {
 
   return (
     <div className="flex-1 flex flex-col h-full w-full min-w-0 overflow-hidden">
-      {/* Header with Premium Gradient Background */}
-      <div className="sticky top-0 left-0 right-0 z-[200] pt-4 sm:pt-6 pb-4 sm:pb-6 px-4 sm:px-6 flex-shrink-0 overflow-hidden backdrop-blur-sm">
-        {/* Atmospheric Gradient Background */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: `linear-gradient(180deg, 
-              var(--page-accent-primary) / 0.15 0%, 
-              var(--page-accent-secondary) / 0.10 30%, 
-              var(--page-accent-tertiary) / 0.05 60%, 
-              var(--background) 100%)`,
-          }}
-        />
-        <div className="absolute inset-0 pointer-events-none opacity-20 dark:opacity-10">
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage: `radial-gradient(circle at 20% 20%, var(--page-accent-primary) 0%, transparent 40%),
-                                radial-gradient(circle at 80% 80%, var(--page-accent-secondary) 0%, transparent 40%)`,
-            }}
-          />
-        </div>
-        <div className="relative z-10 page-animate-fade">
-          {/* Header with Title and Action Buttons */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 sm:mb-6 gap-3">
-            <div>
-              <h1 className={cn(
-                "text-3xl sm:text-4xl font-bold mb-2",
-                "font-[var(--page-font)]",
-                "bg-gradient-to-r from-[var(--page-accent-primary)] to-[var(--page-accent-secondary)]",
-                "bg-clip-text text-transparent"
-              )}>
-                Search
-              </h1>
-              <p className={cn(
-                "text-muted-foreground text-sm sm:text-base",
-                "font-[var(--page-font)] font-medium"
-              )}>
-                Find specific moments in your media library instantly.
-              </p>
-              {collections && collections.length > 0 && !isLoadingCollections && collections.reduce((a, c) => a + c.count, 0) === 0 && (
-                <p className="text-sm text-primary mt-2">
-                  <button
-                    type="button"
-                    onClick={() => router.push("/?view=uploads")}
-                    className="font-medium hover:underline"
-                  >
-                    Upload your first files
-                  </button>
-                  {" "}to get started, then search by meaning here.
-                </p>
-              )}
-            </div>
-            <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
-              <Button
-                size="sm"
-                className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white flex-1 sm:flex-initial text-xs sm:text-sm"
-                onClick={() => router.push("/?view=uploads")}
-                aria-label="Go to Uploads to add media"
-              >
-                <CloudUpload className="h-4 w-4" />
-                <span className="hidden sm:inline">Upload</span>
-                <span className="sm:hidden">Upload</span>
-              </Button>
-            </div>
-          </div>
-
-          {/* Premium Search Bar */}
-          <div className="relative w-full mb-4 sm:mb-5">
-            <div className={cn(
-              "relative flex items-center",
-              "page-input-premium",
-              "rounded-2xl sm:rounded-3xl",
-              "px-4 sm:px-6 py-4 sm:py-5",
-              "shadow-lg shadow-[var(--page-accent-primary)]/10",
-              "hover:shadow-xl hover:shadow-[var(--page-accent-primary)]/20",
-              "transition-all duration-300",
-              "group"
-            )}>
-              <div className={cn(
-                "relative rounded-xl p-2 mr-3 sm:mr-4",
-                "bg-gradient-to-br from-[var(--page-accent-primary)]/20 to-[var(--page-accent-secondary)]/20",
-                "border border-[var(--page-accent-primary)]/30"
-              )}>
-                <Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-[var(--page-accent-primary)] flex-shrink-0" />
-              </div>
+      {/* Command bar */}
+      <div className="sticky top-0 z-[200] flex-shrink-0 border-b border-[#333333] bg-[#010010]/90 backdrop-blur-xl">
+        <div className="max-w-[1563px] mx-auto border-x border-[#333333] px-4 sm:px-6 py-4">
+          {/* Search row */}
+          <div className="flex items-center gap-3 mb-3">
+            <div className="flex-1 flex items-center h-11 bg-[#0A090D] border border-[rgba(51,51,51,0.5)] focus-within:border-primary/50 transition-colors">
+              <Search className="h-4 w-4 text-white/50 ml-3 shrink-0" aria-hidden />
               <Input
                 type="text"
-                placeholder="e.g. person walking at sunset"
+                autoFocus
+                placeholder="Describe what you're looking for…"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className={cn(
-                  "flex-1 bg-transparent border-0",
-                  "text-foreground placeholder:text-muted-foreground/60",
-                  "focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:border-0",
-                  "text-base sm:text-lg",
-                  "font-[var(--page-font)] font-medium",
-                  "!h-auto py-0 px-0 shadow-none rounded-none"
-                )}
-                aria-label="Search by meaning, e.g. person walking at sunset"
+                className="flex-1 bg-transparent border-0 h-full text-sm text-white placeholder:text-white/40 focus-visible:ring-0 focus-visible:border-0 !shadow-none rounded-none px-3"
+                aria-label="Search by meaning"
               />
               <Button
-                variant="ghost"
                 size="icon"
-                className={cn(
-                  "h-11 w-11 sm:h-12 sm:w-12",
-                  "bg-gradient-to-br from-[var(--page-accent-primary)] to-[var(--page-accent-secondary)]",
-                  "hover:from-[var(--page-accent-secondary)] hover:to-[var(--page-accent-tertiary)]",
-                  "text-white rounded-xl sm:rounded-2xl",
-                  "ml-2 sm:ml-3 flex-shrink-0",
-                  "shadow-lg shadow-[var(--page-accent-primary)]/30",
-                  "hover:shadow-xl hover:shadow-[var(--page-accent-primary)]/40",
-                  "transition-all duration-300",
-                  "touch-manipulation",
-                  "disabled:opacity-50 disabled:cursor-not-allowed",
-                  "group-hover:scale-105"
-                )}
+                className="h-8 w-8 mr-1.5 shrink-0 rounded-[6px] bg-primary text-black hover:bg-primary/90 disabled:opacity-40"
                 onClick={() => handleSearch()}
                 disabled={isSearching || !searchQuery.trim()}
                 aria-label="Run search"
                 aria-busy={isSearching}
               >
                 {isSearching ? (
-                  <Loader2 className="h-5 w-5 sm:h-6 sm:w-6 animate-spin" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  <ArrowRight className="h-5 w-5 sm:h-6 sm:w-6" />
+                  <ArrowRight className="h-4 w-4" />
                 )}
               </Button>
             </div>
+            <Button
+              variant="beetle-green"
+              size="sm"
+              className="hidden sm:inline-flex shrink-0 group"
+              onClick={() => router.push("/?view=uploads")}
+            >
+              <CloudUpload className="h-4 w-4" />
+              Upload
+            </Button>
           </div>
 
-          {/* Search Mode Buttons and Collection Selector - Same Row */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 mb-4 sm:mb-5">
-            {/* Mode Buttons */}
-            <div className="flex items-center gap-2 sm:gap-3">
-              <Button
-                variant={mode === "video" ? "default" : "outline"}
+          {/* Filters row */}
+          <div className="flex items-center gap-3 flex-wrap">
+            {/* Mode segmented control */}
+            <div className="flex border border-[rgba(51,51,51,0.5)]">
+              <button
+                type="button"
                 onClick={() => {
                   setMode("video");
                   setImageResults([]);
@@ -834,21 +733,17 @@ export default function ImageSearch() {
                 }}
                 disabled={isSearching}
                 className={cn(
-                  "flex-1 sm:flex-initial touch-manipulation",
-                  "rounded-full px-4 sm:px-5 text-sm sm:text-base",
-                  "font-[var(--page-font)] font-semibold",
-                  "transition-all duration-300",
+                  "flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium transition-colors duration-150",
                   mode === "video"
-                    ? "bg-gradient-to-r from-[var(--page-accent-primary)] to-[var(--page-accent-secondary)] hover:from-[var(--page-accent-secondary)] hover:to-[var(--page-accent-tertiary)] text-white shadow-lg shadow-[var(--page-accent-primary)]/30"
-                    : "border-[var(--page-border-subtle)] text-foreground hover:bg-[var(--page-surface-subtle)] bg-[var(--page-surface-elevated)] backdrop-blur-sm"
+                    ? "bg-primary text-black"
+                    : "text-white/60 hover:text-white/80 hover:bg-white/5"
                 )}
               >
-                <Video className="h-4 w-4 mr-1.5 sm:mr-2" />
-                <span className="hidden sm:inline">Search Videos</span>
-                <span className="sm:hidden">Videos</span>
-              </Button>
-              <Button
-                variant={mode === "image" ? "default" : "outline"}
+                <Video className="h-3.5 w-3.5" aria-hidden />
+                Videos
+              </button>
+              <button
+                type="button"
                 onClick={() => {
                   setMode("image");
                   setImageResults([]);
@@ -857,125 +752,89 @@ export default function ImageSearch() {
                 }}
                 disabled={isSearching}
                 className={cn(
-                  "flex-1 sm:flex-initial touch-manipulation",
-                  "rounded-full px-4 sm:px-5 text-sm sm:text-base",
-                  "font-[var(--page-font)] font-semibold",
-                  "transition-all duration-300",
+                  "flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium border-l border-[rgba(51,51,51,0.5)] transition-colors duration-150",
                   mode === "image"
-                    ? "bg-gradient-to-r from-[var(--page-accent-primary)] to-[var(--page-accent-secondary)] hover:from-[var(--page-accent-secondary)] hover:to-[var(--page-accent-tertiary)] text-white shadow-lg shadow-[var(--page-accent-primary)]/30"
-                    : "border-[var(--page-border-subtle)] text-foreground hover:bg-[var(--page-surface-subtle)] bg-[var(--page-surface-elevated)] backdrop-blur-sm"
+                    ? "bg-primary text-black"
+                    : "text-white/60 hover:text-white/80 hover:bg-white/5"
                 )}
               >
-                <ImageIcon className="h-4 w-4 mr-1.5 sm:mr-2" />
-                <span className="hidden sm:inline">Search Images</span>
-                <span className="sm:hidden">Images</span>
-              </Button>
+                <ImageIcon className="h-3.5 w-3.5" aria-hidden />
+                Images
+              </button>
             </div>
 
-            {/* Expand query toggle */}
-            <label className="flex items-center gap-2 cursor-pointer select-none" title="When on, AI expands your query (e.g. water → water, liquid, aquatic). When off, search uses your exact words.">
-              <input
-                type="checkbox"
-                checked={expandQuery}
-                onChange={(e) => setExpandQuery(e.target.checked)}
-                className="rounded border-border text-primary focus:ring-primary"
-                aria-label="Expand query with AI"
-              />
-              <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">Expand query</span>
-            </label>
+            <div className="hidden sm:block w-px h-5 bg-[#333333]" />
 
-            {/* Divider */}
-            <div className="hidden sm:block w-px h-8 bg-muted flex-shrink-0" />
-
-            {/* Collection Chips - Horizontal Scrollable */}
-            <div className="flex items-center gap-2 flex-1 min-w-0 w-full sm:w-auto">
-              {/* Label */}
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex-shrink-0 hidden sm:inline">
-                in:
-              </span>
-
-              {/* Scroll Left Button */}
-              <button
-                onClick={() => scrollCollectionChips("left")}
-                className="flex-shrink-0 w-8 h-8 sm:w-7 sm:h-7 rounded-full bg-muted hover:bg-muted active:bg-muted flex items-center justify-center transition-colors touch-manipulation"
-                aria-label="Scroll left"
-              >
-                <ChevronLeft className="h-4 w-4 text-muted-foreground" />
-              </button>
-
-              {/* Scrollable Collection Chips */}
-              <div
-                ref={collectionScrollRef}
-                className="flex-1 flex items-center gap-2 overflow-x-auto scrollbar-hide scroll-smooth min-w-0"
-                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-              >
-                {isLoadingCollections ? (
-                  /* Collection Chips Skeleton */
-                  <>
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <Skeleton key={i} className="flex-shrink-0 h-9 w-24 rounded-full" />
-                    ))}
-                  </>
-                ) : (
-                  <>
-                    {/* All Collections Chip */}
+            {/* Collection chips */}
+            <div className="flex items-center gap-1.5 flex-1 min-w-0 overflow-x-auto scrollbar-hide">
+              {isLoadingCollections ? (
+                <>
+                  {[1, 2, 3].map((i) => (
+                    <Skeleton key={i} className="h-7 w-16 shrink-0 rounded-none" />
+                  ))}
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => toggleCollection("all")}
+                    className={cn(
+                      "shrink-0 px-2.5 py-1 text-[13px] font-medium border transition-colors duration-150",
+                      selectedCollections.includes("all")
+                        ? "border-primary bg-primary/10 text-primary"
+                        : "border-[rgba(51,51,51,0.5)] text-white/60 hover:text-white/80"
+                    )}
+                  >
+                    All
+                    <span className="ml-1 text-white/40">
+                      {collections.reduce((acc, c) => acc + c.count, 0)}
+                    </span>
+                  </button>
+                  {collections.map((collection) => (
                     <button
-                      onClick={() => toggleCollection("all")}
-                      className={`flex-shrink-0 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all touch-manipulation ${selectedCollections.includes("all")
-                          ? "bg-primary text-white"
-                          : "bg-muted text-foreground/80 hover:bg-muted active:bg-muted"
-                        }`}
+                      key={collection.name}
+                      type="button"
+                      onClick={() => toggleCollection(collection.name)}
+                      className={cn(
+                        "shrink-0 px-2.5 py-1 text-[13px] font-medium border transition-colors duration-150 max-w-[120px] truncate",
+                        selectedCollections.includes(collection.name)
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-[rgba(51,51,51,0.5)] text-white/60 hover:text-white/80"
+                      )}
                     >
-                      <span>All</span>
-                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedCollections.includes("all")
-                          ? "bg-primary text-primary-foreground/80"
-                          : "bg-muted text-muted-foreground"
-                        }`}>
-                        {collections.reduce((acc, c) => acc + c.count, 0)}
-                      </span>
+                      {collection.name}
+                      <span className="ml-1 text-white/40">{collection.count}</span>
                     </button>
-
-                    {/* Individual Collection Chips */}
-                    {collections.map((collection) => (
-                      <button
-                        key={collection.name}
-                        onClick={() => toggleCollection(collection.name)}
-                        className={`flex-shrink-0 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all touch-manipulation ${selectedCollections.includes(collection.name)
-                            ? "bg-primary text-white"
-                            : "bg-muted text-foreground/80 hover:bg-muted active:bg-muted"
-                          }`}
-                      >
-                        <span className="truncate max-w-[100px] sm:max-w-[120px]">{collection.name}</span>
-                        <span className={`text-xs px-1.5 py-0.5 rounded-full ${selectedCollections.includes(collection.name)
-                            ? "bg-primary text-primary-foreground/80"
-                            : "bg-muted text-muted-foreground"
-                          }`}>
-                          {collection.count}
-                        </span>
-                      </button>
-                    ))}
-                  </>
-                )}
-              </div>
-
-              {/* Scroll Right Button */}
-              <button
-                onClick={() => scrollCollectionChips("right")}
-                className="flex-shrink-0 w-8 h-8 sm:w-7 sm:h-7 rounded-full bg-muted hover:bg-muted active:bg-muted flex items-center justify-center transition-colors touch-manipulation"
-                aria-label="Scroll right"
-              >
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-              </button>
-
-              {/* Selection Info */}
-              {!selectedCollections.includes("all") && selectedCollections.length > 0 && (
-                <span className="flex-shrink-0 text-xs text-primary font-medium whitespace-nowrap hidden sm:inline">
-                  {selectedCollections.length}/3
-                </span>
+                  ))}
+                </>
               )}
             </div>
-          </div>
 
+            {/* Expand query — subtle toggle */}
+            <button
+              type="button"
+              onClick={() => setExpandQuery(!expandQuery)}
+              title="Expand query with AI synonyms"
+              className={cn(
+                "shrink-0 flex items-center gap-1.5 px-2.5 py-1 text-[13px] border transition-colors duration-150",
+                expandQuery
+                  ? "border-primary/40 text-primary bg-primary/10"
+                  : "border-[rgba(51,51,51,0.5)] text-white/50 hover:text-white/70"
+              )}
+            >
+              <Sparkles className="h-3.5 w-3.5" aria-hidden />
+              <span className="hidden sm:inline">Expand</span>
+            </button>
+
+            <Button
+              variant="beetle-green"
+              size="sm"
+              className="sm:hidden shrink-0"
+              onClick={() => router.push("/?view=uploads")}
+            >
+              <CloudUpload className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -985,40 +844,36 @@ export default function ImageSearch() {
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           {/* Search Results Header - Sticky */}
           {!isSearching && hasResults && (
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between py-3 sm:py-4 px-4 sm:px-6 bg-background sticky top-0 z-10 border-b border-border flex-shrink-0 gap-2 sm:gap-0">
+            <div className="flex items-center justify-between py-3 px-4 sm:px-6 border-b border-[#333333] flex-shrink-0">
               <div className="flex items-center gap-2">
-                <h2 className="text-lg sm:text-xl font-bold text-foreground">Results</h2>
-                <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center">
+                <span className="font-mono-beetle text-sm text-primary font-bold">
                   {mode === "image" ? imageResults.length : Object.keys(videoResults).length}
                 </span>
+                <span className="text-[13px] text-[#71717a]">results</span>
               </div>
               <div className="flex items-center gap-3">
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={openRightSidebar}
-                  className="hidden md:flex items-center gap-2 text-xs sm:text-sm"
-                  aria-label="Open insights sidebar"
+                  className="hidden md:flex items-center gap-1.5 text-[13px] text-white/60 hover:text-white h-8 px-2"
+                  aria-label="Open insights"
                 >
-                  <Sparkles className="h-4 w-4" />
-                  <span>Insights</span>
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Insights
                 </Button>
-                <div className="flex items-center text-xs sm:text-sm text-muted-foreground">
-                  <span className="hidden sm:inline">Sort by:</span>
-                  <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger className="w-auto border-0 bg-transparent text-foreground hover:bg-muted/30 rounded-lg gap-1 pl-1 pr-0 h-auto py-0 font-medium text-xs sm:text-sm">
-                      <span className="hidden sm:inline">Relevance</span>
-                      <span className="sm:hidden">Sort</span>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="relevance">Relevance</SelectItem>
-                      {mode === "video" && <SelectItem value="confidence">Confidence</SelectItem>}
-                      {mode === "video" && <SelectItem value="length">Video length</SelectItem>}
-                      {mode === "video" && <SelectItem value="timestamp">Timestamp</SelectItem>}
-                      {mode === "image" && <SelectItem value="confidence">Confidence</SelectItem>}
-                    </SelectContent>
-                  </Select>
-                </div>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-auto border-0 bg-transparent text-[13px] text-white/60 hover:text-white/80 h-8 px-2 gap-1">
+                    Relevance
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="relevance">Relevance</SelectItem>
+                    {mode === "video" && <SelectItem value="confidence">Confidence</SelectItem>}
+                    {mode === "video" && <SelectItem value="length">Video length</SelectItem>}
+                    {mode === "video" && <SelectItem value="timestamp">Timestamp</SelectItem>}
+                    {mode === "image" && <SelectItem value="confidence">Confidence</SelectItem>}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           )}
@@ -1375,58 +1230,63 @@ export default function ImageSearch() {
             onClick={resetSidebarTimer}
           >
             {/* Search Insights */}
-            <Card className="p-4 bg-card border border-border rounded-none">
+            <Card className="p-4 beetle-card relative">
+              <span className="beetle-bracket beetle-bracket-tl" aria-hidden />
+              <span className="beetle-bracket beetle-bracket-tr" aria-hidden />
+              <span className="beetle-bracket beetle-bracket-bl" aria-hidden />
+              <span className="beetle-bracket beetle-bracket-br" aria-hidden />
               <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-primary" />
-                  <h3 className="text-sm font-semibold text-foreground">Search Insights</h3>
-                </div>
+                <span className="text-[13px] font-mono uppercase tracking-wide text-white/90">Insights</span>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setIsRightSidebarOpen(false)}
-                  className="h-6 w-6 p-0"
-                  aria-label="Close sidebar"
+                  className="h-6 w-6 p-0 text-white/50 hover:text-white"
+                  aria-label="Close"
                 >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
 
-              {/* Stats Grid */}
-              <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 mb-4">
-                <div className="bg-muted/30 rounded-lg p-3">
-                  <p className="text-xs text-muted-foreground mb-1">Total Hits</p>
-                  <p className="text-2xl font-bold text-foreground">
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="border border-[rgba(51,51,51,0.5)] p-3">
+                  <p className="text-[13px] text-[#71717a] mb-1">Hits</p>
+                  <p className="font-mono-beetle text-2xl font-bold text-primary">
                     {(mode === "image" ? imageResults.length : Object.keys(videoResults).length).toLocaleString()}
                   </p>
                 </div>
-                <div className="bg-muted/30 rounded-lg p-3">
-                  <p className="text-xs text-muted-foreground mb-1">Avg. Conf.</p>
-                  <p className="text-2xl font-bold text-foreground">{Math.round(avgConfidence)}%</p>
+                <div className="border border-[rgba(51,51,51,0.5)] p-3">
+                  <p className="text-[13px] text-[#71717a] mb-1">Avg. conf.</p>
+                  <p className="font-mono-beetle text-2xl font-bold text-primary">{Math.round(avgConfidence)}%</p>
                 </div>
               </div>
 
-              {/* Dominant Concepts */}
-              <div className="pt-3 border-t border-border">
-                <p className="text-xs text-muted-foreground mb-2">Dominant Concepts</p>
-                <div className="flex flex-wrap gap-2">
-                  {(queryInterpretation.length > 0 ? queryInterpretation.slice(0, 3) : ["Snow", "Nature", "Cold"]).map((concept, idx) => (
-                    <span
-                      key={idx}
-                      className="px-3 py-1 text-xs bg-primary/10 text-primary rounded-full font-medium"
-                    >
-                      {concept}
-                    </span>
-                  ))}
+              {(queryInterpretation.length > 0) && (
+                <div className="pt-3 border-t border-[#333333]">
+                  <p className="text-[13px] text-[#71717a] mb-2">Concepts</p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {queryInterpretation.slice(0, 4).map((concept, idx) => (
+                      <span
+                        key={idx}
+                        className="px-2 py-0.5 text-[13px] border border-primary/30 text-primary"
+                      >
+                        {concept}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </Card>
 
             {/* Your collections (real data) */}
             {collections.length > 0 && (
-              <Card className="p-4 bg-card border border-border rounded-none">
+              <div className="beetle-card p-4 relative">
+                <span className="beetle-bracket beetle-bracket-tl" aria-hidden />
+                <span className="beetle-bracket beetle-bracket-tr" aria-hidden />
+                <span className="beetle-bracket beetle-bracket-bl" aria-hidden />
+                <span className="beetle-bracket beetle-bracket-br" aria-hidden />
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-semibold text-foreground">Your collections</h3>
+                  <span className="text-[13px] text-[#71717a]">Collections</span>
                   <button
                     type="button"
                     onClick={(e) => {
@@ -1434,12 +1294,12 @@ export default function ImageSearch() {
                       resetSidebarTimer();
                       router.push("/?view=collections");
                     }}
-                    className="text-xs text-primary hover:text-primary font-medium"
+                    className="text-[13px] text-primary hover:text-primary/80"
                   >
                     View all
                   </button>
                 </div>
-                <div className="space-y-2">
+                <div className="space-y-1">
                   {collections.slice(0, 4).map((col) => (
                     <button
                       key={col.name}
@@ -1449,54 +1309,40 @@ export default function ImageSearch() {
                         resetSidebarTimer();
                         toggleCollection(col.name);
                       }}
-                      className="w-full flex items-center justify-between cursor-pointer hover:bg-muted/30 -mx-2 px-2 py-2 rounded-lg transition-colors text-left"
+                      className="w-full flex items-center justify-between py-2 text-left text-sm text-white/80 hover:text-white transition-colors"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center">
-                          <Folder className="h-4 w-4 text-primary" />
-                        </div>
-                        <div>
-                          <span className="text-sm font-medium text-foreground">{col.name}</span>
-                          <p className="text-xs text-muted-foreground">{col.count} items</p>
-                        </div>
-                      </div>
-                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                      <span className="truncate">{col.name}</span>
+                      <span className="text-[13px] text-[#71717a] shrink-0 ml-2">{col.count}</span>
                     </button>
                   ))}
                 </div>
-              </Card>
+              </div>
             )}
 
             {/* Search tips */}
-            <Card className="p-4 bg-primary/5 border border-primary/10 rounded-xl relative overflow-hidden">
-              <div className="flex items-start gap-3">
-                <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Lightbulb className="h-4 w-4 text-primary" />
-                </div>
-                <div className="flex-1 pr-8">
-                  <h4 className="text-sm font-semibold text-foreground mb-1">Refine your search</h4>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Try: broader terms, emotions, or actions.
-                  </p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {["person walking", "sunset landscape", "dramatic sky"].map((ex) => (
-                      <button
-                        key={ex}
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          resetSidebarTimer();
-                          handleExampleClick(ex);
-                        }}
-                        className="text-xs px-2.5 py-1 bg-white/80 hover:bg-card border border-primary/20 rounded-full text-primary font-medium"
-                      >
-                        {ex}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+            <div className="beetle-card p-4 relative">
+              <span className="beetle-bracket beetle-bracket-tl" aria-hidden />
+              <span className="beetle-bracket beetle-bracket-tr" aria-hidden />
+              <span className="beetle-bracket beetle-bracket-bl" aria-hidden />
+              <span className="beetle-bracket beetle-bracket-br" aria-hidden />
+              <p className="text-[13px] text-[#71717a] mb-3">Try broader terms or actions.</p>
+              <div className="flex flex-wrap gap-1.5">
+                {["person walking", "sunset landscape", "dramatic sky"].map((ex) => (
+                  <button
+                    key={ex}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      resetSidebarTimer();
+                      handleExampleClick(ex);
+                    }}
+                    className="text-[13px] px-2.5 py-1 border border-[rgba(51,51,51,0.5)] text-white/70 hover:border-primary/40 hover:text-primary transition-colors duration-150"
+                  >
+                    {ex}
+                  </button>
+                ))}
               </div>
-            </Card>
+            </div>
           </div>
         )}
       </div>

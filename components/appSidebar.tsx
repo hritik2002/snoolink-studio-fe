@@ -119,9 +119,6 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
       <SidebarContent>
         {!isMobile && (
           <SidebarGroup>
-            <SidebarGroupLabel className="text-muted-foreground text-xs font-semibold uppercase tracking-wider px-4 py-2">
-              Platform
-            </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
@@ -173,9 +170,6 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
           </SidebarGroup>
         )}
         <SidebarGroup>
-          <SidebarGroupLabel className="text-muted-foreground text-xs font-semibold uppercase tracking-wider px-4 py-2">
-            Coming soon
-          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
@@ -208,9 +202,6 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-muted-foreground text-xs font-semibold uppercase tracking-wider px-4 py-2">
-            Account
-          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
                 <SidebarMenuItem>
@@ -236,7 +227,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                     <button onClick={() => handleViewChange("billing")} aria-label="Billing (coming soon)">
                       <CreditCard className="h-4 w-4 shrink-0" />
                       <span>Billing</span>
-                      <span className="ml-1 text-[10px] text-muted-foreground font-normal">Soon</span>
+                      <span className="nav-badge ml-1.5">Soon</span>
                     </button>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
