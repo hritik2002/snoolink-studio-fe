@@ -1,15 +1,13 @@
 import * as React from "react"
 
 import { cn } from "@/lib/utils"
+import { cardFlat } from "@/lib/cg-classes"
 
 function Card({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card"
-      className={cn(
-        "bg-card text-card-foreground flex flex-col gap-6 rounded-[30px] border border-border py-6",
-        className
-      )}
+      className={cn(cardFlat, "flex flex-col gap-6 text-cg-ink", className)}
       {...props}
     />
   )
@@ -32,7 +30,7 @@ function CardTitle({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-title"
-      className={cn("leading-none font-semibold font-[family-name:var(--font-display)]", className)}
+      className={cn("font-display text-h3 font-semibold text-cg-ink leading-none", className)}
       {...props}
     />
   )
@@ -42,7 +40,7 @@ function CardDescription({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       data-slot="card-description"
-      className={cn("text-muted-foreground text-sm", className)}
+      className={cn("font-body text-sm text-cg-ink-4", className)}
       {...props}
     />
   )

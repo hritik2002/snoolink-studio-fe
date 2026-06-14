@@ -3,47 +3,40 @@ import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
+import { btnDark, btnGhost, btnLight, btnSm } from "@/lib/cg-classes"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-[18px] text-base font-medium transition-all cursor-pointer disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 aria-invalid:border-destructive",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 aria-invalid:ring-destructive/20 aria-invalid:border-destructive",
   {
     variants: {
       variant: {
-        default:
-          "bg-primary text-primary-foreground shadow-[var(--shadow-btn-dark)] hover:-translate-y-0.5 active:translate-y-0",
+        default: btnDark,
+        light: btnLight,
+        dark: btnDark,
         destructive:
-          "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20",
-        outline:
-          "border border-border bg-background shadow-[var(--shadow-btn-light)] hover:-translate-y-0.5 active:translate-y-0 hover:bg-secondary",
+          "inline-flex items-center justify-center gap-2 rounded-btn px-7 py-[13px] font-ui text-body font-medium bg-destructive text-white hover:bg-destructive/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/20 disabled:opacity-40 disabled:pointer-events-none",
+        outline: btnLight,
         secondary:
-          "bg-secondary text-secondary-foreground border border-border hover:bg-muted",
-        ghost:
-          "hover:bg-muted hover:text-foreground",
+          "inline-flex items-center justify-center gap-2 rounded-btn px-4 py-2 font-body text-sm font-medium bg-cg-bg-alt text-cg-ink border border-cg-line hover:bg-cg-bg-warm transition-colors duration-200 ease-cg disabled:opacity-40 disabled:pointer-events-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cg-ink/20",
+        ghost: btnGhost,
         link:
-          "text-foreground underline-offset-4 hover:underline hover:text-[var(--color-accent-orange)]",
-        /* Cloudglue light button */
-        glue:
-          "bg-background text-foreground border border-[var(--color-border-warm)] shadow-[var(--shadow-btn-light)] hover:-translate-y-0.5 active:translate-y-0",
-        /* Cloudglue dark button */
-        "glue-dark":
-          "bg-primary text-primary-foreground shadow-[var(--shadow-btn-dark)] hover:-translate-y-0.5 active:translate-y-0 h-12 px-8",
+          "inline-flex items-center gap-2 font-body text-body text-cg-ink underline-offset-4 hover:underline hover:text-cg-orange transition-colors duration-200 ease-cg",
         /* Legacy aliases */
-        beetle:
-          "bg-primary text-primary-foreground shadow-[var(--shadow-btn-dark)] hover:-translate-y-0.5 active:translate-y-0 h-12 px-8",
-        "beetle-secondary":
-          "bg-background text-foreground border border-[var(--color-border-warm)] shadow-[var(--shadow-btn-light)] hover:-translate-y-0.5 h-9 px-4 text-sm",
-        "beetle-tertiary":
-          "bg-primary text-primary-foreground shadow-[var(--shadow-btn-dark)] hover:-translate-y-0.5 h-12 px-8",
+        glue: btnDark,
+        "glue-dark": btnDark,
+        beetle: btnDark,
+        "beetle-secondary": cn(btnLight, btnSm),
+        "beetle-tertiary": btnDark,
         "beetle-green":
-          "bg-secondary text-foreground border border-border hover:bg-muted h-9 px-4 text-sm",
+          "inline-flex items-center justify-center gap-2 rounded-btn px-4 py-2 font-body text-sm font-medium bg-cg-bg-alt text-cg-ink border border-cg-line hover:bg-cg-bg-warm transition-colors duration-200 ease-cg disabled:opacity-40 disabled:pointer-events-none",
       },
       size: {
-        default: "h-10 px-5 py-2 has-[>svg]:px-4 text-[15px]",
-        sm: "h-9 rounded-[13px] gap-1.5 px-4 has-[>svg]:px-3 text-sm",
-        lg: "h-12 rounded-[18px] px-8 has-[>svg]:px-6 text-base",
-        icon: "size-10 rounded-[18px]",
-        "icon-sm": "size-9 rounded-[13px]",
-        "icon-lg": "size-12 rounded-[18px]",
+        default: "",
+        sm: btnSm,
+        lg: "rounded-btn px-8 py-3.5 text-body",
+        icon: "size-10 rounded-btn p-0",
+        "icon-sm": "size-9 rounded-badge p-0",
+        "icon-lg": "size-12 rounded-btn p-0",
       },
     },
     defaultVariants: {
@@ -53,24 +46,34 @@ const buttonVariants = cva(
   }
 )
 
+interface ButtonProps
+  extends React.ComponentProps<"button">,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
+  loading?: boolean
+}
+
 function Button({
   className,
   variant,
   size,
   asChild = false,
+  loading,
+  disabled,
+  children,
   ...props
-}: React.ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants> & {
-    asChild?: boolean
-  }) {
+}: ButtonProps) {
   const Comp = asChild ? Slot : "button"
 
   return (
     <Comp
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
+      disabled={disabled || loading}
       {...props}
-    />
+    >
+      {children}
+    </Comp>
   )
 }
 

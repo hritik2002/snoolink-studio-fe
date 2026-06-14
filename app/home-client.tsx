@@ -42,7 +42,7 @@ function HomeContent() {
         setActiveView(view);
         router.push(`/?view=${view}`);
       }} />
-      <SidebarInset className="bg-background min-w-0">
+      <SidebarInset className="bg-cg-bg min-w-0">
         <div
           id="main"
           className={`flex flex-1 flex-col min-w-0 min-h-0 overflow-x-hidden pb-16 md:pb-0 ${activeView === "collections" ? "overflow-y-hidden" : "overflow-y-auto"}`}

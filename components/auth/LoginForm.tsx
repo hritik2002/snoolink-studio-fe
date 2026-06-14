@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { btnDark } from "@/lib/cg-classes";
+import { cn } from "@/lib/utils";
 import { ArrowUpRight } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useState } from "react";
 
 export function LoginForm() {
   const [loading, setLoading] = useState(false);
@@ -38,7 +40,7 @@ export function LoginForm() {
   return (
     <div className="w-full">
       {error && (
-        <div className="text-red-400 text-sm border border-red-900/50 bg-red-950/30 px-3 py-2 mb-4">
+        <div className="font-body text-sm text-red-600 border border-red-200 bg-red-50 px-3 py-2 mb-4 rounded-badge">
           {error}
         </div>
       )}
@@ -47,7 +49,7 @@ export function LoginForm() {
         type="button"
         onClick={handleGoogleLogin}
         disabled={loading}
-        className="w-full flex items-center justify-center gap-2 h-12 px-8 bg-primary text-primary-foreground text-base font-medium rounded-[18px] shadow-[var(--shadow-btn-dark)] hover:-translate-y-0.5 transition-transform duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 group"
+        className={cn(btnDark, "w-full group")}
       >
         <svg
           className="w-4 h-4 shrink-0"

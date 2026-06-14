@@ -4,7 +4,12 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --breakpoint-xs: 30rem;
+  /* Cloudglue breakpoints */
+  --breakpoint-sm: 24.375rem;  /* 390px */
+  --breakpoint-md: 50.625rem;  /* 810px */
+  --breakpoint-lg: 75rem;      /* 1200px */
+
+  /* shadcn semantic mappings */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-sans);
@@ -41,12 +46,94 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+
+  /* Cloudglue color tokens → bg-cg-bg, text-cg-ink, etc. */
+  --color-cg-bg: #fefefe;
+  --color-cg-bg-alt: #fafaf7;
+  --color-cg-bg-warm: #f3f3f1;
+  --color-cg-bg-warmer: #f0ece7;
+  --color-cg-surface: #ffffff;
+  --color-cg-ink: #111111;
+  --color-cg-ink-2: #494949;
+  --color-cg-ink-3: #616161;
+  --color-cg-ink-4: #989897;
+  --color-cg-ink-warm: #37312f;
+  --color-cg-line: #f3f3f1;
+  --color-cg-line-2: #f0ece7;
+  --color-cg-line-3: #e5e5e5;
+  --color-cg-orange: #ff974d;
+  --color-cg-peach: #ffe4bf;
+  --color-cg-blue: #6578e8;
+  --color-cg-cyan: #3cc0e8;
+  --color-cg-neon: #5ef2ff;
+
+  /* Font families → font-display, font-body, font-ui, font-mono */
+  --font-family-display: var(--font-display), system-ui, sans-serif;
+  --font-family-body: var(--font-body), system-ui, sans-serif;
+  --font-family-ui: var(--font-body), system-ui, sans-serif;
+  --font-family-mono: var(--font-mono), ui-monospace, monospace;
+
+  /* Type scale → text-hero, text-h2, text-h3, text-body-lg, text-body, text-sm, text-xs */
+  --text-hero: 4rem;
+  --text-hero--line-height: 1.15;
+  --text-hero--letter-spacing: -0.0625rem;
+  --text-hero--font-weight: 600;
+
+  --text-h2: 3.25rem;
+  --text-h2--line-height: 1.2;
+  --text-h2--letter-spacing: -0.0625rem;
+  --text-h2--font-weight: 600;
+
+  --text-h3: 1.5rem;
+  --text-h3--line-height: 1.2;
+  --text-h3--font-weight: 600;
+
+  --text-body-lg: 1.125rem;
+  --text-body-lg--line-height: 1.5;
+
+  --text-body: 1rem;
+  --text-body--line-height: 1.5;
+
+  --text-sm: 0.9375rem;
+  --text-sm--line-height: 1;
+  --text-sm--letter-spacing: 0.01em;
+
+  --text-xs: 0.8125rem;
+  --text-xs--line-height: 1.5;
+  --text-xs--letter-spacing: 0.01em;
+
+  /* Border radius → rounded-badge, rounded-btn, rounded-card, etc. */
+  --radius-badge: 13px;
+  --radius-btn: 18px;
+  --radius-img: 24px;
+  --radius-icon: 27px;
+  --radius-card: 30px;
+  --radius-cta: 40px;
+  --radius-pill: 100px;
+
+  /* Legacy radius aliases */
   --radius-sm: 13px;
   --radius-md: 18px;
   --radius-lg: 24px;
   --radius-xl: 27px;
   --radius-2xl: 30px;
   --radius-3xl: 40px;
+
+  /* Shadows → shadow-btn-light, shadow-btn-dark, shadow-card, shadow-card-md */
+  --shadow-btn-light: 0px 0px 0px -2.5px rgba(0,0,0,0.13), 0px 0px 0px -5px rgba(0,0,0,0), inset 0px -1px 4px 0px rgba(0,0,0,0.15), 0px 0px 0px 2px #f3f3f1;
+  --shadow-btn-dark: rgba(0,0,0,0.1) 0px 0.48px 1.25px -1.17px, rgba(0,0,0,0.09) 0px 1.83px 4.76px -2.33px, rgba(0,0,0,0.05) 0px 8px 20.8px -3.5px, rgba(255,255,255,0.49) 0px -2px 9px 0px inset, rgba(0,0,0,0.2) 0px 0px 0px 2px;
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.04), 0 0 0 1.5px #f3f3f1;
+  --shadow-card-md: 0 4px 16px rgba(0,0,0,0.06), 0 0 0 1.5px #f0ece7;
+
+  /* Max widths → max-w-content, max-w-page, max-w-prose, max-w-card */
+  --max-width-content: 76.75rem;
+  --max-width-page: 75rem;
+  --max-width-prose: 43.125rem;
+  --max-width-card: 40.625rem;
+
+  /* Motion → ease-cg, ease-cg-smooth */
+  --ease-cg: cubic-bezier(0.44, 0, 0.56, 1);
+  --ease-cg-smooth: cubic-bezier(0.4, 0, 0, 1);
 }
 
 /* Cloudglue Design System — light-first theme */
@@ -177,8 +264,7 @@
   }
 
   body {
-    @apply bg-background text-foreground;
-    font-family: var(--font-body, var(--font-sans), system-ui, sans-serif);
+    @apply bg-cg-bg text-cg-ink font-body;
     font-feature-settings: 'blwf' on, 'cv09' on, 'cv03' on, 'cv04' on, 'cv11' on;
     -webkit-overflow-scrolling: touch;
   }

@@ -192,7 +192,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${inter.variable} ${urbanist.variable} ${fragmentMono.variable} font-sans antialiased min-h-screen bg-background text-foreground overflow-x-hidden`}
+        className={`${inter.variable} ${urbanist.variable} ${fragmentMono.variable} font-body antialiased min-h-screen bg-cg-bg text-cg-ink overflow-x-hidden`}
         style={{
           ["--font-sans" as string]: "var(--font-inter), system-ui, sans-serif",
           ["--font-body" as string]: "var(--font-inter), system-ui, sans-serif",
@@ -203,7 +203,7 @@ export default function RootLayout({
       >
         <a
           href="#main"
-          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[200] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:rounded-[18px]"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[200] focus:px-4 focus:py-2 bg-cg-ink text-cg-bg-alt rounded-btn"
         >
           Skip to main content
         </a>

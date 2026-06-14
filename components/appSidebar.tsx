@@ -99,9 +99,9 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
   };
 
   return (
-    <Sidebar className="border-r border-sidebar-border bg-sidebar" collapsible="icon">
+    <Sidebar className="border-r border-cg-line bg-cg-bg-alt" collapsible="icon">
       <SidebarRail />
-      <SidebarHeader className="px-2 md:px-4 py-4 md:py-6 border-b border-sidebar-border flex flex-col items-center group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:py-3">
+      <SidebarHeader className="px-2 md:px-4 py-4 md:py-6 border-b border-cg-line flex flex-col items-center group-data-[collapsible=icon]:px-2 group-data-[collapsible=icon]:py-3">
         <div className="flex items-center gap-2 w-full group-data-[collapsible=icon]:flex-col group-data-[collapsible=icon]:items-center group-data-[collapsible=icon]:gap-2 group-data-[collapsible=icon]:w-full">
           <SidebarTrigger className="size-8 shrink-0" aria-label="Collapse or expand sidebar" />
           <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0 group-data-[collapsible=icon]:w-7 group-data-[collapsible=icon]:h-7 overflow-hidden">
@@ -113,7 +113,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
               className="w-full h-full object-contain"
             />
           </div>
-          <span className="font-semibold text-foreground truncate group-data-[collapsible=icon]:hidden font-[family-name:var(--font-display)]">Snoolink</span>
+          <span className="font-display font-semibold text-cg-ink truncate group-data-[collapsible=icon]:hidden">Snoolink</span>
         </div>
       </SidebarHeader>
       <SidebarContent>
@@ -126,7 +126,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                     asChild
                     isActive={activeView === "search"}
                     tooltip="Search"
-                    className="text-foreground/80 hover:text-foreground hover:bg-primary/5 data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:font-medium"
+                    className="text-cg-ink-3 hover:text-cg-ink hover:bg-cg-bg-warm data-[active=true]:bg-cg-bg-warm data-[active=true]:text-cg-ink data-[active=true]:font-medium"
                   >
                     <button onClick={() => handleViewChange("search")} aria-label="Search">
                       <Search className="h-4 w-4 shrink-0" />
@@ -139,7 +139,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                     asChild
                     isActive={activeView === "collections"}
                     tooltip="Collections"
-                    className="text-foreground/80 hover:text-foreground hover:bg-primary/5 data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:font-medium"
+                    className="text-cg-ink-3 hover:text-cg-ink hover:bg-cg-bg-warm data-[active=true]:bg-cg-bg-warm data-[active=true]:text-cg-ink data-[active=true]:font-medium"
                   >
                     <button onClick={() => handleViewChange("collections")} aria-label="Collections">
                       <FolderOpen className="h-4 w-4 shrink-0" />
@@ -152,7 +152,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                     asChild
                     isActive={activeView === "uploads"}
                     tooltip="Uploads"
-                    className="text-foreground/80 hover:text-foreground hover:bg-primary/5 data-[active=true]:bg-primary/10 data-[active=true]:text-primary data-[active=true]:font-medium"
+                    className="text-cg-ink-3 hover:text-cg-ink hover:bg-cg-bg-warm data-[active=true]:bg-cg-bg-warm data-[active=true]:text-cg-ink data-[active=true]:font-medium"
                   >
                     <button onClick={() => handleViewChange("uploads")} aria-label="Uploads">
                       <Upload className="h-4 w-4 shrink-0" />
@@ -177,7 +177,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                   asChild
                   isActive={activeView === "history"}
                   tooltip="History"
-                  className="text-muted-foreground hover:text-foreground/80 hover:bg-primary/5 data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
+                  className="text-cg-ink-4 hover:text-cg-ink hover:bg-cg-bg-warm data-[active=true]:bg-cg-bg-warm data-[active=true]:text-cg-ink"
                 >
                   <button onClick={() => handleViewChange("history")} aria-label="History (coming soon)">
                     <History className="h-4 w-4 shrink-0" />
@@ -190,7 +190,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                   asChild
                   isActive={activeView === "analytics"}
                   tooltip="Analytics"
-                  className="text-muted-foreground hover:text-foreground/80 hover:bg-primary/5 data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
+                  className="text-cg-ink-4 hover:text-cg-ink hover:bg-cg-bg-warm data-[active=true]:bg-cg-bg-warm data-[active=true]:text-cg-ink"
                 >
                   <button onClick={() => handleViewChange("analytics")} aria-label="Analytics">
                     <BarChart3 className="h-4 w-4 shrink-0" />
@@ -209,7 +209,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                     asChild
                     isActive={activeView === "settings"}
                     tooltip="Settings"
-                    className="text-muted-foreground hover:text-foreground/80 hover:bg-primary/5 data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
+                    className="text-cg-ink-4 hover:text-cg-ink hover:bg-cg-bg-warm data-[active=true]:bg-cg-bg-warm data-[active=true]:text-cg-ink"
                   >
                     <button onClick={() => handleViewChange("settings")} aria-label="Settings">
                       <Settings className="h-4 w-4 shrink-0" />
@@ -222,7 +222,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                     asChild
                     isActive={activeView === "billing"}
                     tooltip="Billing"
-                    className="text-muted-foreground hover:text-foreground/80 hover:bg-primary/5 data-[active=true]:bg-primary/10 data-[active=true]:text-primary"
+                    className="text-cg-ink-4 hover:text-cg-ink hover:bg-cg-bg-warm data-[active=true]:bg-cg-bg-warm data-[active=true]:text-cg-ink"
                   >
                     <button onClick={() => handleViewChange("billing")} aria-label="Billing (coming soon)">
                       <CreditCard className="h-4 w-4 shrink-0" />
@@ -235,7 +235,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
                   <SidebarMenuButton
                     asChild
                     tooltip="Admin"
-                    className="text-muted-foreground hover:text-foreground/80 hover:bg-primary/5"
+                    className="text-cg-ink-4 hover:text-cg-ink hover:bg-cg-bg-warm"
                   >
                     <button
                       onClick={() => { setOpenMobile(false); router.push("/admin"); }}
@@ -250,7 +250,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter className="border-t border-sidebar-border p-2 md:p-4">
+      <SidebarFooter className="border-t border-cg-line p-2 md:p-4">
         {/* Expanded: full footer */}
         <div className="group-data-[collapsible=icon]:hidden">
           <div className="flex items-center gap-3 mb-2">
@@ -258,17 +258,17 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
               <User className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-foreground truncate">
+              <p className="text-sm font-medium text-cg-ink truncate">
                 {user?.email?.split("@")[0] || "User"}
               </p>
-              <p className="text-xs text-muted-foreground font-medium truncate">
+              <p className="text-xs text-cg-ink-4 font-medium truncate">
                 Pro
               </p>
             </div>
           </div>
           <button
             onClick={handleSignOut}
-            className="w-full text-left text-sm text-muted-foreground hover:text-foreground transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
+            className="w-full text-left text-sm text-cg-ink-4 hover:text-cg-ink transition-colors duration-200 ease-cg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cg-ink/20 focus-visible:ring-offset-2 rounded-badge"
           >
             Sign out
           </button>
@@ -277,7 +277,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
         <div className="hidden group-data-[collapsible=icon]:flex flex-col items-center gap-2 py-1">
           <button
             onClick={() => handleViewChange("profile")}
-            className="size-8 flex items-center justify-center rounded-md hover:bg-primary/10 text-muted-foreground hover:text-foreground transition-colors"
+            className="size-8 flex items-center justify-center rounded-badge hover:bg-cg-bg-warm text-cg-ink-4 hover:text-cg-ink transition-colors duration-200 ease-cg"
             title="Profile"
             aria-label="Profile"
           >
@@ -285,7 +285,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
           </button>
           <button
             onClick={handleSignOut}
-            className="size-8 flex items-center justify-center rounded-md hover:bg-primary/10 text-muted-foreground hover:text-foreground transition-colors"
+            className="size-8 flex items-center justify-center rounded-badge hover:bg-cg-bg-warm text-cg-ink-4 hover:text-cg-ink transition-colors duration-200 ease-cg"
             title="Sign out"
             aria-label="Sign out"
           >

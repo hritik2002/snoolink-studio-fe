@@ -677,12 +677,12 @@ export default function ImageSearch() {
   return (
     <div className="flex-1 flex flex-col h-full w-full min-w-0 overflow-hidden">
       {/* Command bar */}
-      <div className="sticky top-0 z-[200] flex-shrink-0 border-b border-border bg-background/90 backdrop-blur-xl">
-        <div className="max-w-[1228px] mx-auto px-4 sm:px-6 lg:px-[60px] py-4">
+      <div className="sticky top-0 z-[200] flex-shrink-0 border-b border-cg-line bg-cg-bg/90 backdrop-blur-xl">
+        <div className="max-w-content mx-auto px-4 md:px-9 lg:px-15 py-4">
           {/* Search row */}
           <div className="flex items-center gap-3 mb-3">
-            <div className="flex-1 flex items-center h-11 bg-input border border-border rounded-[18px] focus-within:border-[var(--color-accent-orange)]/50 focus-within:ring-[3px] focus-within:ring-[var(--color-accent-orange)]/20 transition-colors">
-              <Search className="h-4 w-4 text-muted-foreground ml-3 shrink-0" aria-hidden />
+            <div className="flex-1 flex items-center h-11 bg-cg-bg-warm border border-cg-line-3 rounded-btn focus-within:border-cg-orange/50 focus-within:ring-[3px] focus-within:ring-cg-orange/20 transition-all duration-150 ease-cg">
+              <Search className="h-4 w-4 text-cg-ink-4 ml-3 shrink-0" aria-hidden />
               <Input
                 type="text"
                 autoFocus
@@ -690,12 +690,13 @@ export default function ImageSearch() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className="flex-1 bg-transparent border-0 h-full text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-0 focus-visible:border-0 !shadow-none rounded-none px-3"
+                className="flex-1 bg-transparent border-0 h-full text-sm text-cg-ink placeholder:text-cg-ink-4 focus-visible:ring-0 focus-visible:border-0 !shadow-none rounded-none px-3"
                 aria-label="Search by meaning"
               />
               <Button
                 size="icon"
-                className="h-8 w-8 mr-1.5 shrink-0 rounded-[13px] bg-primary text-primary-foreground hover:-translate-y-0 disabled:opacity-40"
+                variant="dark"
+                className="h-8 w-8 mr-1.5 shrink-0 rounded-badge disabled:opacity-40"
                 onClick={() => handleSearch()}
                 disabled={isSearching || !searchQuery.trim()}
                 aria-label="Run search"
@@ -722,7 +723,7 @@ export default function ImageSearch() {
           {/* Filters row */}
           <div className="flex items-center gap-3 flex-wrap">
             {/* Mode segmented control */}
-            <div className="inline-flex rounded-[18px] border border-border bg-secondary p-0.5">
+            <div className="inline-flex rounded-btn border border-border bg-secondary p-0.5">
               <button
                 type="button"
                 onClick={() => {
@@ -733,7 +734,7 @@ export default function ImageSearch() {
                 }}
                 disabled={isSearching}
                 className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 text-[15px] font-medium rounded-[13px] transition-colors duration-200",
+                  "flex items-center gap-1.5 px-3 py-1.5 text-[15px] font-medium rounded-badge transition-colors duration-200",
                   mode === "video"
                     ? "bg-background text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
@@ -752,7 +753,7 @@ export default function ImageSearch() {
                 }}
                 disabled={isSearching}
                 className={cn(
-                  "flex items-center gap-1.5 px-3 py-1.5 text-[15px] font-medium rounded-[13px] transition-colors duration-200",
+                  "flex items-center gap-1.5 px-3 py-1.5 text-[15px] font-medium rounded-badge transition-colors duration-200",
                   mode === "image"
                     ? "bg-background text-foreground shadow-sm"
                     : "text-muted-foreground hover:text-foreground"
@@ -779,7 +780,7 @@ export default function ImageSearch() {
                     type="button"
                     onClick={() => toggleCollection("all")}
                     className={cn(
-                      "shrink-0 px-3 py-1 text-[15px] font-medium rounded-[13px] border transition-colors duration-200",
+                      "shrink-0 px-3 py-1 text-[15px] font-medium rounded-badge border transition-colors duration-200",
                       selectedCollections.includes("all")
                         ? "border-[var(--color-accent-orange)] bg-[var(--color-accent-peach)]/30 text-foreground"
                         : "border-border text-muted-foreground hover:text-foreground"
@@ -896,13 +897,13 @@ export default function ImageSearch() {
                       <Card
                         key={result.id}
                         className={cn(
-                          "glue-card overflow-hidden rounded-[24px] touch-manipulation border border-border bg-card",
+                          "glue-card overflow-hidden rounded-img touch-manipulation border border-border bg-card",
                           compactMode ? "p-2 sm:p-3" : "p-3 sm:p-4"
                         )}
                       >
                         <div className={`flex ${viewMode === "grid" ? "flex-col" : "flex-col sm:flex-row"} gap-3 sm:gap-5`}>
                           {/* Thumbnail */}
-                          <div className={`relative ${viewMode === "grid" ? "w-full aspect-square" : "w-full xs:w-32 h-48 xs:h-32"} flex-shrink-0 rounded-[18px] overflow-hidden bg-muted`}>
+                          <div className={`relative ${viewMode === "grid" ? "w-full aspect-square" : "w-full xs:w-32 h-48 xs:h-32"} flex-shrink-0 rounded-btn overflow-hidden bg-muted`}>
                             {viewMode === "list" ? (
                               <Image
                                 src={result.imageUrl}
