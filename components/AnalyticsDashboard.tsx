@@ -1,8 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card } from "@/components/ui/card";
-import { BarChart3, Search, Upload, FolderPlus, Eye, Loader2, Download, Calendar } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Loader2, Download, ArrowUpRight } from "lucide-react";
+import {
+  CommandBar,
+  PageBody,
+  PageTitle,
+  StatBlock,
+  EmptyPanel,
+} from "@/components/ui/page-shell";
 
 type Range = "7" | "30" | "90";
 
@@ -23,8 +30,7 @@ interface Summary {
 function getRange(r: Range): { start: string; end: string } {
   const end = new Date();
   const start = new Date();
-  const d = parseInt(r, 10);
-  start.setDate(start.getDate() - d);
+  start.setDate(start.getDate() - parseInt(r, 10));
   return { start: start.toISOString().slice(0, 10), end: end.toISOString().slice(0, 10) };
 }
 
@@ -91,146 +97,123 @@ export function AnalyticsDashboard() {
     );
   }
 
+  const noData = !error && (overview?.totalEvents ?? 0) === 0;
+
   return (
-    <div className="flex-1 flex flex-col min-w-0 max-w-5xl mx-auto w-full py-6 sm:py-8 px-4 sm:px-6 overflow-x-hidden">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <BarChart3 className="h-7 w-7 text-primary" />
-            Analytics Dashboard
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Usage, search patterns, and content performance.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <select
-            value={range}
-            onChange={(e) => setRange(e.target.value as Range)}
-            className="rounded-md border border-border px-3 py-2 text-sm text-foreground bg-input focus:border-primary focus:ring-1 focus:ring-primary"
-            aria-label="Date range"
-          >
-            <option value="7">Last 7 days</option>
-            <option value="30">Last 30 days</option>
-            <option value="90">Last 90 days</option>
-          </select>
-          <button
-            onClick={handleExport}
-            disabled={exporting}
-            className="inline-flex items-center gap-2 rounded-md bg-primary px-3 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-60"
-          >
-            {exporting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
-            Export
-          </button>
-        </div>
-      </div>
-
-      {error && (
-        <div className="mb-4 p-3 rounded-md bg-red-50 text-red-700 text-sm">
-          {error}
-        </div>
-      )}
-
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-6">
-        <StatCard
-          icon={<Search className="h-5 w-5" />}
-          label="Searches"
-          value={overview?.searches ?? 0}
-        />
-        <StatCard
-          icon={<Upload className="h-5 w-5" />}
-          label="Uploads"
-          value={(overview?.uploads?.images ?? 0) + (overview?.uploads?.videos ?? 0)}
-          sub={`${overview?.uploads?.images ?? 0} img, ${overview?.uploads?.videos ?? 0} vid`}
-        />
-        <StatCard
-          icon={<FolderPlus className="h-5 w-5" />}
-          label="Collections created"
-          value={overview?.collectionsCreated ?? 0}
-        />
-        <StatCard
-          icon={<Eye className="h-5 w-5" />}
-          label="Page views"
-          value={overview?.pageViews ?? 0}
-        />
-        <StatCard
-          icon={<BarChart3 className="h-5 w-5" />}
-          label="Total events"
-          value={overview?.totalEvents ?? 0}
-        />
-      </div>
-
-      {/* Activity over time */}
-      {summary?.byDay && summary.byDay.length > 0 && (
-        <Card className="p-4 sm:p-6 border border-border mb-6">
-          <h2 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2">
-            <Calendar className="h-4 w-4 text-primary" />
-            Activity over time
-          </h2>
-          <div className="overflow-x-auto -mx-2">
-            <table className="w-full min-w-[360px] text-sm">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left py-2 px-2 text-muted-foreground font-medium">Date</th>
-                  <th className="text-right py-2 px-2 text-muted-foreground font-medium">Searches</th>
-                  <th className="text-right py-2 px-2 text-muted-foreground font-medium">Uploads</th>
-                  <th className="text-right py-2 px-2 text-muted-foreground font-medium">Page views</th>
-                </tr>
-              </thead>
-              <tbody>
-                {[...(summary.byDay || [])].reverse().map((r) => (
-                  <tr key={r.date} className="border-b border-border">
-                    <td className="py-2.5 px-2 text-foreground">{r.date}</td>
-                    <td className="py-2.5 px-2 text-right text-foreground/80">{r.searches}</td>
-                    <td className="py-2.5 px-2 text-right text-foreground/80">{r.uploads}</td>
-                    <td className="py-2.5 px-2 text-right text-foreground/80">{r.pageViews}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+    <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
+      <CommandBar>
+        <div className="flex items-center justify-between gap-4 flex-wrap">
+          <PageTitle>Analytics</PageTitle>
+          <div className="flex items-center gap-2">
+            <select
+              value={range}
+              onChange={(e) => setRange(e.target.value as Range)}
+              className="h-9 px-3 text-[13px] bg-[#0A090D] border border-[rgba(51,51,51,0.5)] text-white/80 focus:border-primary/50 focus:outline-none"
+              aria-label="Date range"
+            >
+              <option value="7">7 days</option>
+              <option value="30">30 days</option>
+              <option value="90">90 days</option>
+            </select>
+            <Button
+              variant="beetle-green"
+              size="sm"
+              onClick={handleExport}
+              disabled={exporting}
+              className="group"
+            >
+              {exporting ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Download className="h-4 w-4" />
+              )}
+              Export
+            </Button>
           </div>
-        </Card>
-      )}
+        </div>
+      </CommandBar>
 
-      {/* Top events */}
-      {overview?.topEventNames && overview.topEventNames.length > 0 && (
-        <Card className="p-4 sm:p-6 border border-border">
-          <h2 className="text-base font-semibold text-foreground mb-4">Top events</h2>
-          <ul className="space-y-2">
-            {overview.topEventNames.map(({ name, count }) => (
-              <li key={name} className="flex justify-between items-center text-sm">
-                <span className="text-foreground/80 font-mono">{name}</span>
-                <span className="text-foreground font-medium">{count}</span>
-              </li>
-            ))}
-          </ul>
-        </Card>
-      )}
+      <PageBody className="px-4 sm:px-6 py-6">
+        {error && (
+          <div className="mb-4 text-red-400 text-sm border border-red-900/50 bg-red-950/30 px-3 py-2">
+            {error}
+          </div>
+        )}
 
-      {!loading && !error && (overview?.totalEvents ?? 0) === 0 && (
-        <Card className="p-8 border border-border border-dashed text-center">
-          <BarChart3 className="h-12 w-12 text-muted-foreground/60 mx-auto mb-3" />
-          <p className="text-muted-foreground">No analytics data yet for this period.</p>
-          <p className="text-muted-foreground text-sm mt-1">Searches, uploads, and page views will appear here.</p>
-        </Card>
-      )}
+        {noData ? (
+          <EmptyPanel
+            title="No data yet"
+            description="Activity will appear here once you search or upload."
+          />
+        ) : (
+          <>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+              <StatBlock label="Searches" value={overview?.searches ?? 0} />
+              <StatBlock
+                label="Uploads"
+                value={(overview?.uploads?.images ?? 0) + (overview?.uploads?.videos ?? 0)}
+              />
+              <StatBlock label="Collections" value={overview?.collectionsCreated ?? 0} />
+              <StatBlock label="Page views" value={overview?.pageViews ?? 0} />
+              <StatBlock label="Events" value={overview?.totalEvents ?? 0} />
+            </div>
+
+            {summary?.byDay && summary.byDay.length > 0 && (
+              <div className="beetle-card p-4 mb-6 relative backdrop-blur-3xl">
+                <span className="beetle-bracket beetle-bracket-tl" aria-hidden />
+                <span className="beetle-bracket beetle-bracket-tr" aria-hidden />
+                <span className="beetle-bracket beetle-bracket-bl" aria-hidden />
+                <span className="beetle-bracket beetle-bracket-br" aria-hidden />
+                <p className="text-[13px] font-mono uppercase tracking-wide text-white/90 mb-4">
+                  Activity
+                </p>
+                <div className="overflow-x-auto">
+                  <table className="w-full min-w-[360px] text-sm">
+                    <thead>
+                      <tr className="border-b border-[#333333]">
+                        <th className="text-left py-2 text-[13px] text-[#71717a] font-normal">Date</th>
+                        <th className="text-right py-2 text-[13px] text-[#71717a] font-normal">Search</th>
+                        <th className="text-right py-2 text-[13px] text-[#71717a] font-normal">Upload</th>
+                        <th className="text-right py-2 text-[13px] text-[#71717a] font-normal">Views</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[...(summary.byDay || [])].reverse().map((r) => (
+                        <tr key={r.date} className="border-b border-[#333333]/50">
+                          <td className="py-2 text-white/80">{r.date}</td>
+                          <td className="py-2 text-right font-mono-beetle text-primary">{r.searches}</td>
+                          <td className="py-2 text-right font-mono-beetle text-primary">{r.uploads}</td>
+                          <td className="py-2 text-right font-mono-beetle text-primary">{r.pageViews}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {overview?.topEventNames && overview.topEventNames.length > 0 && (
+              <div className="beetle-card p-4 relative backdrop-blur-3xl">
+                <span className="beetle-bracket beetle-bracket-tl" aria-hidden />
+                <span className="beetle-bracket beetle-bracket-tr" aria-hidden />
+                <span className="beetle-bracket beetle-bracket-bl" aria-hidden />
+                <span className="beetle-bracket beetle-bracket-br" aria-hidden />
+                <p className="text-[13px] font-mono uppercase tracking-wide text-white/90 mb-4">
+                  Top events
+                </p>
+                <ul className="space-y-2">
+                  {overview.topEventNames.map(({ name, count }) => (
+                    <li key={name} className="flex justify-between items-center text-sm">
+                      <span className="text-white/70 font-mono text-[13px]">{name}</span>
+                      <span className="font-mono-beetle text-primary">{count}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </>
+        )}
+      </PageBody>
     </div>
-  );
-}
-
-function StatCard({
-  icon,
-  label,
-  value,
-  sub,
-}: { icon: React.ReactNode; label: string; value: number; sub?: string }) {
-  return (
-    <Card className="p-4 border border-border">
-      <div className="flex items-center gap-2 text-primary mb-1">{icon}</div>
-      <div className="text-2xl font-bold text-foreground">{value}</div>
-      <div className="text-sm text-muted-foreground">{label}</div>
-      {sub != null && sub !== "" && <div className="text-xs text-muted-foreground mt-0.5">{sub}</div>}
-    </Card>
   );
 }

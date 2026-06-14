@@ -293,16 +293,6 @@ export default function Collections() {
     }
   };
 
-  const scrollChips = (direction: "left" | "right") => {
-    if (scrollContainerRef.current) {
-      const scrollAmount = 200;
-      scrollContainerRef.current.scrollBy({
-        left: direction === "left" ? -scrollAmount : scrollAmount,
-        behavior: "smooth"
-      });
-    }
-  };
-
   const createCollection = async () => {
     if (!newCollectionName.trim()) return;
     
@@ -497,66 +487,28 @@ export default function Collections() {
         className="fixed top-0 right-0 z-30 bg-card"
         style={{ left: fixedHeaderLeft }}
       >
-        {/* Header with Premium Gradient Background */}
-        <div className="pt-4 sm:pt-6 pb-4 px-4 sm:px-6 overflow-hidden relative backdrop-blur-sm">
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background: `linear-gradient(180deg, 
-                var(--page-accent-primary) / 0.15 0%, 
-                var(--page-accent-secondary) / 0.10 30%, 
-                var(--page-accent-tertiary) / 0.05 60%, 
-                var(--background) 100%)`,
-            }}
-          />
-          <div className="absolute inset-0 pointer-events-none opacity-20 dark:opacity-10">
-            <div 
-              className="absolute inset-0"
-              style={{
-                backgroundImage: `radial-gradient(circle at 20% 20%, var(--page-accent-primary) 0%, transparent 40%),
-                                  radial-gradient(circle at 80% 80%, var(--page-accent-secondary) 0%, transparent 40%)`,
-              }}
-            />
-          </div>
-          <div className="relative z-10 page-animate-fade">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
-              <div>
-                <h1 className={cn(
-                  "text-3xl sm:text-4xl font-bold mb-2",
-                  "font-[var(--page-font)]",
-                  "bg-gradient-to-r from-[var(--page-accent-primary)] to-[var(--page-accent-secondary)]",
-                  "bg-clip-text text-transparent"
-                )}>
-                  Collections
-                </h1>
-                <p className={cn(
-                  "text-muted-foreground text-sm sm:text-base",
-                  "font-[var(--page-font)] font-medium"
-                )}>
-                  Indexed media you can search.
-                </p>
-              </div>
-              <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto">
+        {/* Command bar header */}
+        <div className="border-b border-[#333333] bg-[#010010]/90 backdrop-blur-xl">
+          <div className="px-4 sm:px-6 py-4">
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <h1 className="text-lg font-medium text-white">Collections</h1>
+              <div className="flex items-center gap-2">
                 {selectedCollection && (
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="flex items-center gap-2 border-primary/30 text-foreground hover:bg-primary/5"
-                  onClick={() => setShowShareModal(true)}
-                  aria-label="Share collection"
-                >
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-9 border-[rgba(51,51,51,0.5)] text-white/80 hover:border-primary/40"
+                    onClick={() => setShowShareModal(true)}
+                    aria-label="Share collection"
+                  >
                     <Share2 className="h-4 w-4" />
                     <span className="hidden sm:inline">Share</span>
                   </Button>
                 )}
                 <Button
                   size="sm"
-                  className={cn(
-                    "flex items-center gap-2",
-                    "page-button-premium",
-                    "text-white flex-1 sm:flex-initial text-xs sm:text-sm",
-                    "font-[var(--page-font)] font-semibold"
-                  )}
+                  variant="beetle-green"
+                  className="group"
                   onClick={() =>
                     router.push(
                       selectedCollection
@@ -564,165 +516,114 @@ export default function Collections() {
                         : "/?view=uploads"
                     )
                   }
-                  aria-label="Upload media to this collection"
                 >
                   <CloudUpload className="h-4 w-4" />
-                  <span className="hidden sm:inline">Upload Media</span>
-                  <span className="sm:hidden">Upload</span>
+                  Upload
                 </Button>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Collection Chips + Filters */}
-        <div className="border-b border-border">
-          <div className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3">
-            {/* Scroll Left Button */}
-            <button
-              onClick={() => scrollChips("left")}
-              className="flex-shrink-0 w-8 h-8 sm:w-8 sm:h-8 rounded-full bg-muted hover:bg-muted active:bg-muted flex items-center justify-center transition-colors touch-manipulation"
-              aria-label="Scroll left"
-            >
-              <ChevronLeft className="h-4 w-4 text-muted-foreground" />
-            </button>
-
-            {/* Scrollable Collection Chips */}
+        <div className="border-b border-[#333333]">
+          <div className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3 overflow-x-auto scrollbar-hide">
           <div 
             ref={scrollContainerRef}
-            className="flex-1 flex items-center gap-2 overflow-x-auto scrollbar-hide scroll-smooth"
-            style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+            className="flex items-center gap-1.5 flex-1 min-w-0"
           >
             {collections.map((collection) => (
               <button
                 key={collection.id}
                 onClick={() => setSelectedCollection(collection.name)}
-                className={`flex-shrink-0 flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-medium transition-all touch-manipulation ${
+                className={`shrink-0 px-2.5 py-1 text-[13px] font-medium border transition-colors duration-150 touch-manipulation ${
                   selectedCollection === collection.name
-                    ? "bg-[#050505] text-white"
-                    : "bg-muted text-foreground/80 hover:bg-muted active:bg-muted"
+                    ? "border-primary bg-primary/10 text-primary"
+                    : "border-[rgba(51,51,51,0.5)] text-white/60 hover:text-white/80"
                 }`}
               >
-                <span className="truncate max-w-[70px] xs:max-w-[90px] sm:max-w-[120px] md:max-w-[150px]">{collection.name}</span>
-                <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                  selectedCollection === collection.name
-                    ? "bg-[#262626] text-muted-foreground/60"
-                    : "bg-muted text-muted-foreground"
-                }`}>
-                  {collection.count}
-                </span>
+                <span className="truncate max-w-[120px] inline-block align-middle">{collection.name}</span>
+                <span className="ml-1 text-white/40">{collection.count}</span>
               </button>
             ))}
           </div>
 
-          {/* Scroll Right Button */}
-          <button
-            onClick={() => scrollChips("right")}
-            className="flex-shrink-0 w-8 h-8 sm:w-8 sm:h-8 rounded-full bg-muted hover:bg-muted active:bg-muted flex items-center justify-center transition-colors touch-manipulation"
-            aria-label="Scroll right"
-          >
-            <ChevronRight className="h-4 w-4 text-muted-foreground" />
-          </button>
-
-          {/* Divider */}
-          <div className="w-px h-8 bg-muted flex-shrink-0" />
-
-          {/* New Collection Button */}
           <Button
             onClick={() => setShowCreateModal(true)}
             variant="outline"
-            className="flex-shrink-0 border-primary/30 text-primary hover:bg-primary/5 hover:border-primary/40 active:bg-primary/10 text-xs sm:text-sm touch-manipulation"
+            size="sm"
+            className="shrink-0 h-8 border-[rgba(51,51,51,0.5)] text-primary hover:border-primary/40"
           >
-            <Plus className="h-4 w-4 mr-1 sm:mr-2" />
-            <span className="hidden sm:inline">New Collection</span>
-            <span className="sm:hidden">New</span>
+            <Plus className="h-4 w-4" />
+            <span className="hidden sm:inline">New</span>
           </Button>
-          <button
-            type="button"
-            onClick={() => toast({ title: "Coming soon", description: "AI grouping (e.g. by scene, faces) will be available soon." })}
-            className="flex-shrink-0 flex items-center gap-1 px-2 py-1.5 text-xs text-muted-foreground hover:text-primary hover:bg-primary/5 rounded-lg transition-colors"
-            title="Create from AI"
-          >
-            <Sparkles className="h-3.5 w-3.5" /> <span className="hidden sm:inline">From AI</span>
-          </button>
 
-          {/* Divider */}
-          <div className="w-px h-8 bg-muted flex-shrink-0" />
+          <div className="w-px h-5 bg-[#333333] shrink-0" />
 
-          {/* Filter by Type */}
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
-            <Select value={filterType} onValueChange={(v) => setFilterType(v as FilterType)}>
-              <SelectTrigger className="w-[100px] h-8 text-xs border-border">
-                <span>{filterType === "all" ? "All Types" : filterType === "image" ? "Images" : "Videos"}</span>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="image">Images</SelectItem>
-                <SelectItem value="video">Videos</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <Select value={filterType} onValueChange={(v) => setFilterType(v as FilterType)}>
+            <SelectTrigger className="w-[90px] h-8 text-[13px] shrink-0">
+              <span>{filterType === "all" ? "All" : filterType === "image" ? "Images" : "Videos"}</span>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="image">Images</SelectItem>
+              <SelectItem value="video">Videos</SelectItem>
+            </SelectContent>
+          </Select>
 
-          {/* Date facet */}
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <Clock className="h-4 w-4 text-muted-foreground" />
-            {(["all", "7d", "30d", "year"] as DateFilter[]).map((d) => (
-              <button
-                key={d}
-                onClick={() => setDateFilter(d)}
-                className={`px-2 py-1 text-xs font-medium rounded-full ${
-                  dateFilter === d ? "bg-[#171717] text-white" : "bg-muted text-muted-foreground hover:bg-muted"
-                }`}
-              >
-                {d === "all" ? "All" : d === "7d" ? "7d" : d === "30d" ? "30d" : "Year"}
-              </button>
-            ))}
-          </div>
-
-          {/* Sort By */}
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
-            <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
-              <SelectTrigger className="w-[160px] h-8 text-xs border-border">
-                <span>
-                  {sortBy === "date-desc" && "Newest First"}
-                  {sortBy === "date-asc" && "Oldest First"}
-                  {sortBy === "name-asc" && "Name A-Z"}
-                  {sortBy === "name-desc" && "Name Z-A"}
-                  {sortBy === "viewCount-desc" && "Most Viewed"}
-                  {sortBy === "relevance" && "AI Relevance"}
-                </span>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="date-desc">Newest First</SelectItem>
-                <SelectItem value="date-asc">Oldest First</SelectItem>
-                <SelectItem value="name-asc">Name A-Z</SelectItem>
-                <SelectItem value="name-desc">Name Z-A</SelectItem>
-                <SelectItem value="viewCount-desc">Most Viewed</SelectItem>
-                <SelectItem value="relevance">AI Relevance</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Divider */}
-          <div className="w-px h-8 bg-muted flex-shrink-0" />
-
-          {/* View Mode Toggle */}
-          <div className="flex items-center gap-1 flex-shrink-0">
+          {(["all", "7d", "30d", "year"] as DateFilter[]).map((d) => (
             <button
-              onClick={() => setViewMode("grid")}
-              className={`p-2 rounded-md transition-colors ${
-                viewMode === "grid" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-muted-foreground"
+              key={d}
+              type="button"
+              onClick={() => setDateFilter(d)}
+              className={`shrink-0 px-2 py-1 text-[13px] font-medium border transition-colors ${
+                dateFilter === d
+                  ? "border-primary bg-primary/10 text-primary"
+                  : "border-[rgba(51,51,51,0.5)] text-white/60 hover:text-white/80"
               }`}
+            >
+              {d === "all" ? "All" : d === "7d" ? "7d" : d === "30d" ? "30d" : "Year"}
+            </button>
+          ))}
+
+          <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
+            <SelectTrigger className="w-[120px] h-8 text-[13px] shrink-0">
+              <span>
+                {sortBy === "date-desc" && "Newest"}
+                {sortBy === "date-asc" && "Oldest"}
+                {sortBy === "name-asc" && "A–Z"}
+                {sortBy === "name-desc" && "Z–A"}
+                {sortBy === "viewCount-desc" && "Views"}
+                {sortBy === "relevance" && "Relevance"}
+              </span>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="date-desc">Newest</SelectItem>
+              <SelectItem value="date-asc">Oldest</SelectItem>
+              <SelectItem value="name-asc">A–Z</SelectItem>
+              <SelectItem value="name-desc">Z–A</SelectItem>
+              <SelectItem value="viewCount-desc">Most viewed</SelectItem>
+              <SelectItem value="relevance">Relevance</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <div className="flex items-center border border-[rgba(51,51,51,0.5)] shrink-0">
+            <button
+              type="button"
+              onClick={() => setViewMode("grid")}
+              className={`p-1.5 transition-colors ${
+                viewMode === "grid" ? "bg-primary text-black" : "text-white/60 hover:text-white/80"
+              }`}
+              aria-label="Grid view"
             >
               <Grid3X3 className="h-4 w-4" />
             </button>
             <button
+              type="button"
               onClick={() => setViewMode("list")}
-              className={`p-2 rounded-md transition-colors ${
-                viewMode === "list" ? "bg-muted text-foreground" : "text-muted-foreground hover:text-muted-foreground"
+              className={`p-1.5 border-l border-[rgba(51,51,51,0.5)] transition-colors ${
+                viewMode === "list" ? "bg-primary text-black" : "text-white/60 hover:text-white/80"
               }`}
+              aria-label="List view"
             >
               <List className="h-4 w-4" />
             </button>
@@ -772,31 +673,29 @@ export default function Collections() {
         {isLoadingItems ? (
           <CollectionsItemsSkeleton />
         ) : sortedAndFilteredItems.length === 0 ? (
-          <div className="flex-1 flex items-center justify-center py-12 sm:py-16">
-            <div className="text-center max-w-md px-4">
-              <div className="mx-auto mb-4 sm:mb-6 p-4 sm:p-6 rounded-full bg-primary/5 w-fit">
-                <FolderOpen className="h-10 w-10 sm:h-12 sm:w-12 text-primary/80" />
-              </div>
-              <h2 className="text-base sm:text-lg font-semibold text-foreground mb-2">
-                {items.length === 0 
-                  ? (selectedCollection ? `No items in "${selectedCollection}"` : "No collection selected")
-                  : "No items match your filters"
-                }
+          <div className="flex items-center justify-center py-16">
+            <div className="beetle-card max-w-sm w-full p-8 relative text-center backdrop-blur-3xl">
+              <span className="beetle-bracket beetle-bracket-tl" aria-hidden />
+              <span className="beetle-bracket beetle-bracket-tr" aria-hidden />
+              <span className="beetle-bracket beetle-bracket-bl" aria-hidden />
+              <span className="beetle-bracket beetle-bracket-br" aria-hidden />
+              <FolderOpen className="h-8 w-8 text-primary mx-auto mb-4" strokeWidth={1.5} />
+              <h2 className="text-lg font-medium text-white mb-2">
+                {items.length === 0
+                  ? (selectedCollection ? `Empty collection` : "No collection selected")
+                  : "No matches"}
               </h2>
-              <p className="text-muted-foreground text-xs sm:text-sm mb-4">
-                {items.length === 0 
-                  ? "Upload files to this collection to see them here"
-                  : "Try changing your filter or sort options"
-                }
+              <p className="text-sm text-white/60 mb-4">
+                {items.length === 0 ? "Upload files to populate this collection." : "Adjust filters."}
               </p>
               {items.length === 0 && selectedCollection && (
                 <Button
                   size="sm"
-                  className="bg-primary hover:bg-primary/90 text-white"
+                  variant="beetle"
                   onClick={() => router.push(`/?view=uploads&collection=${encodeURIComponent(selectedCollection)}`)}
                 >
                   <CloudUpload className="h-4 w-4 mr-2" />
-                  Upload to {selectedCollection}
+                  Upload
                 </Button>
               )}
             </div>

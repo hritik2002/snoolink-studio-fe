@@ -46,8 +46,8 @@ export function AppShellSkeleton() {
             </div>
             <Skeleton className="h-12 w-full rounded-none" />
             <div className="flex gap-2">
-              <Skeleton className="h-10 w-28 rounded-full" />
-              <Skeleton className="h-10 w-28 rounded-full" />
+              <Skeleton className="h-10 w-28 rounded-none" />
+              <Skeleton className="h-10 w-28 rounded-none" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
               {[1, 2, 3, 4].map((i) => (

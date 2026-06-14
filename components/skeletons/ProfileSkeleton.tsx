@@ -4,34 +4,17 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export function ProfileSkeleton() {
   return (
-    <div className="flex-1 flex flex-col h-full w-full max-w-2xl mx-auto py-8">
-      <div className="mb-8">
-        <Skeleton className="h-9 w-24 mb-2" />
-        <Skeleton className="h-4 w-56" />
+    <div className="flex-1 flex flex-col h-full min-w-0">
+      <div className="border-b border-[#333333] px-4 sm:px-6 py-4">
+        <Skeleton className="h-5 w-20 rounded-none" />
       </div>
-
-      <div className="bg-card border border-border rounded-lg p-6 shadow-sm space-y-6">
-        <div className="flex items-center gap-4 pb-6 border-b border-border">
-          <Skeleton className="h-16 w-16 rounded-full flex-shrink-0" />
-          <div className="space-y-2">
-            <Skeleton className="h-6 w-32" />
-            <Skeleton className="h-4 w-48" />
-          </div>
+      <div className="px-4 sm:px-6 py-6 max-w-lg">
+        <div className="border border-[rgba(51,51,51,0.5)] p-6 space-y-4">
+          <Skeleton className="h-4 w-32 rounded-none" />
+          <Skeleton className="h-11 w-full rounded-none" />
+          <Skeleton className="h-11 w-full rounded-none" />
+          <Skeleton className="h-12 w-full rounded-[6px]" />
         </div>
-
-        <div className="space-y-4">
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-20" />
-            <Skeleton className="h-10 w-full rounded-md" />
-          </div>
-          <div className="space-y-2">
-            <Skeleton className="h-4 w-16" />
-            <Skeleton className="h-10 w-full rounded-md" />
-            <Skeleton className="h-3 w-48" />
-          </div>
-        </div>
-
-        <Skeleton className="h-10 w-full rounded-md" />
       </div>
     </div>
   );

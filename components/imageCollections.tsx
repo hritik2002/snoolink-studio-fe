@@ -1002,104 +1002,48 @@ export default function ImageCollections() {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full min-w-0 py-3 sm:py-4 md:py-6 lg:py-8 bg-background px-3 sm:px-4 md:px-6 lg:px-8 overflow-x-hidden">
-      {/* Breadcrumbs */}
-      <div className="mb-3 sm:mb-4 flex items-center gap-1.5 sm:gap-2 text-xs sm:text-sm text-muted-foreground">
-        <span>Uploads</span>
-        <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
-        <span className="text-foreground font-medium">Upload Queue</span>
-      </div>
-
-      {/* Premium Header */}
-      <div className="mb-4 sm:mb-6 md:mb-8 page-animate-fade">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 mb-3 sm:mb-4">
-          <div className="flex-1 min-w-0">
-            <h1 className={cn(
-              "text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-2",
-              "font-[var(--page-font)]",
-              "bg-gradient-to-r from-[var(--page-accent-primary)] to-[var(--page-accent-secondary)]",
-              "bg-clip-text text-transparent"
-            )}>
-              Upload Queue
-            </h1>
-            {hasAssets ? (
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3 md:gap-4 text-xs sm:text-sm text-muted-foreground">
-                <span className="flex items-center gap-1 sm:gap-1.5">
-                  <Clock className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500" />
-                  <span className="font-medium">{files.filter(f => f.status === "processing").length}</span>
-                  <span className="hidden sm:inline">processing</span>
-                  <span className="sm:hidden">proc</span>
-                </span>
-                <span className="flex items-center gap-1 sm:gap-1.5">
-                  <AlertCircle className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
-                  <span className="font-medium">{files.filter(f => f.status === "failed").length}</span>
-                  <span className="hidden sm:inline">failed</span>
-                  <span className="sm:hidden">fail</span>
-                </span>
-                    <span className="hidden sm:inline">•</span>
-                <span className="text-muted-foreground text-xs hidden sm:inline">
-                  Completed uploads appear in Collections
-                </span>
+    <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
+      {/* Command bar */}
+      <div className="sticky top-0 z-[200] flex-shrink-0 border-b border-[#333333] bg-[#010010]/90 backdrop-blur-xl">
+        <div className="max-w-[1563px] mx-auto border-x border-[#333333] px-4 sm:px-6 py-4">
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <h1 className="text-lg font-medium text-white">Uploads</h1>
+            {hasAssets && (
+              <div className="flex items-center gap-3 text-[13px] text-[#71717a]">
+                {processingCount > 0 && (
+                  <span>
+                    <span className="font-mono-beetle text-primary">{processingCount}</span> processing
+                  </span>
+                )}
+                {failedCount > 0 && (
+                  <span>
+                    <span className="font-mono-beetle text-red-400">{failedCount}</span> failed
+                  </span>
+                )}
               </div>
-            ) : (
-              <p className="text-muted-foreground text-xs sm:text-sm md:text-base">
-                Processing and failed jobs. Ready files appear in{" "}
-                <Link href="/?view=collections" className="text-primary hover:text-primary font-medium underline underline-offset-2">
-                  Collections
-                </Link>
-                .
-              </p>
             )}
-      </div>
+          </div>
         </div>
       </div>
 
-      {/* Global Progress Indicator */}
+      <div className="flex-1 min-h-0 overflow-y-auto max-w-[1563px] mx-auto w-full border-x border-[#333333] px-4 sm:px-6 py-6">
+
       {files.length > 0 && (processingCount > 0 || failedCount > 0) && (
-        <div className="mb-4 sm:mb-6 p-4 rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 via-background to-primary/5 shadow-sm">
+        <div className="mb-6 beetle-card p-4 relative backdrop-blur-3xl">
+          <span className="beetle-bracket beetle-bracket-tl" aria-hidden />
+          <span className="beetle-bracket beetle-bracket-tr" aria-hidden />
+          <span className="beetle-bracket beetle-bracket-bl" aria-hidden />
+          <span className="beetle-bracket beetle-bracket-br" aria-hidden />
           <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center gap-3">
-              <div className="flex items-center gap-2">
-                {processingCount > 0 && (
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse" />
-                    <span className="text-sm font-semibold text-foreground">
-                      {processingCount} Processing
-                    </span>
-                  </div>
-                )}
-                {failedCount > 0 && (
-                  <div className="flex items-center gap-1.5 ml-2">
-                    <div className="w-2 h-2 rounded-full bg-red-500" />
-                    <span className="text-sm font-medium text-red-600">
-                      {failedCount} Failed
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl font-bold text-primary tabular-nums">{totalProgress}%</span>
-              <span className="text-xs text-muted-foreground">complete</span>
-            </div>
+            <span className="text-[13px] text-[#71717a]">Queue progress</span>
+            <span className="font-mono-beetle text-xl font-bold text-primary">{totalProgress}%</span>
           </div>
-          
-          {/* Animated progress bar */}
-          <div className="h-2.5 rounded-full bg-muted overflow-hidden">
+          <div className="h-1 bg-[#333333] overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-primary to-primary/50 transition-all duration-500 ease-out relative overflow-hidden"
+              className="h-full bg-primary transition-all duration-500"
               style={{ width: `${totalProgress}%` }}
-            >
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-background/30 to-transparent" style={{ animation: 'shimmer 2s infinite' }} />
-            </div>
+            />
           </div>
-          
-          {processingCount > 0 && (
-            <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1.5">
-              <Clock className="h-3.5 w-3.5" />
-              <span>Processing usually completes in under a minute per file</span>
-            </p>
-          )}
         </div>
       )}
 
@@ -1128,36 +1072,18 @@ export default function ImageCollections() {
           >
             {/* Drop here overlay */}
             {isDragActive && (
-              <div className="absolute inset-0 z-10 flex items-center justify-center bg-primary/10/90 backdrop-blur-sm rounded-none">
-                <div className="text-center">
-                  <FileUp className="h-16 w-16 text-primary mx-auto mb-3 animate-bounce" />
-                  <p className="text-xl sm:text-2xl font-bold text-primary">Drop here!</p>
-                  <p className="text-sm text-primary mt-1">Release to upload files</p>
-                </div>
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-primary/10 backdrop-blur-sm">
+                <p className="text-primary font-medium">Drop to upload</p>
               </div>
             )}
-        <div className="flex flex-col items-center justify-center text-center">
-              <div className={`mb-2 sm:mb-3 p-3 sm:p-4 rounded-full bg-primary/10 transition-transform ${isDragActive ? "scale-110" : ""}`}>
-                <FileUp className={`h-7 w-7 sm:h-9 sm:w-9 text-primary ${isDragActive ? "animate-bounce" : ""}`} />
-              </div>
-              <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2">
-                {!hasAssets ? "Ready to upload your first media?" : "Upload Files"}
+        <div className="flex flex-col items-center justify-center text-center py-6">
+              <FileUp className="h-8 w-8 text-primary mb-4" strokeWidth={1.5} />
+              <h3 className="text-lg font-medium text-white mb-2">
+                {hasAssets ? "Upload files" : "Upload media"}
           </h3>
-              <p className="text-foreground/80 text-sm sm:text-base mb-2 max-w-md px-2 font-medium">
-                {!hasAssets 
-                  ? "Drag and drop images or videos here. Your media will be automatically indexed with AI, making it searchable by meaning."
-                  : "Drag and drop images or videos here, or click to select from your computer."}
+              <p className="text-sm text-white/60 mb-4 max-w-sm">
+                Drag and drop or click to select. JPG, PNG, HEIC, WebP, MP4, MOV — max 100MB.
               </p>
-              
-              {/* File restrictions */}
-              <div className="mb-3 px-3 py-2 bg-card border border-primary/20 rounded-lg max-w-md">
-                <p className="text-xs text-muted-foreground mb-1">
-                  <span className="font-semibold text-primary">Accepted:</span> JPG, PNG, HEIC, WebP, MP4, MOV, AVI, WebM
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  <span className="font-semibold">Max size:</span> 100MB per file · <span className="font-semibold">Auto-indexed</span> for semantic search
-                </p>
-              </div>
               
               {/* Validation error warning */}
               {validationError && (
@@ -1508,7 +1434,7 @@ export default function ImageCollections() {
       )}
 
       {/* Filters - Sticky and always visible */}
-      <div className="sticky top-0 z-10 bg-white/95 backdrop-blur-sm py-3 mb-4 sm:mb-6 -mx-3 sm:-mx-4 px-3 sm:px-4 border-b border-border">
+      <div className="sticky top-0 z-10 bg-[#010010]/90 backdrop-blur-xl py-3 mb-6 border-b border-[#333333] -mx-4 sm:-mx-6 px-4 sm:px-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
             <span className="text-xs sm:text-sm text-foreground/80 font-semibold flex items-center gap-1.5">
@@ -1527,12 +1453,12 @@ export default function ImageCollections() {
                 onClick={() => !isDisabled && setFilterStatus(status)}
                 disabled={isDisabled}
                 title={isDisabled ? "Upload files to use filters" : undefined}
-                className={`px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium rounded-full transition-all cursor-pointer touch-manipulation ${
+                className={`px-3 py-1.5 text-[13px] font-medium border transition-colors touch-manipulation ${
                   isDisabled
-                    ? "bg-muted text-muted-foreground cursor-not-allowed"
+                    ? "border-[rgba(51,51,51,0.5)] text-white/30 cursor-not-allowed"
                     : filterStatus === status
-                      ? "bg-primary text-white shadow-md active:bg-primary/90"
-                      : "bg-muted text-foreground/80 hover:bg-muted active:bg-muted"
+                      ? "border-primary bg-primary/10 text-primary cursor-pointer"
+                      : "border-[rgba(51,51,51,0.5)] text-white/60 hover:text-white/80 cursor-pointer"
                 }`}
               >
                 {status === "all" ? "All" : status.charAt(0).toUpperCase() + status.slice(1)}
@@ -1606,86 +1532,65 @@ export default function ImageCollections() {
       {isLoading ? (
         <UploadsListSkeleton />
       ) : filteredFiles.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 text-center border-2 border-dashed border-border rounded-xl bg-muted/30/50">
-          {filterStatus === "processing" ? (
-            <>
-              <Clock className="h-12 w-12 text-yellow-500 mb-4" />
-            <p className="text-foreground font-medium text-lg mb-2">
-                No files currently processing
-              </p>
-              <p className="text-muted-foreground text-sm max-w-md">
-                When you upload new videos, they will appear here while being indexed for semantic search. Processing typically takes up to a minute.
-              </p>
-            </>
-          ) : filterStatus === "failed" ? (
-            <>
-              <CheckCircle2 className="h-12 w-12 text-green-500 mb-4" />
-          <p className="text-foreground font-medium text-lg mb-2">
-                No failed uploads
-              </p>
-              <p className="text-muted-foreground text-sm max-w-md">
-                Great news! All your uploads have been processed successfully. If any uploads fail in the future, they will appear here for you to retry.
-              </p>
-            </>
-          ) : (
-            <>
-              <CheckCircle2 className="h-12 w-12 text-green-500 mb-4" />
-              <p className="text-foreground font-bold text-xl mb-2">
-                All caught up!
-              </p>
-              <p className="text-muted-foreground text-sm sm:text-base max-w-md mb-4">
-                Upload files above to get started. Once indexed, search by meaning in Search.
-              </p>
-              
-              {/* Recent uploads teaser */}
-              {recentUploads.length > 0 && (
-                <div className="mb-6 w-full max-w-2xl">
-                  <p className="text-sm font-semibold text-foreground/80 mb-3">Recent from {recentUploads[0].collectionName}:</p>
-                  <div className="grid grid-cols-4 gap-2 mb-3">
-                    {recentUploads.map((upload, idx) => (
-                      <div key={idx} className="aspect-square rounded-lg overflow-hidden border-2 border-border hover:border-primary/40 transition-colors">
-                        <Image 
-                          src={upload.url} 
-                          alt="Recent upload" 
-                          width={120} 
-                          height={120} 
-                          className="w-full h-full object-cover" 
-                          loading="lazy"
-                          quality={85}
-                          unoptimized
-                        />
-                      </div>
-                    ))}
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <div className="beetle-card max-w-md w-full p-8 relative">
+            <span className="beetle-bracket beetle-bracket-tl" aria-hidden />
+            <span className="beetle-bracket beetle-bracket-tr" aria-hidden />
+            <span className="beetle-bracket beetle-bracket-bl" aria-hidden />
+            <span className="beetle-bracket beetle-bracket-br" aria-hidden />
+            {filterStatus === "processing" ? (
+              <>
+                <Clock className="h-8 w-8 text-primary mx-auto mb-4" strokeWidth={1.5} />
+                <p className="text-lg font-medium text-white mb-1">Nothing processing</p>
+                <p className="text-[13px] text-[#71717a]">New uploads appear here while indexing.</p>
+              </>
+            ) : filterStatus === "failed" ? (
+              <>
+                <CheckCircle2 className="h-8 w-8 text-primary mx-auto mb-4" strokeWidth={1.5} />
+                <p className="text-lg font-medium text-white mb-1">No failed uploads</p>
+                <p className="text-[13px] text-[#71717a]">All uploads processed successfully.</p>
+              </>
+            ) : (
+              <>
+                <CheckCircle2 className="h-8 w-8 text-primary mx-auto mb-4" strokeWidth={1.5} />
+                <p className="text-lg font-medium text-white mb-1">All caught up</p>
+                <p className="text-[13px] text-[#71717a] mb-6">Upload files above, then search by meaning.</p>
+                {recentUploads.length > 0 && (
+                  <div className="mb-6 w-full">
+                    <p className="text-[13px] text-[#71717a] mb-3">Recent from {recentUploads[0].collectionName}</p>
+                    <div className="grid grid-cols-4 gap-2 mb-3">
+                      {recentUploads.map((upload, idx) => (
+                        <div key={idx} className="aspect-square overflow-hidden border border-[rgba(51,51,51,0.5)]">
+                          <Image 
+                            src={upload.url} 
+                            alt="Recent upload" 
+                            width={120} 
+                            height={120} 
+                            className="w-full h-full object-cover" 
+                            loading="lazy"
+                            quality={85}
+                            unoptimized
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  <Link href={`/?view=collections`}>
-                    <Button variant="link" size="sm" className="text-primary">
-                      Continue uploading to {recentUploads[0].collectionName}? →
-                    </Button>
+                )}
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  <Button
+                    variant="beetle"
+                    onClick={() => fileInputRef.current?.click()}
+                  >
+                    <Folder className="h-4 w-4 mr-2" />
+                    Select files
+                  </Button>
+                  <Link href="/?view=collections">
+                    <Button variant="beetle-tertiary">Collections</Button>
                   </Link>
                 </div>
-              )}
-              
-              <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
-                <Button
-                  size="default"
-                  className="bg-primary hover:bg-primary/90 text-white font-semibold px-6"
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  <Folder className="h-4 w-4 mr-2" />
-                  Select files
-                </Button>
-                <Link href="/?view=collections">
-                  <Button variant="outline" size="default" className="border-border text-foreground/80 hover:bg-muted/30">
-                    Browse Collections
-                  </Button>
-                </Link>
-                <Button variant="ghost" size="default" className="text-muted-foreground hover:text-primary" onClick={() => setTourStep(1)}>
-                  <Play className="h-4 w-4 mr-2" />
-                  Take a quick tour
-                </Button>
-              </div>
-            </>
+              </>
             )}
+          </div>
         </div>
       ) : (
 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
@@ -1878,9 +1783,10 @@ export default function ImageCollections() {
                 Create
               </Button>
                       </div>
-                      </div>
           </div>
+        </div>
       )}
+      </div>
     </div>
   );
 }

@@ -896,10 +896,7 @@ export default function ImageSearch() {
                       <Card
                         key={result.id}
                         className={cn(
-                          "page-card-premium",
-                          "overflow-hidden rounded-xl sm:rounded-2xl",
-                          "touch-manipulation",
-                          "page-animate-scale",
+                          "beetle-card overflow-hidden rounded-none touch-manipulation border border-[rgba(51,51,51,0.5)] bg-[#0A090D]",
                           compactMode ? "p-2 sm:p-3" : "p-3 sm:p-4"
                         )}
                       >
@@ -1032,10 +1029,7 @@ export default function ImageSearch() {
                       <Card
                         key={videoResult.videoUrl}
                         className={cn(
-                          "page-card-premium",
-                          "overflow-hidden relative rounded-xl sm:rounded-2xl",
-                          "p-3 sm:p-4 touch-manipulation group",
-                          "page-animate-scale"
+                          "beetle-card overflow-hidden relative rounded-none p-3 sm:p-4 touch-manipulation group border border-[rgba(51,51,51,0.5)] bg-[#0A090D]"
                         )}
                       >
                         <div className={`flex ${viewMode === "grid" ? "flex-col" : "flex-col sm:flex-row"} gap-3 sm:gap-5`}>

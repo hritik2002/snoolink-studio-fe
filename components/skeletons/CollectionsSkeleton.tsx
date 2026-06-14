@@ -2,73 +2,34 @@
 
 import { Skeleton } from "@/components/ui/skeleton";
 
-/** Full-page skeleton when collections list is loading (initial fetch). */
 export function CollectionsPageSkeleton() {
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-background overflow-hidden">
-      {/* Header with gradient — matches fixed header in Collections */}
-      <div className="flex-shrink-0 pt-4 sm:pt-6 pb-4 px-4 sm:px-6 overflow-hidden bg-card">
-        <div 
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: 'linear-gradient(180deg, rgba(167, 139, 250, 0.25) 0%, rgba(196, 181, 253, 0.15) 30%, rgba(233, 213, 255, 0.08) 60%, rgba(255, 255, 255, 1) 100%)',
-          }}
-        />
-        <div className="relative z-10">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 mb-4">
-            <div className="space-y-2">
-              <Skeleton className="h-8 sm:h-9 w-40" />
-              <Skeleton className="h-4 w-56" />
-            </div>
-            <div className="flex gap-2">
-              <Skeleton className="h-9 w-24" />
-              <Skeleton className="h-9 w-32" />
-            </div>
-          </div>
+      <div className="border-b border-[#333333] bg-[#010010]/90 px-4 sm:px-6 py-4">
+        <div className="flex justify-between mb-3">
+          <Skeleton className="h-5 w-28 rounded-none" />
+          <Skeleton className="h-9 w-24 rounded-[6px]" />
         </div>
-      </div>
-
-      {/* Chips bar — fixed; matches Collections */}
-      <div className="flex-shrink-0 border-b border-border bg-background px-3 sm:px-4 py-2 sm:py-3 flex items-center gap-2">
-        <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />
-        <div className="flex gap-2 flex-1 overflow-hidden">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <Skeleton key={i} className="h-8 w-24 rounded-full flex-shrink-0" />
+        <div className="flex gap-2">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="h-7 w-20 rounded-none" />
           ))}
         </div>
-        <Skeleton className="h-8 w-8 rounded-full flex-shrink-0" />
-        <Skeleton className="h-8 w-28 rounded-md flex-shrink-0" />
-        <Skeleton className="h-8 w-24 rounded-md flex-shrink-0" />
-        <Skeleton className="h-8 w-8 rounded-md flex-shrink-0" />
-        <Skeleton className="h-8 w-8 rounded-md flex-shrink-0" />
       </div>
-
-      {/* Grid — only this section scrolls */}
-      <div className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 md:p-6">
-        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 xs:gap-2.5 sm:gap-3 md:gap-4 lg:gap-5">
-          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((i) => (
-            <div key={i} className="rounded-none p-2 xs:p-2.5 sm:p-3 border border-border min-w-0">
-              <Skeleton className="aspect-video min-h-[100px] xs:min-h-[120px] sm:min-h-[140px] md:min-h-[160px] lg:min-h-[180px] w-full rounded-lg mb-2 xs:mb-2.5 sm:mb-3" />
-              <Skeleton className="h-4 w-3/4 mb-1 xs:mb-1.5 sm:mb-2" />
-              <Skeleton className="h-3 w-1/2" />
-            </div>
-          ))}
-        </div>
+      <div className="p-4 sm:p-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        {[1, 2, 3, 4, 5, 6].map((i) => (
+          <Skeleton key={i} className="aspect-video w-full rounded-none" />
+        ))}
       </div>
     </div>
   );
 }
 
-/** In-content skeleton when collection items are loading (has collection, fetching items). */
 export function CollectionsItemsSkeleton() {
   return (
-    <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-2 xs:gap-2.5 sm:gap-3 md:gap-4 lg:gap-5">
-      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12].map((i) => (
-        <div key={i} className="rounded-none p-2 xs:p-2.5 sm:p-3 border border-border min-w-0">
-          <Skeleton className="aspect-video min-h-[100px] xs:min-h-[120px] sm:min-h-[140px] md:min-h-[160px] lg:min-h-[180px] w-full rounded-lg mb-2 xs:mb-2.5 sm:mb-3" />
-          <Skeleton className="h-4 w-3/4 mb-1 xs:mb-1.5 sm:mb-2" />
-          <Skeleton className="h-3 w-1/2" />
-        </div>
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 p-4 sm:p-6">
+      {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+        <Skeleton key={i} className="aspect-video w-full rounded-none" />
       ))}
     </div>
   );

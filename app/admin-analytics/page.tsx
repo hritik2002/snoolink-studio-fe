@@ -3,8 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { ArrowLeft, BarChart3, FileSearch, Loader2, Shield, Users, Search, Upload, FolderPlus, Eye, Zap, Smartphone, Server } from "lucide-react";
+import { ArrowLeft, BarChart3, Loader2, Shield, Users, Search, Upload, FolderPlus, Eye, Zap, Smartphone, Server } from "lucide-react";
 
 type Range = "7" | "30" | "90";
 
@@ -187,36 +186,30 @@ export default function AdminAnalyticsPage() {
   }
 
   return (
-    <div className="min-h-svh bg-muted/30">
-      <header className="border-b border-border bg-background px-4 py-3 flex items-center gap-4">
-        <Link href="/" className="text-muted-foreground hover:text-foreground">
+    <div className="min-h-svh bg-[#010010] dot-grid">
+      <header className="border-b border-[#333333] bg-[#010010]/90 backdrop-blur-xl px-4 py-3 flex items-center gap-4">
+        <Link href="/" className="text-white/60 hover:text-white">
           <ArrowLeft className="h-5 w-5" />
         </Link>
-        <h1 className="text-lg font-semibold text-foreground flex items-center gap-2">
-          <BarChart3 className="h-5 w-5 text-primary" />
-          Admin – Platform Analytics
-        </h1>
+        <h1 className="text-sm font-mono uppercase tracking-wide text-white/90">Platform analytics</h1>
         <Link href="/admin">
-          <Button variant="outline" size="sm">Prompts</Button>
+          <Button variant="beetle-green" size="sm">Prompts</Button>
         </Link>
       </header>
 
       <main className="max-w-6xl mx-auto p-4 sm:p-6 space-y-6">
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-muted-foreground">Period:</label>
-          <select
-            value={range}
-            onChange={(e) => setRange(e.target.value as Range)}
-            className="rounded-md border border-border px-3 py-2 text-sm text-foreground bg-card"
-          >
-            <option value="7">Last 7 days</option>
-            <option value="30">Last 30 days</option>
-            <option value="90">Last 90 days</option>
-          </select>
-        </div>
+        <select
+          value={range}
+          onChange={(e) => setRange(e.target.value as Range)}
+          className="h-9 px-3 text-[13px] bg-[#0A090D] border border-[rgba(51,51,51,0.5)] text-white/80"
+        >
+          <option value="7">7 days</option>
+          <option value="30">30 days</option>
+          <option value="90">90 days</option>
+        </select>
 
         {error && (
-          <div className="p-3 rounded-md bg-red-50 text-red-700 text-sm">{error}</div>
+          <div className="p-3 border border-red-900/50 bg-red-950/30 text-red-400 text-sm">{error}</div>
         )}
 
         {loading && !overview ? (
@@ -224,9 +217,8 @@ export default function AdminAnalyticsPage() {
         ) : (
           <>
             {/* Platform KPIs */}
-            <Card className="p-4 border border-border">
-              <h2 className="text-base font-semibold text-foreground mb-4">Platform overview</h2>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+            <BeetleSection title="Platform overview">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
                 <Kpi icon={<Users className="h-5 w-5" />} label="Active users" value={overview?.activeUsers ?? 0} />
                 <Kpi icon={<BarChart3 className="h-5 w-5" />} label="Total events" value={overview?.totalEvents ?? 0} />
                 <Kpi icon={<Search className="h-5 w-5" />} label="Searches" value={overview?.searches ?? 0} />
@@ -242,60 +234,51 @@ export default function AdminAnalyticsPage() {
                 <Kpi icon={<Smartphone className="h-5 w-5" />} label="Client events" value={overview?.bySource?.client ?? 0} />
                 <Kpi icon={<Server className="h-5 w-5" />} label="Server events" value={overview?.bySource?.server ?? 0} />
               </div>
-            </Card>
+            </BeetleSection>
 
-            {/* Top events */}
             {overview?.topEventNames && overview.topEventNames.length > 0 && (
-              <Card className="p-4 border border-border">
-                <h2 className="text-base font-semibold text-foreground mb-3">Top events</h2>
-                <div className="flex flex-wrap gap-3">
+              <BeetleSection title="Top events">
+                <div className="flex flex-wrap gap-2">
                   {overview.topEventNames.map(({ name, count }) => (
-                    <span key={name} className="inline-flex items-center rounded-md bg-muted px-2.5 py-1 text-xs font-mono text-foreground">
-                      {name} <span className="ml-1.5 font-semibold text-primary">{count}</span>
+                    <span key={name} className="inline-flex items-center border border-[rgba(51,51,51,0.5)] px-2.5 py-1 text-xs font-mono text-white/80">
+                      {name} <span className="ml-1.5 font-mono-beetle text-primary">{count}</span>
                     </span>
                   ))}
                 </div>
-              </Card>
+              </BeetleSection>
             )}
 
-            {/* Trends by day */}
             {trends?.byDay && trends.byDay.length > 0 && (
-              <Card className="p-4 border border-border overflow-x-auto">
-                <h2 className="text-base font-semibold text-foreground mb-4">Daily trends</h2>
+              <BeetleSection title="Daily trends" className="overflow-x-auto">
                 <table className="w-full min-w-[520px] text-sm">
                   <thead>
-                    <tr className="border-b border-border">
-                      <th className="text-left py-2 pr-4 text-muted-foreground font-medium">Date</th>
-                      <th className="text-right py-2 px-2 text-muted-foreground font-medium">Active users</th>
-                      <th className="text-right py-2 px-2 text-muted-foreground font-medium">Searches</th>
-                      <th className="text-right py-2 px-2 text-muted-foreground font-medium">Uploads</th>
-                      <th className="text-right py-2 px-2 text-muted-foreground font-medium">Page views</th>
-                      <th className="text-right py-2 px-2 text-muted-foreground font-medium">Events</th>
+                    <tr className="border-b border-[#333333]">
+                      <th className="text-left py-2 pr-4 text-[#71717a] font-medium text-[13px]">Date</th>
+                      <th className="text-right py-2 px-2 text-[#71717a] font-medium text-[13px]">Active users</th>
+                      <th className="text-right py-2 px-2 text-[#71717a] font-medium text-[13px]">Searches</th>
+                      <th className="text-right py-2 px-2 text-[#71717a] font-medium text-[13px]">Uploads</th>
+                      <th className="text-right py-2 px-2 text-[#71717a] font-medium text-[13px]">Page views</th>
+                      <th className="text-right py-2 px-2 text-[#71717a] font-medium text-[13px]">Events</th>
                     </tr>
                   </thead>
                   <tbody>
                     {[...(trends.byDay || [])].reverse().map((r) => (
-                      <tr key={r.date} className="border-b border-border">
-                        <td className="py-2.5 pr-4 text-foreground">{r.date}</td>
-                        <td className="py-2.5 px-2 text-right text-foreground/80">{r.activeUsers}</td>
-                        <td className="py-2.5 px-2 text-right text-foreground/80">{r.searches}</td>
-                        <td className="py-2.5 px-2 text-right text-foreground/80">{r.uploads}</td>
-                        <td className="py-2.5 px-2 text-right text-foreground/80">{r.pageViews}</td>
-                        <td className="py-2.5 px-2 text-right text-foreground/80">{r.totalEvents}</td>
+                      <tr key={r.date} className="border-b border-[#333333]">
+                        <td className="py-2.5 pr-4 text-white">{r.date}</td>
+                        <td className="py-2.5 px-2 text-right font-mono-beetle text-white/80">{r.activeUsers}</td>
+                        <td className="py-2.5 px-2 text-right font-mono-beetle text-white/80">{r.searches}</td>
+                        <td className="py-2.5 px-2 text-right font-mono-beetle text-white/80">{r.uploads}</td>
+                        <td className="py-2.5 px-2 text-right font-mono-beetle text-white/80">{r.pageViews}</td>
+                        <td className="py-2.5 px-2 text-right font-mono-beetle text-white/80">{r.totalEvents}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
-              </Card>
+              </BeetleSection>
             )}
 
-            {/* Search / prompt queries */}
-            <Card className="p-4 border border-border overflow-x-auto">
-              <h2 className="text-base font-semibold text-foreground mb-1 flex items-center gap-2">
-                <FileSearch className="h-4 w-4 text-primary" />
-                Search queries (prompt & expanded)
-              </h2>
-              <p className="text-sm text-muted-foreground mb-4">Queries entered by users and the expanded version used for semantic search. Use for product and query-expansion tuning.</p>
+            <BeetleSection title="Search queries" className="overflow-x-auto">
+              <p className="text-[13px] text-[#71717a] mb-4">User queries and expanded semantic search text.</p>
               {!searchQueries?.queries?.length ? (
                 <p className="text-sm text-muted-foreground">No search queries in this period. Older events may not include query text.</p>
               ) : (
@@ -343,11 +326,9 @@ export default function AdminAnalyticsPage() {
                   )}
                 </>
               )}
-            </Card>
+            </BeetleSection>
 
-            {/* Per-user table */}
-            <Card className="p-4 border border-border overflow-x-auto">
-              <h2 className="text-base font-semibold text-foreground mb-4">Users by activity (sorted by total events)</h2>
+            <BeetleSection title="Users by activity" className="overflow-x-auto">
               {!users?.users?.length ? (
                 <p className="text-sm text-muted-foreground">No user activity in this period.</p>
               ) : (
@@ -392,7 +373,7 @@ export default function AdminAnalyticsPage() {
                   )}
                 </>
               )}
-            </Card>
+            </BeetleSection>
           </>
         )}
       </main>
@@ -400,13 +381,34 @@ export default function AdminAnalyticsPage() {
   );
 }
 
+function BeetleSection({
+  title,
+  children,
+  className = "",
+}: {
+  title: string;
+  children: React.ReactNode;
+  className?: string;
+}) {
+  return (
+    <div className={`beetle-card p-4 relative ${className}`}>
+      <span className="beetle-bracket beetle-bracket-tl" aria-hidden />
+      <span className="beetle-bracket beetle-bracket-tr" aria-hidden />
+      <span className="beetle-bracket beetle-bracket-bl" aria-hidden />
+      <span className="beetle-bracket beetle-bracket-br" aria-hidden />
+      <h2 className="text-[13px] font-mono uppercase tracking-wide text-white/90 mb-4">{title}</h2>
+      {children}
+    </div>
+  );
+}
+
 function Kpi({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: number; sub?: string }) {
   return (
-    <div>
-      <div className="flex items-center gap-1.5 text-primary mb-0.5">{icon}</div>
-      <div className="text-xl font-bold text-foreground">{value}</div>
-      <div className="text-xs text-muted-foreground">{label}</div>
-      {sub != null && sub !== "" && <div className="text-xs text-muted-foreground">{sub}</div>}
+    <div className="border border-[rgba(51,51,51,0.5)] p-3">
+      <div className="flex items-center gap-1.5 text-primary mb-1">{icon}</div>
+      <div className="font-mono-beetle text-xl font-bold text-primary">{value}</div>
+      <div className="text-[13px] text-[#71717a]">{label}</div>
+      {sub != null && sub !== "" && <div className="text-xs text-[#71717a] mt-0.5">{sub}</div>}
     </div>
   );
 }

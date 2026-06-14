@@ -12,18 +12,22 @@ export const metadata: Metadata = {
  
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-background dot-grid">
-      <div className="text-center">
-        <h1 className="text-6xl font-bold text-primary mb-4">404</h1>
-        <h2 className="text-2xl font-semibold text-foreground mb-2">Page Not Found</h2>
-        <p className="text-muted-foreground mb-8">
-          The page you're looking for doesn't exist or has been moved.
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#010010] dot-grid px-4">
+      <div className="beetle-card max-w-md w-full p-10 relative text-center">
+        <span className="beetle-bracket beetle-bracket-tl" aria-hidden />
+        <span className="beetle-bracket beetle-bracket-tr" aria-hidden />
+        <span className="beetle-bracket beetle-bracket-bl" aria-hidden />
+        <span className="beetle-bracket beetle-bracket-br" aria-hidden />
+        <p className="font-mono-beetle text-5xl font-bold text-primary mb-2">404</p>
+        <h1 className="text-lg font-medium text-white mb-2">Page not found</h1>
+        <p className="text-[13px] text-[#71717a] mb-8">
+          This page doesn&apos;t exist or was moved.
         </p>
         <Link 
           href="/"
-          className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground font-medium rounded-[6px] hover:bg-primary/90 transition-colors"
+          className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-black text-sm font-medium hover:bg-primary/90 transition-colors"
         >
-          Return Home
+          Return home
         </Link>
       </div>
     </div>

@@ -1,113 +1,31 @@
 "use client";
 
-import { Card } from "@/components/ui/card";
-import { History, BarChart3, Settings, CreditCard, Sparkles, Clock } from "lucide-react";
+import { History, BarChart3, CreditCard } from "lucide-react";
+import { EmptyPanel } from "@/components/ui/page-shell";
 
 interface ComingSoonProps {
   title: string;
   description: string;
-  icon: React.ReactNode;
-  features?: string[];
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
 }
 
-export function ComingSoon({ title, description, icon, features }: ComingSoonProps) {
+export function ComingSoon({ title, description, icon: Icon }: ComingSoonProps) {
   return (
-    <div className="flex-1 flex items-center justify-center min-h-[60vh] min-w-0 py-12 overflow-x-hidden">
-      <Card className="max-w-2xl w-full p-8 md:p-12 bg-card border border-border">
-        <div className="flex flex-col items-center text-center space-y-6">
-          {/* Icon */}
-          <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
-            <div className="text-primary">
-              {icon}
-            </div>
-          </div>
-
-          {/* Title and Description */}
-          <div className="space-y-2">
-            <h1 className="text-3xl font-medium text-foreground">{title}</h1>
-            <p className="text-lg text-muted-foreground max-w-md mx-auto">
-              {description}
-            </p>
-          </div>
-
-          {/* Coming Soon Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/5 border border-primary/20 rounded-full">
-            <Sparkles className="h-4 w-4 text-primary" />
-            <span className="text-sm font-medium text-primary">Coming Soon</span>
-          </div>
-
-          {/* Features Preview */}
-          {features && features.length > 0 && (
-            <div className="w-full mt-8 pt-8 border-t border-border">
-              <p className="text-sm font-semibold text-foreground/80 mb-4">What to expect:</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-left">
-                {features.map((feature, idx) => (
-                  <div key={idx} className="flex items-start gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary mt-2 flex-shrink-0" />
-                    <span className="text-sm text-muted-foreground">{feature}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Status Message */}
-          <div className="mt-8 pt-6 border-t border-border w-full">
-            <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-              <Clock className="h-4 w-4" />
-              <span>We&apos;re working hard to bring you this feature</span>
-            </div>
-          </div>
-        </div>
-      </Card>
-    </div>
+    <EmptyPanel
+      icon={Icon}
+      title={title}
+      description={description}
+      className="min-h-[60vh]"
+    />
   );
 }
 
 export function HistoryPage() {
   return (
     <ComingSoon
-      title="Search History"
-      description="Track and revisit your past searches to quickly find what you're looking for."
-      icon={<History className="h-10 w-10" />}
-      features={[
-        "View your complete search history",
-        "Quick access to recent queries",
-        "Save favorite searches",
-        "Export search results"
-      ]}
-    />
-  );
-}
-
-export function AnalyticsPage() {
-  return (
-    <ComingSoon
-      title="Analytics Dashboard"
-      description="Gain insights into your video library usage, search patterns, and content performance."
-      icon={<BarChart3 className="h-10 w-10" />}
-      features={[
-        "Search analytics and trends",
-        "Content usage statistics",
-        "Performance metrics",
-        "Custom reports and exports"
-      ]}
-    />
-  );
-}
-
-export function SettingsPage() {
-  return (
-    <ComingSoon
-      title="Settings"
-      description="Customize your Snoolink experience with personalized preferences and configurations."
-      icon={<Settings className="h-10 w-10" />}
-      features={[
-        "Account preferences",
-        "Search settings and filters",
-        "Notification preferences",
-        "API keys and integrations"
-      ]}
+      title="History"
+      description="Past searches and quick re-runs. In development."
+      icon={History}
     />
   );
 }
@@ -115,16 +33,9 @@ export function SettingsPage() {
 export function BillingPage() {
   return (
     <ComingSoon
-      title="Billing & Subscription"
-      description="Manage your subscription, view usage, and update payment methods all in one place."
-      icon={<CreditCard className="h-10 w-10" />}
-      features={[
-        "View and manage subscription",
-        "Usage statistics and limits",
-        "Payment method management",
-        "Billing history and invoices"
-      ]}
+      title="Billing"
+      description="Plans and usage. In development."
+      icon={CreditCard}
     />
   );
 }
-

@@ -72,44 +72,34 @@ export function OnboardingChecklist() {
         handleClose();
       }
     }}>
-      <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto rounded-none border border-[rgba(51,51,51,0.5)] bg-[#050505] p-6">
         <DialogHeader>
-          <div className="flex items-center justify-center mb-4">
-            <div className="rounded-full bg-gradient-to-br from-primary to-primary p-3 shadow-lg">
-              <Sparkles className="h-6 w-6 text-white" />
-            </div>
-          </div>
-          <DialogTitle className="text-2xl font-bold text-center">
-            Welcome to Snoolink!
+          <DialogTitle className="text-lg font-medium text-white text-left">
+            Get started
           </DialogTitle>
-          <DialogDescription className="text-center text-base pt-2">
-            Let's get you set up in 2 minutes. Complete these steps to unlock the full power of semantic search.
+          <DialogDescription className="text-[13px] text-[#71717a] text-left pt-1">
+            Upload, search, organize.
           </DialogDescription>
         </DialogHeader>
 
-        {/* Progress */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between text-sm text-muted-foreground mb-2">
+        <div className="mb-6 mt-4">
+          <div className="flex items-center justify-between text-[13px] text-[#71717a] mb-2">
             <span>Progress</span>
-            <span className="font-semibold text-primary">
-              {completedCount} of {totalCount} complete
-            </span>
+            <span className="font-mono-beetle text-primary">{completedCount}/{totalCount}</span>
           </div>
-          <div className="w-full h-2.5 bg-muted rounded-full overflow-hidden">
+          <div className="w-full h-1 bg-[#333333] overflow-hidden">
             <div
-              className="h-full bg-gradient-to-r from-primary to-primary transition-all duration-500 rounded-full"
+              className="h-full bg-primary transition-all duration-500"
               style={{ width: `${progress}%` }}
             />
           </div>
         </div>
 
-        {/* Checklist Items */}
-        <div className="space-y-3 mb-6">
+        <div className="space-y-2 mb-6">
           <ChecklistItem
             completed={onboardingState.hasUploaded}
-            icon={<CloudUpload className="h-5 w-5" />}
-            title="Upload your first media"
-            description="Start building your searchable library"
+            icon={<CloudUpload className="h-4 w-4" />}
+            title="Upload media"
             onClick={async () => {
               handleClose();
               router.push("/?view=uploads");
@@ -118,9 +108,8 @@ export function OnboardingChecklist() {
           />
           <ChecklistItem
             completed={onboardingState.hasSearched}
-            icon={<Search className="h-5 w-5" />}
-            title="Try your first search"
-            description="Experience AI-powered semantic search"
+            icon={<Search className="h-4 w-4" />}
+            title="Run a search"
             onClick={async () => {
               handleClose();
               router.push("/?view=search");
@@ -129,9 +118,8 @@ export function OnboardingChecklist() {
           />
           <ChecklistItem
             completed={onboardingState.hasCreatedCollection}
-            icon={<FolderPlus className="h-5 w-5" />}
-            title="Create your first collection"
-            description="Organize your media into groups"
+            icon={<FolderPlus className="h-4 w-4" />}
+            title="Create a collection"
             optional
             onClick={async () => {
               handleClose();
@@ -141,25 +129,23 @@ export function OnboardingChecklist() {
           />
         </div>
 
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-col sm:flex-row gap-2">
           <Button
+            variant="beetle"
             onClick={() => {
               handleClose();
               router.push("/?view=uploads");
             }}
-            className="flex-1 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-white"
-            size="lg"
+            className="flex-1"
           >
-            Get Started
+            Upload
           </Button>
           <Button
             onClick={handleClose}
-            variant="outline"
+            variant="beetle-tertiary"
             className="flex-1"
-            size="lg"
           >
-            I'll do this later
+            Later
           </Button>
         </div>
       </DialogContent>
@@ -171,7 +157,7 @@ interface ChecklistItemProps {
   completed: boolean;
   icon: React.ReactNode;
   title: string;
-  description: string;
+  description?: string;
   optional?: boolean;
   onClick: () => void;
 }
@@ -180,74 +166,40 @@ function ChecklistItem({
   completed,
   icon,
   title,
-  description,
   optional,
   onClick,
 }: ChecklistItemProps) {
   return (
     <button
+      type="button"
       onClick={onClick}
       disabled={completed}
       className={cn(
-        "w-full text-left p-4 rounded-lg border-2 transition-all duration-200",
+        "w-full text-left p-3 border transition-colors duration-150",
         completed
-          ? "bg-green-50 border-green-200 cursor-default"
-          : "bg-card border-border hover:border-primary/40 hover:shadow-md cursor-pointer active:scale-[0.98]"
+          ? "border-primary/30 bg-primary/5 cursor-default"
+          : "border-[rgba(51,51,51,0.5)] hover:border-primary/40 cursor-pointer"
       )}
     >
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-3">
         <div
           className={cn(
-            "flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all",
+            "shrink-0 w-8 h-8 flex items-center justify-center border",
             completed
-              ? "bg-green-100 text-green-600"
-              : "bg-primary/10 text-primary"
+              ? "border-primary/40 text-primary bg-primary/10"
+              : "border-[rgba(51,51,51,0.5)] text-white/60"
           )}
         >
-          {completed ? (
-            <CheckCircle2 className="h-5 w-5" />
-          ) : (
-            icon
+          {completed ? <CheckCircle2 className="h-4 w-4" /> : icon}
+        </div>
+        <div className="flex-1 min-w-0 flex items-center gap-2">
+          <span className={cn("text-sm", completed ? "text-primary line-through" : "text-white/80")}>
+            {title}
+          </span>
+          {optional && !completed && (
+            <span className="nav-badge">Optional</span>
           )}
         </div>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <h4
-              className={cn(
-                "text-base font-semibold",
-                completed ? "text-green-900 line-through" : "text-foreground"
-              )}
-            >
-              {title}
-            </h4>
-            {optional && !completed && (
-              <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-                Optional
-              </span>
-            )}
-          </div>
-          <p
-            className={cn(
-              "text-sm",
-              completed ? "text-green-700" : "text-muted-foreground"
-            )}
-          >
-            {description}
-          </p>
-        </div>
-        {!completed && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-primary hover:text-primary hover:bg-primary/5"
-            onClick={(e) => {
-              e.stopPropagation();
-              onClick();
-            }}
-          >
-            Start →
-          </Button>
-        )}
       </div>
     </button>
   );

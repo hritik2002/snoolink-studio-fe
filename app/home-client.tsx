@@ -48,7 +48,7 @@ function HomeContent() {
           className={`flex flex-1 flex-col min-w-0 min-h-0 overflow-x-hidden pb-16 md:pb-0 ${activeView === "collections" ? "overflow-y-hidden" : "overflow-y-auto"}`}
           tabIndex={-1}
         >
-          <div className={`${activeView === "search" ? "px-0 sm:px-0 pb-4 sm:pb-6" : activeView === "collections" ? "flex-1 flex flex-col min-h-0 px-0 pb-0" : "px-4 sm:px-6 pb-4 sm:pb-6"}`}>
+          <div className={`${activeView === "search" || activeView === "uploads" || activeView === "collections" || activeView === "profile" || activeView === "settings" || activeView === "analytics" || activeView === "history" || activeView === "billing" ? "px-0 pb-0 flex-1 flex flex-col min-h-0" : "px-4 sm:px-6 pb-4 sm:pb-6"}`}>
             {activeView === "search" ? (
               <ImageSearch />
             ) : activeView === "collections" ? (
