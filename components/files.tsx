@@ -33,6 +33,15 @@ interface FileRow {
 
 const ITEMS_PER_PAGE = 20;
 
+function normalizeVideoUrl(url: string): string {
+  try {
+    const parsed = new URL(url);
+    return `${parsed.origin}${parsed.pathname}`;
+  } catch {
+    return url.split("?")[0] ?? url;
+  }
+}
+
 export default function Files() {
   const searchParams = useSearchParams();
   const [items, setItems] = useState<FileRow[]>([]);
@@ -58,8 +67,8 @@ export default function Files() {
       });
 
       const [resourcesRes, queueRes] = await Promise.all([
-        fetch(`/api/resources?${params}`),
-        currentOffset === 0 ? fetch("/api/media/processing-failed-videos") : Promise.resolve(null),
+        fetch(`/api/resources?${params}`, { cache: "no-store" }),
+        currentOffset === 0 ? fetch("/api/media/processing-failed-videos", { cache: "no-store" }) : Promise.resolve(null),
       ]);
 
       if (!resourcesRes.ok) throw new Error("Failed to load files");
@@ -70,25 +79,25 @@ export default function Files() {
         const queueData = await queueRes.json();
         if (queueData.success && queueData.data) {
           const { processing = [], failed = [] } = queueData.data;
-          for (const job of processing as { id: string; videoUrl: string; timestamp?: number }[]) {
+          for (const job of processing as { id: string; videoUrl: string; collectionName?: string; timestamp?: number }[]) {
             queueRows.push({
               id: `job-${job.id}`,
               url: job.videoUrl,
               type: "video",
               createdAt: job.timestamp ? new Date(job.timestamp).toISOString() : undefined,
-              collectionName: "—",
+              collectionName: job.collectionName || "Default",
               status: "processing",
               source: "upload",
               canDelete: false,
             });
           }
-          for (const job of failed as { id: string; videoUrl: string; timestamp?: number }[]) {
+          for (const job of failed as { id: string; videoUrl: string; collectionName?: string; timestamp?: number }[]) {
             queueRows.push({
               id: `job-${job.id}`,
               url: job.videoUrl,
               type: "video",
               createdAt: job.timestamp ? new Date(job.timestamp).toISOString() : undefined,
-              collectionName: "—",
+              collectionName: job.collectionName || "Default",
               status: "failed",
               source: "upload",
               canDelete: false,
@@ -121,8 +130,10 @@ export default function Files() {
           })
         );
 
-        const queueUrls = new Set(queueRows.map((r) => r.url));
-        const dedupedResources = resourceRows.filter((r) => !queueUrls.has(r.url));
+        const queueUrls = new Set(queueRows.map((r) => normalizeVideoUrl(r.url)));
+        const dedupedResources = resourceRows.filter(
+          (r) => !queueUrls.has(normalizeVideoUrl(r.url))
+        );
 
         const merged = currentOffset === 0
           ? [...queueRows, ...dedupedResources]
