@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Search, Loader2, Video, Clock, Download, ArrowRight } from "lucide-react";
+import { Search, Loader2, Video, Clock, Download, ArrowRight, SlidersHorizontal } from "lucide-react";
 import { useToast } from "@/lib/hooks/use-toast";
 import { createClient } from "@/lib/supabase/client";
 import { AppPageLoader } from "@/components/app/AppSpinner";
@@ -13,6 +13,14 @@ import { EmptyStateSearch } from "@/components/onboarding/EmptyStateSearch";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { cn } from "@/lib/utils";
 import { appBtnPrimary, appChip, appChipActive } from "@/lib/app-classes";
+import { SearchSettingsPopover } from "@/components/search/SearchSettingsPopover";
+import {
+  DEFAULT_SEARCH_SETTINGS,
+  loadSearchSettings,
+  saveSearchSettings,
+  SEARCH_SETTINGS_STORAGE_KEY,
+  type SearchSettings,
+} from "@/lib/search-settings";
 
 interface VideoClip {
   id: string;
@@ -72,6 +80,9 @@ export default function ImageSearch() {
   const [collections, setCollections] = useState<CollectionOption[]>([]);
   const [selectedCollections, setSelectedCollections] = useState<string[]>(["all"]);
   const [isLoadingCollections, setIsLoadingCollections] = useState(false);
+  const [searchSettings, setSearchSettings] = useState<SearchSettings>(DEFAULT_SEARCH_SETTINGS);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const searchActionsRef = useRef<HTMLDivElement>(null);
 
   // Fetch collections on mount
   const fetchCollections = useCallback(async () => {
@@ -98,6 +109,38 @@ export default function ImageSearch() {
   useEffect(() => {
     fetchCollections();
   }, [fetchCollections]);
+
+  // Load search settings (localStorage first, else user defaults from API)
+  useEffect(() => {
+    const raw =
+      typeof window !== "undefined" ? localStorage.getItem(SEARCH_SETTINGS_STORAGE_KEY) : null;
+    if (raw) {
+      setSearchSettings(loadSearchSettings());
+      return;
+    }
+
+    fetch("/api/user-model-settings")
+      .then((r) => r.json())
+      .then((data) => {
+        if (!data.success || !data.data) return;
+        const minScore = data.data.min_score;
+        const next: SearchSettings = {
+          minScore:
+            minScore != null && !Number.isNaN(Number(minScore))
+              ? Math.max(0, Math.min(1, Number(minScore)))
+              : DEFAULT_SEARCH_SETTINGS.minScore,
+          expandQuery: DEFAULT_SEARCH_SETTINGS.expandQuery,
+        };
+        setSearchSettings(next);
+        saveSearchSettings(next);
+      })
+      .catch(() => {});
+  }, []);
+
+  const updateSearchSettings = useCallback((next: SearchSettings) => {
+    setSearchSettings(next);
+    saveSearchSettings(next);
+  }, []);
 
   // Initialize first clip selection for each video when results change
   useEffect(() => {
@@ -217,8 +260,16 @@ export default function ImageSearch() {
       : selectedCollections.join(",");
 
     try {
+      const params = new URLSearchParams({
+        query: q,
+        collections: collectionsParam,
+        topK: "10",
+        expandQuery: searchSettings.expandQuery ? "true" : "false",
+        minScore: searchSettings.minScore.toFixed(2),
+      });
+
       const response = await fetch(
-        `/api/videos/search-collections?query=${encodeURIComponent(q)}&collections=${encodeURIComponent(collectionsParam)}&topK=10&expandQuery=true`,
+        `/api/videos/search-collections?${params.toString()}`,
         { method: "GET" }
       );
       if (!response.ok) {
@@ -250,7 +301,7 @@ export default function ImageSearch() {
     } finally {
       setIsSearching(false);
     }
-  }, [searchQuery, toast, selectedCollections, refreshOnboardingState, onboardingState?.hasSearched]);
+  }, [searchQuery, toast, selectedCollections, refreshOnboardingState, onboardingState?.hasSearched, searchSettings]);
 
   const handleKeyPress = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -361,20 +412,52 @@ export default function ImageSearch() {
                 className="flex-1 bg-transparent border-0 h-full text-[14px] text-app-1 placeholder:text-app-4 focus-visible:ring-0 focus-visible:border-0 !shadow-none rounded-none px-3"
                 aria-label="Search videos by meaning"
               />
-              <button
-                type="button"
-                className={cn(appBtnPrimary, "h-8 mr-1.5 shrink-0 disabled:opacity-40")}
-                onClick={() => handleSearch()}
-                disabled={isSearching || !searchQuery.trim()}
-                aria-label="Run search"
-                aria-busy={isSearching}
+              <div
+                ref={searchActionsRef}
+                className="relative flex items-center shrink-0 mr-1.5"
               >
-                {isSearching ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <ArrowRight className="h-4 w-4" />
-                )}
-              </button>
+                <div className="flex overflow-hidden rounded-app-md shadow-sm">
+                  <button
+                    type="button"
+                    className={cn(
+                      "h-8 w-8 flex items-center justify-center",
+                      "bg-app-orange hover:bg-app-orange-hover active:bg-app-orange-press",
+                      "border-r border-white/25 text-white transition-colors duration-150",
+                      settingsOpen && "bg-app-orange-press"
+                    )}
+                    onClick={() => setSettingsOpen((open) => !open)}
+                    aria-label="Search settings"
+                    aria-expanded={settingsOpen}
+                    aria-haspopup="dialog"
+                  >
+                    <SlidersHorizontal className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    className={cn(
+                      appBtnPrimary,
+                      "h-8 w-8 !px-0 justify-center rounded-none disabled:opacity-40"
+                    )}
+                    onClick={() => handleSearch()}
+                    disabled={isSearching || !searchQuery.trim()}
+                    aria-label="Run search"
+                    aria-busy={isSearching}
+                  >
+                    {isSearching ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <ArrowRight className="h-4 w-4" />
+                    )}
+                  </button>
+                </div>
+                <SearchSettingsPopover
+                  open={settingsOpen}
+                  onClose={() => setSettingsOpen(false)}
+                  settings={searchSettings}
+                  onChange={updateSearchSettings}
+                  anchorRef={searchActionsRef}
+                />
+              </div>
             </div>
           </div>
 

@@ -38,6 +38,8 @@ export async function GET(request: NextRequest) {
     params.append("topK", topK);
     const expandQuery = searchParams.get("expandQuery");
     if (expandQuery !== null) params.set("expandQuery", expandQuery);
+    const minScore = searchParams.get("minScore");
+    if (minScore !== null) params.set("minScore", minScore);
 
     const response = await fetch(
       `${backendUrl}/api/media/search-videos-collections?${params.toString()}`,
