@@ -53,14 +53,25 @@ export function Select({ value, onValueChange, children, className }: SelectProp
   );
 }
 
-export function SelectTrigger({ children, className }: { children: React.ReactNode; className?: string }) {
+export function SelectTrigger({
+  children,
+  className,
+  disabled,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  disabled?: boolean;
+}) {
   const context = React.useContext(SelectContext);
   if (!context) throw new Error("SelectTrigger must be used within Select");
 
   return (
     <button
       type="button"
-      onClick={() => context.setIsOpen(!context.isOpen)}
+      disabled={disabled}
+      onClick={() => {
+        if (!disabled) context.setIsOpen(!context.isOpen);
+      }}
       className={cn(
         "flex items-center justify-between gap-2 px-3 py-2 text-sm",
         "bg-input border border-border rounded-[6px]",

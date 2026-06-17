@@ -178,8 +178,8 @@ export function UploadVideosModal({
 
         <div>
           <label className="text-[13px] font-medium text-app-2 mb-1.5 block">Collection</label>
-          <Select value={selectedCollection} onValueChange={setSelectedCollection} disabled={isUploading}>
-            <SelectTrigger className={appInput}>
+          <Select value={selectedCollection} onValueChange={setSelectedCollection}>
+            <SelectTrigger className={appInput} disabled={isUploading}>
               <span>{selectedCollection}</span>
             </SelectTrigger>
             <SelectContent>
