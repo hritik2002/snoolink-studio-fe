@@ -122,7 +122,7 @@ export const appChip = [
 ].join(" ")
 
 export const appChipActive =
-  "border-app-3 bg-app-active text-app-1 font-medium"
+  "border-app-1 bg-app-1 text-white font-medium shadow-sm [&_span]:text-white/60"
 
 export const appSegmentControl =
   "inline-flex rounded-app-md border border-app-border-input bg-app-hover p-0.5"

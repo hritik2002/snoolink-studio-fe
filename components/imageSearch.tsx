@@ -380,42 +380,47 @@ export default function ImageSearch() {
               />
               <div
                 ref={searchActionsRef}
-                className="relative flex items-center shrink-0 mr-1.5"
+                className="relative flex items-center gap-2 shrink-0 mr-2"
               >
-                <div className="flex overflow-hidden rounded-app-md shadow-sm">
-                  <button
-                    type="button"
-                    className={cn(
-                      "h-8 w-8 flex items-center justify-center",
-                      "bg-app-orange hover:bg-app-orange-hover active:bg-app-orange-press",
-                      "border-r border-white/25 text-white transition-colors duration-150",
-                      settingsOpen && "bg-app-orange-press"
-                    )}
-                    onClick={() => setSettingsOpen((open) => !open)}
-                    aria-label="Search settings"
-                    aria-expanded={settingsOpen}
-                    aria-haspopup="dialog"
-                  >
-                    <SlidersHorizontal className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    type="button"
-                    className={cn(
-                      appBtnPrimary,
-                      "h-8 w-8 !px-0 justify-center rounded-none disabled:opacity-40"
-                    )}
-                    onClick={() => handleSearch()}
-                    disabled={isSearching || !searchQuery.trim()}
-                    aria-label="Run search"
-                    aria-busy={isSearching}
-                  >
-                    {isSearching ? (
+                <button
+                  type="button"
+                  className={cn(
+                    "h-9 w-9 flex items-center justify-center rounded-app-md",
+                    "border border-app-border-input bg-white text-app-3",
+                    "hover:text-app-2 hover:bg-app-hover transition-colors duration-150",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-border",
+                    settingsOpen && "bg-app-active text-app-1 border-app-3"
+                  )}
+                  onClick={() => setSettingsOpen((open) => !open)}
+                  aria-label="Search settings"
+                  aria-expanded={settingsOpen}
+                  aria-haspopup="dialog"
+                >
+                  <SlidersHorizontal className="h-4 w-4" />
+                </button>
+                <button
+                  type="button"
+                  className={cn(
+                    appBtnPrimary,
+                    "h-9 gap-1.5 px-4 shrink-0 disabled:opacity-40"
+                  )}
+                  onClick={() => handleSearch()}
+                  disabled={isSearching || !searchQuery.trim()}
+                  aria-label="Run search"
+                  aria-busy={isSearching}
+                >
+                  {isSearching ? (
+                    <>
                       <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
+                      <span className="hidden sm:inline">Searching</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Search</span>
                       <ArrowRight className="h-4 w-4" />
-                    )}
-                  </button>
-                </div>
+                    </>
+                  )}
+                </button>
                 <SearchSettingsPopover
                   open={settingsOpen}
                   onClose={() => setSettingsOpen(false)}
