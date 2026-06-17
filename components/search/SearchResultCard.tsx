@@ -157,7 +157,7 @@ export function SearchResultCard({
                   />
                 )}
 
-                <ul className="space-y-2 max-h-[280px] overflow-y-auto pr-1 -mr-1">
+                <ul className="space-y-2">
                   {clips.map((clip, idx) => {
                     const startTime = parseFloat(clip.startTime);
                     const endTime = parseFloat(clip.endTime);

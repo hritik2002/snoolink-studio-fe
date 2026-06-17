@@ -361,8 +361,8 @@ export default function ImageSearch() {
   const hasContent = collections.reduce((a, c) => a + c.count, 0) > 0;
 
   return (
-    <div className="flex-1 flex flex-col h-full w-full min-w-0 overflow-hidden relative z-[1] bg-white">
-      {/* Search command bar */}
+    <div className="flex flex-col flex-1 min-h-0 w-full min-w-0 relative z-[1] bg-white">
+      {/* Search command bar — sticks while #main scrolls */}
       <div className="sticky top-0 z-[200] flex-shrink-0 px-6 pt-5 pb-3 bg-white border-b border-app-border-light">
         <div className="max-w-[1220px] mx-auto">
           <div className="flex items-center gap-3 mb-3">
@@ -477,10 +477,9 @@ export default function ImageSearch() {
         </div>
       </div>
 
-      <div className="relative flex flex-1 min-h-0 min-w-0 overflow-hidden px-3 sm:px-6 bg-cg-bg-alt">
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden max-w-[1220px] mx-auto w-full">
-          <div className="flex-1 overflow-y-auto px-4 sm:px-6">
-            {isSearching ? (
+      <div className="relative flex-1 min-w-0 px-3 sm:px-6 bg-cg-bg-alt">
+        <div className="max-w-[1220px] mx-auto w-full px-4 sm:px-6 pb-6 min-h-full flex flex-col">
+          {isSearching ? (
               <AppPageLoader minHeight="min-h-[320px]" />
             ) : resultCount > 0 ? (
               <SearchResultsList
@@ -501,7 +500,6 @@ export default function ImageSearch() {
                 />
               )
             )}
-          </div>
         </div>
       </div>
     </div>
