@@ -265,7 +265,7 @@ export default function Files() {
     {
       key: "status",
       label: "Status",
-      width: "110px",
+      width: "120px",
       render: (row) => {
         if (row.status === "failed") return <StatusBadge variant="error">Failed</StatusBadge>;
         if (row.status === "processing") return <StatusBadge variant="processing">Processing</StatusBadge>;
