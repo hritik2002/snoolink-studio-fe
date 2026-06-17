@@ -1,15 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Loader2, Video } from "lucide-react";
+import { Loader2, Upload } from "lucide-react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
 import { useToast } from "@/lib/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 import { createClient } from "@/lib/supabase/client";
-import { ModalShell, ModalFooterActions } from "@/components/app/ModalShell";
-import { appBtnPrimary, appInput } from "@/lib/app-classes";
+import { ModalShell } from "@/components/app/ModalShell";
+import { appBtnSecondary, appInput } from "@/lib/app-classes";
 import { APP_ROUTES } from "@/lib/app-nav";
 import { cn } from "@/lib/utils";
 
@@ -166,48 +166,65 @@ export function UploadVideosModal({
       title="Add files"
       width="480px"
       footer={
-        <ModalFooterActions
-          onCancel={onClose}
-          onConfirm={() => fileInputRef.current?.click()}
-          confirmLabel={isUploading ? "Uploading…" : "Select videos"}
-          loading={isUploading}
-        />
+        <button type="button" onClick={onClose} className={appBtnSecondary} disabled={isUploading}>
+          Cancel
+        </button>
       }
     >
-      <p className="text-[14px] text-app-3 mb-4">MP4 or MOV, max 100MB each.</p>
+      <div className="space-y-4">
+        <p className="text-[13px] text-app-3 leading-relaxed">
+          Upload MP4 or MOV files, up to 100MB each. Videos are processed using the selected collection&apos;s settings.
+        </p>
 
-      <label className="text-[13px] font-medium text-app-2 mb-1.5 block">Collection</label>
-      <Select value={selectedCollection} onValueChange={setSelectedCollection}>
-        <SelectTrigger className={cn(appInput, "mb-4")}>
-          <span>{selectedCollection}</span>
-        </SelectTrigger>
-        <SelectContent>
-          {collections.map((name) => (
-            <SelectItem key={name} value={name}>{name}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+        <div>
+          <label className="text-[13px] font-medium text-app-2 mb-1.5 block">Collection</label>
+          <Select value={selectedCollection} onValueChange={setSelectedCollection} disabled={isUploading}>
+            <SelectTrigger className={appInput}>
+              <span>{selectedCollection}</span>
+            </SelectTrigger>
+            <SelectContent>
+              {collections.map((name) => (
+                <SelectItem key={name} value={name}>{name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-      {validationError && (
-        <p className="text-[13px] text-red-600 mb-2">{validationError}</p>
-      )}
-
-      <button
-        type="button"
-        onClick={() => fileInputRef.current?.click()}
-        disabled={isUploading}
-        className={cn(
-          appBtnPrimary,
-          "w-full justify-center py-3 border border-dashed border-app-border-input bg-app-hover/50 hover:bg-app-hover"
+        {validationError && (
+          <p className="text-[13px] text-red-600">{validationError}</p>
         )}
-      >
-        {isUploading ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <Video className="h-4 w-4" />
-        )}
-        {isUploading ? "Uploading…" : "Choose video files"}
-      </button>
+
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isUploading}
+          className={cn(
+            "w-full rounded-app-md border border-dashed border-app-border-input",
+            "bg-app-hover/40 hover:bg-app-hover hover:border-app-orange/35",
+            "transition-colors duration-150",
+            "disabled:opacity-60 disabled:pointer-events-none",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-orange/30 focus-visible:ring-offset-2"
+          )}
+        >
+          <div className="flex flex-col items-center gap-2 px-4 py-8">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-white border border-app-border shadow-sm">
+              {isUploading ? (
+                <Loader2 className="h-5 w-5 animate-spin text-app-orange" />
+              ) : (
+                <Upload className="h-5 w-5 text-app-orange" />
+              )}
+            </div>
+            <div className="text-center">
+              <p className="text-[14px] font-medium text-app-1">
+                {isUploading ? "Uploading videos…" : "Choose video files"}
+              </p>
+              {!isUploading && (
+                <p className="text-[12px] text-app-4 mt-1">Click to browse · multiple files supported</p>
+              )}
+            </div>
+          </div>
+        </button>
+      </div>
 
       <input
         ref={fileInputRef}
