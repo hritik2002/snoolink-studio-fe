@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Loader2, Save, ArrowUpRight } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { ProfileSkeleton } from "@/components/skeletons";
-import { CommandBar, PageBody, PageTitle } from "@/components/ui/page-shell";
+import { PageHeader } from "@/components/app/PageHeader";
+import { SettingsCard } from "@/components/app/SettingsCard";
+import { FormField, AppInput } from "@/components/app/FormField";
+import { appBtnPrimary } from "@/lib/app-classes";
 
 interface UserProfile {
   name?: string;
@@ -77,78 +78,61 @@ export default function Profile() {
   if (loading) return <ProfileSkeleton />;
 
   return (
-    <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
-      <CommandBar>
-        <PageTitle>Profile</PageTitle>
-      </CommandBar>
+    <div className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-white">
+      <PageHeader title="Profile" />
 
-      <PageBody className="px-4 sm:px-6 py-6 max-w-lg">
-        <div className="glue-card p-6 relative backdrop-blur-3xl">
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="pb-5 border-b border-border">
-              <p className="text-foreground font-medium truncate">
-                {profile.name || user?.email?.split("@")[0] || "User"}
-              </p>
-              <p className="text-[13px] text-muted-foreground truncate mt-0.5">{user?.email}</p>
-            </div>
+      <div className="px-6 pb-8 max-w-[640px] flex flex-col gap-6">
+        <form onSubmit={handleSubmit}>
+          <SettingsCard
+            title="Personal Information"
+            description="Update your display name. Email is managed via Google."
+            footer={
+              <button type="submit" disabled={saving} className={appBtnPrimary}>
+                {saving ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Saving…
+                  </>
+                ) : (
+                  "Save changes"
+                )}
+              </button>
+            }
+          >
+            <FormField label="Full Name">
+              <AppInput
+                id="name"
+                type="text"
+                placeholder="Your name"
+                value={profile.name}
+                onChange={(e) =>
+                  setProfile((prev) => ({ ...prev, name: e.target.value }))
+                }
+              />
+            </FormField>
 
-            <div className="space-y-4">
-              <div className="space-y-1.5">
-                <label htmlFor="name" className="text-[13px] text-muted-foreground">
-                  Name
-                </label>
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="Your name"
-                  value={profile.name}
-                  onChange={(e) => setProfile((prev) => ({ ...prev, name: e.target.value }))}
-                  className="h-11 bg-input border-border"
-                />
-              </div>
-
-              <div className="space-y-1.5">
-                <label htmlFor="email" className="text-[13px] text-muted-foreground">
-                  Email
-                </label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={profile.email}
-                  disabled
-                  className="h-11 bg-input border-border text-muted-foreground"
-                />
-                <p className="text-[13px] text-muted-foreground">Managed via Google.</p>
-              </div>
-            </div>
+            <FormField label="Email Address">
+              <AppInput
+                id="email"
+                type="email"
+                value={profile.email}
+                disabled
+              />
+            </FormField>
 
             {error && (
-              <div className="text-red-400 text-sm border border-red-900/50 bg-red-950/30 px-3 py-2">
+              <div className="text-red-600 text-sm border border-red-200 bg-red-50 px-3 py-2 rounded-app-sm">
                 {error}
               </div>
             )}
             {success && (
-              <div className="text-primary text-sm border border-primary/30 bg-primary/5 px-3 py-2">
+              <div className="text-app-2 text-sm border border-app-border bg-app-hover px-3 py-2 rounded-app-sm">
                 {success}
               </div>
             )}
-
-            <Button type="submit" variant="beetle" disabled={saving} className="w-full group">
-              {saving ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Saving…
-                </>
-              ) : (
-                <>
-                  Save
-                  <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                </>
-              )}
-            </Button>
-          </form>
-        </div>
-      </PageBody>
+          </SettingsCard>
+        </form>
+      </div>
     </div>
   );
 }

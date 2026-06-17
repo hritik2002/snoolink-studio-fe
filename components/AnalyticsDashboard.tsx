@@ -1,15 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Loader2, Download, ArrowUpRight } from "lucide-react";
-import {
-  CommandBar,
-  PageBody,
-  PageTitle,
-  StatBlock,
-  EmptyPanel,
-} from "@/components/ui/page-shell";
+import { Loader2, Download } from "lucide-react";
+import { PageHeader } from "@/components/app/PageHeader";
+import { FilterDropdown } from "@/components/app/FilterDropdown";
+import { AppTable } from "@/components/app/AppTable";
+import { appBtnSecondary } from "@/lib/app-classes";
+import { BarChart3 } from "lucide-react";
 
 type Range = "7" | "30" | "90";
 
@@ -32,6 +29,17 @@ function getRange(r: Range): { start: string; end: string } {
   const start = new Date();
   start.setDate(start.getDate() - parseInt(r, 10));
   return { start: start.toISOString().slice(0, 10), end: end.toISOString().slice(0, 10) };
+}
+
+function MetaCard({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="rounded-app-md border border-app-border px-4 py-4 flex flex-col gap-1.5 bg-white">
+      <span className="text-[12px] font-medium uppercase tracking-[0.04em] text-app-4">
+        {label}
+      </span>
+      <span className="text-[15px] font-medium text-app-1 tabular-nums">{value}</span>
+    </div>
+  );
 }
 
 export function AnalyticsDashboard() {
@@ -66,16 +74,22 @@ export function AnalyticsDashboard() {
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [start, end]);
 
   const handleExport = async () => {
     setExporting(true);
     try {
-      const res = await fetch(`/api/analytics/events?startDate=${start}&endDate=${end}&limit=1000`);
+      const res = await fetch(
+        `/api/analytics/events?startDate=${start}&endDate=${end}&limit=1000`
+      );
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Export failed");
-      const blob = new Blob([JSON.stringify(data.data || [], null, 2)], { type: "application/json" });
+      const blob = new Blob([JSON.stringify(data.data || [], null, 2)], {
+        type: "application/json",
+      });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
@@ -91,8 +105,8 @@ export function AnalyticsDashboard() {
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center min-h-[50vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex-1 flex items-center justify-center min-h-[50vh] bg-white">
+        <Loader2 className="h-8 w-8 animate-spin text-app-3" />
       </div>
     );
   }
@@ -100,27 +114,27 @@ export function AnalyticsDashboard() {
   const noData = !error && (overview?.totalEvents ?? 0) === 0;
 
   return (
-    <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
-      <CommandBar>
-        <div className="flex items-center justify-between gap-4 flex-wrap">
-          <PageTitle>Analytics</PageTitle>
-          <div className="flex items-center gap-2">
-            <select
+    <div className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-white">
+      <PageHeader
+        title="Analytics"
+        description="Usage across search, uploads, and collections."
+        secondaryActions={
+          <>
+            <FilterDropdown
+              label="30 days"
               value={range}
-              onChange={(e) => setRange(e.target.value as Range)}
-              className="h-9 px-3 text-[13px] bg-input border border-border text-foreground/80 focus:border-primary/50 focus:outline-none"
-              aria-label="Date range"
-            >
-              <option value="7">7 days</option>
-              <option value="30">30 days</option>
-              <option value="90">90 days</option>
-            </select>
-            <Button
-              variant="beetle-green"
-              size="sm"
+              options={[
+                { label: "7 days", value: "7" },
+                { label: "30 days", value: "30" },
+                { label: "90 days", value: "90" },
+              ]}
+              onChange={(v) => setRange(v as Range)}
+            />
+            <button
+              type="button"
               onClick={handleExport}
               disabled={exporting}
-              className="group"
+              className={appBtnSecondary}
             >
               {exporting ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -128,82 +142,83 @@ export function AnalyticsDashboard() {
                 <Download className="h-4 w-4" />
               )}
               Export
-            </Button>
-          </div>
-        </div>
-      </CommandBar>
+            </button>
+          </>
+        }
+      />
 
-      <PageBody className="px-4 sm:px-6 py-6">
+      <div className="px-6 pb-8 flex flex-col gap-6">
         {error && (
-          <div className="mb-4 text-red-400 text-sm border border-red-900/50 bg-red-950/30 px-3 py-2">
+          <div className="text-red-600 text-sm border border-red-200 bg-red-50 px-3 py-2 rounded-app-sm">
             {error}
           </div>
         )}
 
         {noData ? (
-          <EmptyPanel
-            title="No data yet"
-            description="Activity will appear here once you search or upload."
-          />
+          <div className="flex flex-col items-center justify-center gap-4 py-24 text-center">
+            <BarChart3 className="w-8 h-8 text-app-4" />
+            <p className="text-[16px] font-semibold text-app-1">No data yet</p>
+            <p className="text-[14px] text-app-3 max-w-sm">
+              Activity will appear here once you search or upload.
+            </p>
+          </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
-              <StatBlock label="Searches" value={overview?.searches ?? 0} />
-              <StatBlock
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+              <MetaCard label="Searches" value={overview?.searches ?? 0} />
+              <MetaCard
                 label="Uploads"
-                value={(overview?.uploads?.images ?? 0) + (overview?.uploads?.videos ?? 0)}
+                value={
+                  (overview?.uploads?.images ?? 0) + (overview?.uploads?.videos ?? 0)
+                }
               />
-              <StatBlock label="Collections" value={overview?.collectionsCreated ?? 0} />
-              <StatBlock label="Page views" value={overview?.pageViews ?? 0} />
-              <StatBlock label="Events" value={overview?.totalEvents ?? 0} />
+              <MetaCard label="Collections" value={overview?.collectionsCreated ?? 0} />
+              <MetaCard label="Page views" value={overview?.pageViews ?? 0} />
+              <MetaCard label="Events" value={overview?.totalEvents ?? 0} />
             </div>
 
             {summary?.byDay && summary.byDay.length > 0 && (
-              <div className="glue-card p-4 mb-6 relative backdrop-blur-3xl">                <p className="text-[13px] font-mono uppercase tracking-wide text-white/90 mb-4">
-                  Activity
-                </p>
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[360px] text-sm">
-                    <thead>
-                      <tr className="border-b border-border">
-                        <th className="text-left py-2 text-[13px] text-muted-foreground font-normal">Date</th>
-                        <th className="text-right py-2 text-[13px] text-muted-foreground font-normal">Search</th>
-                        <th className="text-right py-2 text-[13px] text-muted-foreground font-normal">Upload</th>
-                        <th className="text-right py-2 text-[13px] text-muted-foreground font-normal">Views</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {[...(summary.byDay || [])].reverse().map((r) => (
-                        <tr key={r.date} className="border-b border-border/50">
-                          <td className="py-2 text-foreground/80">{r.date}</td>
-                          <td className="py-2 text-right font-mono text-primary">{r.searches}</td>
-                          <td className="py-2 text-right font-mono text-primary">{r.uploads}</td>
-                          <td className="py-2 text-right font-mono text-primary">{r.pageViews}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+              <div className="flex flex-col gap-4">
+                <h2 className="text-[16px] font-semibold text-app-1">Activity</h2>
+                <AppTable
+                  className="mx-0"
+                  columns={[
+                    { key: "date", label: "Date" },
+                    { key: "searches", label: "Search" },
+                    { key: "uploads", label: "Upload" },
+                    { key: "pageViews", label: "Views" },
+                  ]}
+                  data={[...(summary.byDay || [])].reverse().map((r) => ({
+                    id: r.date,
+                    date: r.date,
+                    searches: r.searches,
+                    uploads: r.uploads,
+                    pageViews: r.pageViews,
+                  }))}
+                />
               </div>
             )}
 
             {overview?.topEventNames && overview.topEventNames.length > 0 && (
-              <div className="glue-card p-4 relative backdrop-blur-3xl">                <p className="text-[13px] font-mono uppercase tracking-wide text-white/90 mb-4">
-                  Top events
-                </p>
-                <ul className="space-y-2">
-                  {overview.topEventNames.map(({ name, count }) => (
-                    <li key={name} className="flex justify-between items-center text-sm">
-                      <span className="text-foreground/70 font-mono text-[13px]">{name}</span>
-                      <span className="font-mono text-primary">{count}</span>
-                    </li>
-                  ))}
-                </ul>
+              <div className="flex flex-col gap-4">
+                <h2 className="text-[16px] font-semibold text-app-1">Top events</h2>
+                <AppTable
+                  className="mx-0"
+                  columns={[
+                    { key: "name", label: "Event" },
+                    { key: "count", label: "Count", width: "100px" },
+                  ]}
+                  data={overview.topEventNames.map((e) => ({
+                    id: e.name,
+                    name: e.name,
+                    count: e.count,
+                  }))}
+                />
               </div>
             )}
           </>
         )}
-      </PageBody>
+      </div>
     </div>
   );
 }

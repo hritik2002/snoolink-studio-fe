@@ -1002,22 +1002,24 @@ export default function ImageCollections() {
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
-      {/* Command bar */}
-      <div className="sticky top-0 z-[200] flex-shrink-0 border-b border-border bg-background/90 backdrop-blur-xl">
-        <div className="max-w-[1563px] mx-auto border-x border-border px-4 sm:px-6 py-4">
-          <div className="flex items-center justify-between gap-3 mb-3">
-            <h1 className="text-lg font-medium text-foreground">Uploads</h1>
+    <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden bg-white">
+      <div className="flex-shrink-0 border-b border-app-border-light bg-white">
+        <div className="px-6 py-4">
+          <div className="flex items-center justify-between gap-3">
+            <h1 className="text-[22px] font-bold text-app-1 leading-[1.3] tracking-[-0.01em]">
+              Uploads
+            </h1>
             {hasAssets && (
-              <div className="flex items-center gap-3 text-[13px] text-muted-foreground">
+              <div className="flex items-center gap-3 text-[13px] text-app-3">
                 {processingCount > 0 && (
                   <span>
-                    <span className="font-mono text-primary">{processingCount}</span> processing
+                    <span className="font-medium text-app-1 tabular-nums">{processingCount}</span>{" "}
+                    processing
                   </span>
                 )}
                 {failedCount > 0 && (
                   <span>
-                    <span className="font-mono text-red-400">{failedCount}</span> failed
+                    <span className="font-medium text-red-600 tabular-nums">{failedCount}</span> failed
                   </span>
                 )}
               </div>
@@ -1026,7 +1028,7 @@ export default function ImageCollections() {
         </div>
       </div>
 
-      <div className="flex-1 min-h-0 overflow-y-auto max-w-[1563px] mx-auto w-full border-x border-border px-4 sm:px-6 py-6">
+      <div className="flex-1 min-h-0 overflow-y-auto px-6 py-6">
 
       {files.length > 0 && (processingCount > 0 || failedCount > 0) && (
         <div className="mb-6 glue-card p-4 relative backdrop-blur-3xl">          <div className="flex items-center justify-between mb-3">

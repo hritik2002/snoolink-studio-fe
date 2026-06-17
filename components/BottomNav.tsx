@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { Search, CloudUpload, FolderOpen, Menu } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 
 export function BottomNav() {
   const router = useRouter();
@@ -19,21 +20,21 @@ export function BottomNav() {
   const isCollections = view === "collections";
 
   const base =
-    "flex flex-col items-center justify-center gap-0.5 flex-1 py-2 text-xs font-medium transition-colors min-h-[44px] touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset rounded-lg";
+    "flex flex-col items-center justify-center gap-0.5 flex-1 py-2 text-xs font-medium transition-colors min-h-[44px] touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-border focus-visible:ring-inset rounded-app-sm";
 
-  const active = "text-cg-ink";
-  const inactive = "text-cg-ink-4";
+  const active = "text-app-1";
+  const inactive = "text-app-4";
 
   return (
     <nav
-      className="md:hidden fixed bottom-3 left-3 right-3 z-50 rounded-cta bg-cg-bg/95 backdrop-blur-xl border border-cg-line shadow-card safe-area-pb"
+      className="md:hidden fixed bottom-0 inset-x-0 z-50 border-t border-app-border bg-white safe-area-pb"
       aria-label="Primary"
     >
       <div className="flex">
         <button
           type="button"
           onClick={toSearch}
-          className={`${base} ${isSearch ? active : inactive}`}
+          className={cn(base, isSearch ? active : inactive)}
           aria-current={isSearch ? "page" : undefined}
           aria-label="Search"
         >
@@ -43,7 +44,7 @@ export function BottomNav() {
         <button
           type="button"
           onClick={toUploads}
-          className={`${base} ${isUploads ? active : inactive}`}
+          className={cn(base, isUploads ? active : inactive)}
           aria-current={isUploads ? "page" : undefined}
           aria-label="Uploads"
         >
@@ -53,7 +54,7 @@ export function BottomNav() {
         <button
           type="button"
           onClick={toCollections}
-          className={`${base} ${isCollections ? active : inactive}`}
+          className={cn(base, isCollections ? active : inactive)}
           aria-current={isCollections ? "page" : undefined}
           aria-label="Collections"
         >
@@ -63,7 +64,7 @@ export function BottomNav() {
         <button
           type="button"
           onClick={toggleSidebar}
-          className={`${base} ${inactive}`}
+          className={cn(base, inactive)}
           aria-label="Open menu"
         >
           <Menu className="h-5 w-5" aria-hidden />

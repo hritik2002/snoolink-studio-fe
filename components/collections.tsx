@@ -23,6 +23,7 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { CollectionsPageSkeleton, CollectionsItemsSkeleton } from "@/components/skeletons";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
+import { appBtnPrimary, appBtnSecondary, appChip, appChipActive, appPageTitle } from "@/lib/app-classes";
 
 interface Collection {
   id: string;
@@ -480,35 +481,32 @@ export default function Collections() {
     isMobile ? "0" : (sidebarState === "collapsed" ? "var(--sidebar-width-icon)" : "var(--sidebar-width)");
 
   return (
-    <div className="flex-1 flex flex-col h-full min-h-0 min-w-0 bg-background overflow-hidden">
-      {/* Fixed header: title, actions, chips, filters, bulk — only the items area scrolls */}
+    <div className="flex-1 flex flex-col h-full min-h-0 min-w-0 bg-white overflow-hidden">
+      {/* Fixed header: title, actions, chips, filters, bulk */}
       <div
         ref={headerRef}
-        className="fixed top-0 right-0 z-30 bg-card"
+        className="fixed top-[53px] right-0 z-30 bg-white"
         style={{ left: fixedHeaderLeft }}
       >
-        {/* Command bar header */}
-        <div className="border-b border-border bg-background/90 backdrop-blur-xl">
-          <div className="px-4 sm:px-6 py-4">
+        <div className="border-b border-app-border">
+          <div className="px-6 py-4">
             <div className="flex items-center justify-between gap-3 mb-3">
-              <h1 className="text-lg font-medium text-foreground">Collections</h1>
+              <h1 className={appPageTitle}>Collections</h1>
               <div className="flex items-center gap-2">
                 {selectedCollection && (
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="h-9 border-border text-foreground/80 hover:border-primary/40"
+                  <button
+                    type="button"
+                    className={appBtnSecondary}
                     onClick={() => setShowShareModal(true)}
                     aria-label="Share collection"
                   >
                     <Share2 className="h-4 w-4" />
                     <span className="hidden sm:inline">Share</span>
-                  </Button>
+                  </button>
                 )}
-                <Button
-                  size="sm"
-                  variant="beetle-green"
-                  className="group"
+                <button
+                  type="button"
+                  className={appBtnPrimary}
                   onClick={() =>
                     router.push(
                       selectedCollection
@@ -519,14 +517,14 @@ export default function Collections() {
                 >
                   <CloudUpload className="h-4 w-4" />
                   Upload
-                </Button>
+                </button>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="border-b border-border">
-          <div className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3 overflow-x-auto scrollbar-hide">
+        <div className="border-b border-app-border">
+          <div className="flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 overflow-x-auto scrollbar-hide">
           <div 
             ref={scrollContainerRef}
             className="flex items-center gap-1.5 flex-1 min-w-0"
@@ -535,29 +533,27 @@ export default function Collections() {
               <button
                 key={collection.id}
                 onClick={() => setSelectedCollection(collection.name)}
-                className={`shrink-0 px-2.5 py-1 text-[13px] font-medium border transition-colors duration-150 touch-manipulation ${
-                  selectedCollection === collection.name
-                    ? "border-primary bg-primary/10 text-primary"
-                    : "border-border text-muted-foreground hover:text-foreground/80"
-                }`}
+                className={cn(
+                  appChip,
+                  selectedCollection === collection.name && appChipActive
+                )}
               >
                 <span className="truncate max-w-[120px] inline-block align-middle">{collection.name}</span>
-                <span className="ml-1 text-muted-foreground/70">{collection.count}</span>
+                <span className="text-app-4 tabular-nums">{collection.count}</span>
               </button>
             ))}
           </div>
 
-          <Button
+          <button
+            type="button"
             onClick={() => setShowCreateModal(true)}
-            variant="outline"
-            size="sm"
-            className="shrink-0 h-8 border-border text-primary hover:border-primary/40"
+            className={cn(appBtnSecondary, "shrink-0 h-8 text-[13px]")}
           >
             <Plus className="h-4 w-4" />
             <span className="hidden sm:inline">New</span>
-          </Button>
+          </button>
 
-          <div className="w-px h-5 bg-border shrink-0" />
+          <div className="w-px h-5 bg-app-border-input shrink-0" />
 
           <Select value={filterType} onValueChange={(v) => setFilterType(v as FilterType)}>
             <SelectTrigger className="w-[90px] h-8 text-[13px] shrink-0">

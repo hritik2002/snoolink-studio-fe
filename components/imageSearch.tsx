@@ -19,14 +19,14 @@ import { EmptyStateSearch } from "@/components/onboarding/EmptyStateSearch";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { cn } from "@/lib/utils";
 import {
-  btnLight,
-  chip,
-  chipActive,
-  commandBar,
-  segmentActive,
-  segmentControl,
-  segmentInactive,
-} from "@/lib/cg-classes";
+  appBtnPrimary,
+  appBtnSecondary,
+  appChip,
+  appChipActive,
+  appSegmentActive,
+  appSegmentControl,
+  appSegmentInactive,
+} from "@/lib/app-classes";
 
 type SearchMode = "image" | "video";
 type ViewMode = "grid" | "list";
@@ -684,14 +684,14 @@ export default function ImageSearch() {
   const hasContent = collections.reduce((a, c) => a + c.count, 0) > 0;
 
   return (
-    <div className="flex-1 flex flex-col h-full w-full min-w-0 overflow-hidden relative z-[1]">
-      {/* Floating command bar */}
-      <div className="sticky top-0 z-[200] flex-shrink-0 px-4 md:px-9 lg:px-15 pt-4 md:pt-5 pb-2">
-        <div className={cn(commandBar, "max-w-content mx-auto p-4 md:p-5")}>
+    <div className="flex-1 flex flex-col h-full w-full min-w-0 overflow-hidden relative z-[1] bg-white">
+      {/* Search command bar */}
+      <div className="sticky top-0 z-[200] flex-shrink-0 px-6 pt-5 pb-3 bg-white border-b border-app-border-light">
+        <div className="max-w-[1220px] mx-auto">
           {/* Search row */}
-          <div className="flex items-center gap-3 mb-3 md:mb-4">
-            <div className="flex-1 flex items-center h-12 bg-cg-bg-warm border border-cg-line-3 rounded-btn shadow-btn-light focus-within:border-cg-orange/50 focus-within:ring-[3px] focus-within:ring-cg-orange/15 transition-all duration-150 ease-cg">
-              <Search className="h-4 w-4 text-cg-ink-4 ml-3.5 shrink-0" aria-hidden />
+          <div className="flex items-center gap-3 mb-3">
+            <div className="flex-1 flex items-center h-11 bg-white border border-app-border-input rounded-app-md focus-within:border-app-3 transition-all duration-150">
+              <Search className="h-4 w-4 text-app-4 ml-3 shrink-0" aria-hidden />
               <Input
                 type="text"
                 autoFocus
@@ -699,13 +699,12 @@ export default function ImageSearch() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={handleKeyPress}
-                className="flex-1 bg-transparent border-0 h-full text-body text-cg-ink placeholder:text-cg-ink-4 focus-visible:ring-0 focus-visible:border-0 !shadow-none rounded-none px-3"
+                className="flex-1 bg-transparent border-0 h-full text-[14px] text-app-1 placeholder:text-app-4 focus-visible:ring-0 focus-visible:border-0 !shadow-none rounded-none px-3"
                 aria-label="Search by meaning"
               />
-              <Button
-                size="icon"
-                variant="dark"
-                className="h-9 w-9 mr-1.5 shrink-0 rounded-badge disabled:opacity-40"
+              <button
+                type="button"
+                className={cn(appBtnPrimary, "h-8 mr-1.5 shrink-0 disabled:opacity-40")}
                 onClick={() => handleSearch()}
                 disabled={isSearching || !searchQuery.trim()}
                 aria-label="Run search"
@@ -716,12 +715,12 @@ export default function ImageSearch() {
                 ) : (
                   <ArrowRight className="h-4 w-4" />
                 )}
-              </Button>
+              </button>
             </div>
             <button
               type="button"
               onClick={() => router.push("/?view=uploads")}
-              className={cn(btnLight, "hidden sm:inline-flex shrink-0 group h-12 px-5 text-sm")}
+              className={cn(appBtnSecondary, "hidden sm:inline-flex shrink-0 h-11")}
             >
               <CloudUpload className="h-4 w-4" aria-hidden />
               Upload
@@ -729,9 +728,8 @@ export default function ImageSearch() {
           </div>
 
           {/* Filters row */}
-          <div className="flex items-center gap-2.5 md:gap-3 flex-wrap">
-            {/* Mode segmented control */}
-            <div className={segmentControl}>
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <div className={appSegmentControl}>
               <button
                 type="button"
                 onClick={() => {
@@ -742,8 +740,8 @@ export default function ImageSearch() {
                 }}
                 disabled={isSearching}
                 className={cn(
-                  "flex items-center gap-1.5 px-3.5 py-2 text-sm transition-all duration-200 ease-cg",
-                  mode === "video" ? segmentActive : segmentInactive
+                  "flex items-center gap-1.5 px-3 py-1.5 transition-all duration-150",
+                  mode === "video" ? appSegmentActive : appSegmentInactive
                 )}
               >
                 <Video className="h-3.5 w-3.5" aria-hidden />
@@ -759,8 +757,8 @@ export default function ImageSearch() {
                 }}
                 disabled={isSearching}
                 className={cn(
-                  "flex items-center gap-1.5 px-3.5 py-2 text-sm transition-all duration-200 ease-cg",
-                  mode === "image" ? segmentActive : segmentInactive
+                  "flex items-center gap-1.5 px-3 py-1.5 transition-all duration-150",
+                  mode === "image" ? appSegmentActive : appSegmentInactive
                 )}
               >
                 <ImageIcon className="h-3.5 w-3.5" aria-hidden />
@@ -768,7 +766,7 @@ export default function ImageSearch() {
               </button>
             </div>
 
-            <div className="hidden sm:block w-px h-5 bg-cg-line-3" />
+            <div className="hidden sm:block w-px h-5 bg-app-border-input" />
 
             {/* Collection chips */}
             <div className="flex items-center gap-1.5 flex-1 min-w-0 overflow-x-auto scrollbar-hide">
@@ -784,8 +782,8 @@ export default function ImageSearch() {
                     type="button"
                     onClick={() => toggleCollection("all")}
                     className={cn(
-                      chip,
-                      selectedCollections.includes("all") && chipActive
+                      appChip,
+                      selectedCollections.includes("all") && appChipActive
                     )}
                   >
                     All
@@ -799,9 +797,9 @@ export default function ImageSearch() {
                       type="button"
                       onClick={() => toggleCollection(collection.name)}
                       className={cn(
-                        chip,
+                        appChip,
                         "max-w-[140px] truncate",
-                        selectedCollections.includes(collection.name) && chipActive
+                        selectedCollections.includes(collection.name) && appChipActive
                       )}
                     >
                       {collection.name}
@@ -820,8 +818,8 @@ export default function ImageSearch() {
               onClick={() => setExpandQuery(!expandQuery)}
               title="Expand query with AI synonyms"
               className={cn(
-                chip,
-                expandQuery && chipActive
+                appChip,
+                expandQuery && appChipActive
               )}
             >
               <Sparkles className="h-3.5 w-3.5" aria-hidden />
@@ -831,7 +829,7 @@ export default function ImageSearch() {
             <button
               type="button"
               onClick={() => router.push("/?view=uploads")}
-              className={cn(btnLight, "sm:hidden shrink-0 h-9 w-9 p-0 rounded-badge")}
+              className={cn(appBtnSecondary, "sm:hidden shrink-0 h-9 w-9 p-0 justify-center")}
               aria-label="Upload"
             >
               <CloudUpload className="h-4 w-4" />

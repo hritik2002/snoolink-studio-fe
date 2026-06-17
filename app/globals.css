@@ -67,6 +67,32 @@
   --color-cg-cyan: #3cc0e8;
   --color-cg-neon: #5ef2ff;
 
+  /* App shell tokens (authenticated product UI) */
+  --color-app-bg: #ffffff;
+  --color-app-hover: #f9fafb;
+  --color-app-active: #f3f4f6;
+  --color-app-1: #111827;
+  --color-app-2: #374151;
+  --color-app-3: #6b7280;
+  --color-app-4: #9ca3af;
+  --color-app-border: #e5e5e5;
+  --color-app-border-light: #f3f4f6;
+  --color-app-border-input: #e5e7eb;
+  --color-app-orange: #f97316;
+  --color-app-orange-hover: #ea6c0a;
+  --color-app-orange-press: #dc5d02;
+  --color-app-avatar: #be185d;
+
+  --radius-app-xs: 4px;
+  --radius-app-sm: 6px;
+  --radius-app-md: 8px;
+
+  --shadow-app-dropdown: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-app-modal: 0 8px 32px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(0, 0, 0, 0.04);
+
+  --width-sidebar: 260px;
+  --height-topbar: 53px;
+
   /* Font families → font-display, font-body, font-ui, font-mono */
   --font-family-display: var(--font-display), system-ui, sans-serif;
   --font-family-body: var(--font-body), system-ui, sans-serif;
@@ -706,5 +732,13 @@
     .logo-marquee-track {
       animation: none;
     }
+  }
+
+  .app-root {
+    font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: #ffffff;
+    color: #374151;
   }
 }

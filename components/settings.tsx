@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
-import { Loader2, Save, ArrowUpRight } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { analyticsClient } from "@/lib/analytics";
-import { CommandBar, PageBody, PageTitle, PageDescription } from "@/components/ui/page-shell";
+import { PageHeader } from "@/components/app/PageHeader";
+import { SettingsCard } from "@/components/app/SettingsCard";
+import { FormField, AppInput } from "@/components/app/FormField";
+import { FilterDropdown } from "@/components/app/FilterDropdown";
+import { appBtnPrimary } from "@/lib/app-classes";
 
 interface PromptRow {
   id: string;
@@ -92,113 +94,106 @@ export function SettingsPage() {
     }
   };
 
+  const modelOptions = [
+    { label: "Default", value: "" },
+    ...prompts.map((p) => ({ label: p.model, value: p.model })),
+  ];
+
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center min-h-[40vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex-1 flex items-center justify-center min-h-[40vh] bg-white">
+        <Loader2 className="h-8 w-8 animate-spin text-app-3" />
       </div>
     );
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
-      <CommandBar>
-        <PageTitle>Settings</PageTitle>
-        <PageDescription className="mt-1">Model and search preferences.</PageDescription>
-      </CommandBar>
+    <div className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-white">
+      <PageHeader
+        title="Settings"
+        description="Model and search preferences."
+      />
 
-      <PageBody className="px-4 sm:px-6 py-6 max-w-lg">
-        <div className="glue-card p-6 relative backdrop-blur-3xl">
-          <p className="text-[13px] font-mono uppercase tracking-wide text-white/90 mb-6">
-            Model preferences
-          </p>
-
-          <div className="space-y-5">
-            <div className="space-y-1.5">
-              <label className="text-[13px] text-muted-foreground">Search model</label>
-              <Select
-                value={settings.search_model || ""}
-                onValueChange={(v) => setSettings((s) => ({ ...s, search_model: v || null }))}
-              >
-                <SelectTrigger className="w-full h-11">
-                  <span>{settings.search_model || "Default"}</span>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Default</SelectItem>
-                  {prompts.map((p) => (
-                    <SelectItem key={p.id} value={p.model}>{p.model}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-[13px] text-muted-foreground">Ingestion model</label>
-              <Select
-                value={settings.ingestion_model || ""}
-                onValueChange={(v) => setSettings((s) => ({ ...s, ingestion_model: v || null }))}
-              >
-                <SelectTrigger className="w-full h-11">
-                  <span>{settings.ingestion_model || "Default"}</span>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Default</SelectItem>
-                  {prompts.map((p) => (
-                    <SelectItem key={p.id} value={p.model}>{p.model}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-[13px] text-muted-foreground">Min. score (0–1)</label>
-              <input
-                type="number"
-                min={0}
-                max={1}
-                step={0.05}
-                placeholder={String(DEFAULT_MIN_SCORE)}
-                value={settings.min_score ?? ""}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  if (v === "") setSettings((s) => ({ ...s, min_score: null }));
-                  else {
-                    const n = parseFloat(v);
-                    if (!Number.isNaN(n))
-                      setSettings((s) => ({ ...s, min_score: Math.max(0, Math.min(1, n)) }));
-                  }
-                }}
-                className="w-full max-w-[8rem] h-11 px-3 bg-input border border-border text-white text-sm focus:border-primary/50 focus:outline-none"
-              />
-            </div>
-
-            {error && (
-              <div className="text-red-400 text-sm border border-red-900/50 bg-red-950/30 px-3 py-2">
-                {error}
-              </div>
-            )}
-            {success && (
-              <div className="text-primary text-sm border border-primary/30 bg-primary/5 px-3 py-2">
-                {success}
-              </div>
-            )}
-
-            <Button variant="beetle" onClick={handleSave} disabled={saving} className="group">
+      <div className="px-6 pb-8 max-w-[640px] flex flex-col gap-6">
+        <SettingsCard
+          title="Model preferences"
+          description="Choose which models power search and ingestion."
+          footer={
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={saving}
+              className={appBtnPrimary}
+            >
               {saving ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
                   Saving…
                 </>
               ) : (
-                <>
-                  Save
-                  <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                </>
+                "Save changes"
               )}
-            </Button>
-          </div>
-        </div>
-      </PageBody>
+            </button>
+          }
+        >
+          <FormField label="Search model">
+            <FilterDropdown
+              label="Default"
+              value={settings.search_model || ""}
+              options={modelOptions}
+              onChange={(v) =>
+                setSettings((s) => ({ ...s, search_model: v || null }))
+              }
+            />
+          </FormField>
+
+          <FormField label="Ingestion model">
+            <FilterDropdown
+              label="Default"
+              value={settings.ingestion_model || ""}
+              options={modelOptions}
+              onChange={(v) =>
+                setSettings((s) => ({ ...s, ingestion_model: v || null }))
+              }
+            />
+          </FormField>
+
+          <FormField label="Min. score (0–1)">
+            <AppInput
+              type="number"
+              min={0}
+              max={1}
+              step={0.05}
+              placeholder={String(DEFAULT_MIN_SCORE)}
+              value={settings.min_score ?? ""}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (v === "") setSettings((s) => ({ ...s, min_score: null }));
+                else {
+                  const n = parseFloat(v);
+                  if (!Number.isNaN(n))
+                    setSettings((s) => ({
+                      ...s,
+                      min_score: Math.max(0, Math.min(1, n)),
+                    }));
+                }
+              }}
+              className="max-w-[8rem]"
+            />
+          </FormField>
+
+          {error && (
+            <div className="text-red-600 text-sm border border-red-200 bg-red-50 px-3 py-2 rounded-app-sm">
+              {error}
+            </div>
+          )}
+          {success && (
+            <div className="text-app-2 text-sm border border-app-border bg-app-hover px-3 py-2 rounded-app-sm">
+              {success}
+            </div>
+          )}
+        </SettingsCard>
+      </div>
     </div>
   );
 }
