@@ -20,7 +20,7 @@ import Image from "next/image";
 import { useToast } from "@/lib/hooks/use-toast";
 import { createClient } from "@/lib/supabase/client";
 import { useSidebar } from "@/components/ui/sidebar";
-import { CollectionsPageSkeleton, CollectionsItemsSkeleton } from "@/components/skeletons";
+import { AppPageLoader } from "@/components/app/AppSpinner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { appBtnPrimary, appBtnSecondary, appChip, appChipActive, appPageTitle } from "@/lib/app-classes";
@@ -474,10 +474,6 @@ export default function Collections() {
     }
   };
 
-  if (isLoading) {
-    return <CollectionsPageSkeleton />;
-  }
-
   const fixedHeaderLeft =
     isMobile ? "0" : (sidebarState === "collapsed" ? "var(--sidebar-width-icon)" : "var(--sidebar-width)");
 
@@ -667,8 +663,10 @@ export default function Collections() {
         className="flex-1 min-h-0 overflow-y-auto px-4 sm:px-6 pb-4 sm:pb-6"
         style={{ paddingTop: (headerHeight || 180) + 12 }}
       >
-        {isLoadingItems ? (
-          <CollectionsItemsSkeleton />
+        {isLoading ? (
+          <AppPageLoader />
+        ) : isLoadingItems ? (
+          <AppPageLoader minHeight="min-h-[320px]" />
         ) : sortedAndFilteredItems.length === 0 ? (
           <div className="flex items-center justify-center py-16">
             <div className="glue-card max-w-sm w-full p-8 relative text-center backdrop-blur-3xl">              <FolderOpen className="h-8 w-8 text-primary mx-auto mb-4" strokeWidth={1.5} />

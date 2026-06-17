@@ -13,7 +13,7 @@ import Image from "next/image";
 import { useToast } from "@/lib/hooks/use-toast";
 import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
 import { createClient } from "@/lib/supabase/client";
-import { SearchResultsSkeleton } from "@/components/skeletons";
+import { AppPageLoader } from "@/components/app/AppSpinner";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyStateSearch } from "@/components/onboarding/EmptyStateSearch";
 import { useOnboarding } from "@/contexts/OnboardingContext";
@@ -883,7 +883,7 @@ export default function ImageSearch() {
           <div className="flex-1 overflow-y-auto space-y-3 sm:space-y-4 pt-3 sm:pt-4 px-4 sm:px-6">
             {/* Search Results */}
             {isSearching ? (
-              <SearchResultsSkeleton />
+              <AppPageLoader minHeight="min-h-[320px]" />
             ) : mode === "image" ? (
               imageResults.length > 0 ? (
                 <div className={viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4" : "space-y-3 sm:space-y-4"}>

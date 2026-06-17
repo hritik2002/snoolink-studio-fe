@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
+import { AppPageLoader } from "@/components/app/AppSpinner";
 import { analyticsClient } from "@/lib/analytics";
 import { PageHeader } from "@/components/app/PageHeader";
 import { SettingsCard } from "@/components/app/SettingsCard";
@@ -101,8 +102,9 @@ export function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center min-h-[40vh] bg-white">
-        <Loader2 className="h-8 w-8 animate-spin text-app-3" />
+      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-white">
+        <PageHeader title="Settings" description="Model and search preferences." />
+        <AppPageLoader />
       </div>
     );
   }

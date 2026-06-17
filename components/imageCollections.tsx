@@ -10,7 +10,7 @@ import {
   Filter, CheckSquare, Square, Trash2, RotateCcw, FileUp, ExternalLink, Plus,
   Camera, FolderUp, Sparkles, Play, Pause
 } from "lucide-react";
-import { UploadsListSkeleton } from "@/components/skeletons";
+import { AppPageLoader } from "@/components/app/AppSpinner";
 import { Input } from "@/components/ui/input";
 import Image from "next/image";
 import { useToast } from "@/lib/hooks/use-toast";
@@ -1528,7 +1528,7 @@ export default function ImageCollections() {
 
       {/* Files List */}
       {isLoading ? (
-        <UploadsListSkeleton />
+        <AppPageLoader />
       ) : filteredFiles.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <div className="glue-card max-w-md w-full p-8 relative">            {filterStatus === "processing" ? (

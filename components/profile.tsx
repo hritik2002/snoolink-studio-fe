@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
-import { ProfileSkeleton } from "@/components/skeletons";
 import { PageHeader } from "@/components/app/PageHeader";
+import { AppPageLoader } from "@/components/app/AppSpinner";
 import { SettingsCard } from "@/components/app/SettingsCard";
 import { FormField, AppInput } from "@/components/app/FormField";
 import { appBtnPrimary } from "@/lib/app-classes";
@@ -75,7 +75,14 @@ export default function Profile() {
     }
   };
 
-  if (loading) return <ProfileSkeleton />;
+  if (loading) {
+    return (
+      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-white">
+        <PageHeader title="Profile" />
+        <AppPageLoader />
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-white">

@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Loader2, Download } from "lucide-react";
+import { Loader2, Download, BarChart3 } from "lucide-react";
+import { AppPageLoader } from "@/components/app/AppSpinner";
 import { PageHeader } from "@/components/app/PageHeader";
 import { FilterDropdown } from "@/components/app/FilterDropdown";
 import { AppTable } from "@/components/app/AppTable";
 import { appBtnSecondary } from "@/lib/app-classes";
-import { BarChart3 } from "lucide-react";
 
 type Range = "7" | "30" | "90";
 
@@ -105,8 +105,9 @@ export function AnalyticsDashboard() {
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center min-h-[50vh] bg-white">
-        <Loader2 className="h-8 w-8 animate-spin text-app-3" />
+      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-white">
+        <PageHeader title="Analytics" description="Usage across search, uploads, and collections." />
+        <AppPageLoader />
       </div>
     );
   }
