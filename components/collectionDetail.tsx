@@ -17,11 +17,13 @@ import {
   appSectionTitle,
 } from "@/lib/app-classes";
 import { appPath, collectionPath } from "@/lib/app-nav";
+import { getCollectionKindLabel } from "@/lib/collection-types";
 import { cn } from "@/lib/utils";
 
 interface CollectionMeta {
   id: string;
   name: string;
+  collectionType?: string | null;
   imageCount: number;
   videoCount: number;
   fileCount: number;
@@ -76,11 +78,7 @@ function formatDuration(seconds?: number): string {
 
 function getCollectionTypeLabel(meta: CollectionMeta | null): string {
   if (!meta) return "Collection";
-  const total = meta.fileCount ?? meta.imageCount + meta.videoCount;
-  if (total === 0) return "Empty Collection";
-  if (meta.videoCount > 0 && meta.imageCount === 0) return "Video Collection";
-  if (meta.imageCount > 0 && meta.videoCount === 0) return "Image Collection";
-  return "Media Collection";
+  return getCollectionKindLabel(meta.collectionType);
 }
 
 function getFileName(url: string): string {
@@ -124,6 +122,7 @@ export default function CollectionDetail({ collectionName }: { collectionName: s
           setMeta({
             id: String(col.id ?? col.name),
             name: col.name,
+            collectionType: col.collectionType ?? "media_descriptions",
             imageCount: col.imageCount,
             videoCount: col.videoCount,
             fileCount: col.fileCount ?? col.imageCount + col.videoCount,

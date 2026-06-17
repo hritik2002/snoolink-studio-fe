@@ -2,10 +2,11 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
-import { CloudUpload, Loader2, MoreHorizontal, Trash2 } from "lucide-react";
+import { CloudUpload, Loader2, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { useToast } from "@/lib/hooks/use-toast";
 import { AppTable, type AppTableColumn } from "@/components/app/AppTable";
+import { AppRowMenu } from "@/components/app/AppRowMenu";
 import { StatusBadge } from "@/components/app/StatusBadge";
 import { UploadVideosModal } from "@/components/UploadVideosModal";
 import { appBtnPrimary, appBtnSecondary, appPageTitle } from "@/lib/app-classes";
@@ -16,7 +17,6 @@ import {
   truncateId,
   truncateUri,
 } from "@/lib/file-format";
-import { cn } from "@/lib/utils";
 
 interface FileRow {
   id: string;
@@ -42,9 +42,7 @@ export default function Files() {
   const [hasMore, setHasMore] = useState(true);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploadCollection, setUploadCollection] = useState("Default");
-  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
@@ -166,17 +164,6 @@ export default function Files() {
   }, [searchParams]);
 
   useEffect(() => {
-    if (!menuOpenId) return;
-    const onClick = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setMenuOpenId(null);
-      }
-    };
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, [menuOpenId]);
-
-  useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && hasMore && !isLoadingMore && !isLoading) {
@@ -193,7 +180,6 @@ export default function Files() {
     e.stopPropagation();
     if (!row.canDelete) return;
     setDeletingId(row.id);
-    setMenuOpenId(null);
     try {
       const response = await fetch(
         `/api/collections/${encodeURIComponent(row.collectionName)}/resources`,
@@ -290,38 +276,27 @@ export default function Files() {
       key: "actions",
       label: "",
       width: "48px",
-      render: (row) => (
-        <div className="relative flex justify-end" ref={menuOpenId === row.id ? menuRef : undefined}>
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setMenuOpenId(menuOpenId === row.id ? null : row.id);
-            }}
-            className={cn(appBtnSecondary, "h-8 w-8 p-0 justify-center")}
-            aria-label="More actions"
-          >
-            <MoreHorizontal className="h-4 w-4" />
-          </button>
-          {menuOpenId === row.id && row.canDelete && (
-            <div className="absolute right-0 top-full mt-1 z-50 w-32 bg-white border border-app-border-input rounded-app-md shadow-app-dropdown overflow-hidden">
-              <button
-                type="button"
-                className="flex w-full items-center gap-2 px-3 py-2.5 text-[13px] text-red-600 hover:bg-red-50 text-left"
-                onClick={(e) => handleDelete(row, e)}
-                disabled={deletingId === row.id}
-              >
-                {deletingId === row.id ? (
-                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <Trash2 className="h-3.5 w-3.5" />
-                )}
-                Delete
-              </button>
-            </div>
-          )}
-        </div>
-      ),
+      render: (row) =>
+        row.canDelete ? (
+          <div className="flex justify-end" onClick={(e) => e.stopPropagation()}>
+            <AppRowMenu
+              items={[
+                {
+                  label: "Delete",
+                  variant: "danger",
+                  icon:
+                    deletingId === row.id ? (
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-3.5 w-3.5" />
+                    ),
+                  disabled: deletingId === row.id,
+                  onClick: (e) => handleDelete(row, e),
+                },
+              ]}
+            />
+          </div>
+        ) : null,
     },
   ];
 

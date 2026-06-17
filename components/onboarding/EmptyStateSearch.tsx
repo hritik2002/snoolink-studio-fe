@@ -30,7 +30,7 @@ export function EmptyStateSearch({
         <div className="text-center max-w-[360px] space-y-2 mb-6">
           <p className="text-[16px] font-semibold text-app-1">No media yet</p>
           <p className="text-[14px] text-app-3 leading-relaxed">
-            Upload files to index them, then search by meaning — not keywords.
+            Upload videos to index them, then search by meaning — not keywords.
           </p>
         </div>
         <button
@@ -39,7 +39,7 @@ export function EmptyStateSearch({
           className={appBtnPrimary}
         >
           <CloudUpload className="w-4 h-4" />
-          Upload media
+          Upload videos
         </button>
       </div>
     );
@@ -78,7 +78,7 @@ export function EmptyStateSearch({
     <div className="flex flex-col items-center justify-center flex-1 px-6 py-16 animate-app-fade-up">
       <p className="text-[16px] font-semibold text-app-1 mb-2">No results</p>
       <p className="text-[14px] text-app-3 text-center max-w-md">
-        Try broader terms or upload more media to expand your library.
+        Try broader terms or upload more videos to expand your library.
       </p>
     </div>
   );

@@ -9,7 +9,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name } = body;
+    const { name, description, collectionType, settings, segmentationConfig } = body;
 
     if (!name || typeof name !== "string" || name.trim().length === 0) {
       return NextResponse.json(
@@ -27,7 +27,13 @@ export async function POST(request: NextRequest) {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ name: name.trim() }),
+      body: JSON.stringify({
+        name: name.trim(),
+        description,
+        collectionType,
+        settings,
+        segmentationConfig,
+      }),
     });
 
     const data = await response.json();
@@ -48,4 +54,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
