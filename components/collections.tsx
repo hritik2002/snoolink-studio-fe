@@ -249,9 +249,13 @@ export default function Collections() {
       <CreateCollectionModal
         open={showCreateModal}
         onClose={() => setShowCreateModal(false)}
-        onCreated={() => {
-          toast({ title: "Collection created" });
+        onCreated={(collection) => {
+          toast({
+            title: "Collection created",
+            description: `"${collection.name}" is ready. Add files to start processing.`,
+          });
           fetchCollections();
+          router.push(collectionPath(collection.name));
         }}
       />
 

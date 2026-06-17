@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { CloudUpload, Loader2, Pencil, Settings, Trash2 } from "lucide-react";
+import { CloudUpload, Loader2, Pencil, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/lib/hooks/use-toast";
@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 interface CollectionMeta {
   id: string;
   name: string;
+  description?: string | null;
   collectionType?: string | null;
   imageCount: number;
   videoCount: number;
@@ -113,21 +114,22 @@ export default function CollectionDetail({ collectionName }: { collectionName: s
 
   const fetchMeta = useCallback(async () => {
     try {
-      const response = await fetch("/api/user-collections");
+      const response = await fetch(
+        `/api/collections/${encodeURIComponent(collectionName)}`
+      );
       if (!response.ok) return;
       const data = await response.json();
       if (data.success && data.data) {
-        const col = data.data.find((c: { name: string }) => c.name === collectionName);
-        if (col) {
-          setMeta({
-            id: String(col.id ?? col.name),
-            name: col.name,
-            collectionType: col.collectionType ?? "media_descriptions",
-            imageCount: col.imageCount,
-            videoCount: col.videoCount,
-            fileCount: col.fileCount ?? col.imageCount + col.videoCount,
-          });
-        }
+        const col = data.data;
+        setMeta({
+          id: String(col.id ?? col.name),
+          name: col.name,
+          description: col.description ?? null,
+          collectionType: col.collectionType ?? "media_descriptions",
+          imageCount: col.imageCount ?? 0,
+          videoCount: col.videoCount ?? 0,
+          fileCount: col.fileCount ?? (col.imageCount ?? 0) + (col.videoCount ?? 0),
+        });
       }
     } catch {
       // non-fatal
@@ -372,6 +374,9 @@ export default function CollectionDetail({ collectionName }: { collectionName: s
               <span className="mx-2 text-app-4">|</span>
               {getCollectionTypeLabel(meta)}
             </p>
+            {meta?.description?.trim() && (
+              <p className="text-[14px] text-app-2 mt-2 max-w-2xl">{meta.description}</p>
+            )}
           </div>
           <div className="flex flex-wrap items-center gap-2 shrink-0">
             <button
@@ -392,16 +397,6 @@ export default function CollectionDetail({ collectionName }: { collectionName: s
             >
               <Pencil className="h-4 w-4" />
               Edit
-            </button>
-            <button
-              type="button"
-              className={appBtnSecondary}
-              onClick={() =>
-                toast({ title: "Coming soon", description: "Collection settings will be available soon." })
-              }
-            >
-              <Settings className="h-4 w-4" />
-              Settings
             </button>
           </div>
         </div>

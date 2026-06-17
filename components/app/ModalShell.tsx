@@ -31,9 +31,9 @@ export function ModalShell({
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/45 backdrop-blur-[2px] data-[state=open]:animate-app-fade-in data-[state=closed]:animate-app-fade-out" />
         <Dialog.Content
           className={cn(
-            "fixed left-1/2 top-1/2 z-50 w-[calc(100%-3rem)] -translate-x-1/2 -translate-y-1/2",
+            "fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-[calc(100vw-2rem)] -translate-x-1/2 -translate-y-1/2",
             "bg-white rounded-[16px] border border-app-border shadow-app-modal",
-            "max-h-[90vh] flex flex-col outline-none",
+            "max-h-[min(90vh,900px)] flex flex-col outline-none overflow-hidden",
             "data-[state=open]:animate-app-modal-in data-[state=closed]:animate-app-modal-out",
             className
           )}
@@ -54,7 +54,7 @@ export function ModalShell({
             </Dialog.Close>
           </div>
 
-          <div className="px-7 pb-5 overflow-y-auto flex-1 min-h-0">{children}</div>
+          <div className="px-7 pb-5 overflow-y-auto overflow-x-hidden flex-1 min-h-0 min-w-0">{children}</div>
 
           {footer && (
             <div className="flex items-center justify-end gap-3 px-7 py-5 border-t border-app-border-light shrink-0">

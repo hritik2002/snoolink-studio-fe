@@ -116,7 +116,7 @@ export function UploadVideosModal({
         } else {
           toast({
             title: "Videos queued",
-            description: "Searchable in ~1 min.",
+            description: `Processing in "${selectedCollection}" using its collection settings.`,
             variant: "success",
             action: <ToastAction altText="Search" onClick={() => router.push(APP_ROUTES.search)}>Search</ToastAction>,
           });

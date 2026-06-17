@@ -22,7 +22,7 @@ import { cn } from "@/lib/utils"
 interface CreateCollectionModalProps {
   open: boolean
   onClose: () => void
-  onCreated: () => void
+  onCreated: (collection: { name: string; collectionType: string }) => void
 }
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
@@ -33,7 +33,7 @@ function SettingsCard({ children, className }: { children: React.ReactNode; clas
   return (
     <div
       className={cn(
-        "rounded-app-md border border-app-border bg-white p-4 flex flex-col min-h-[280px]",
+        "rounded-app-md border border-app-border bg-white p-4 flex flex-col min-w-0 w-full",
         className
       )}
     >
@@ -54,9 +54,9 @@ function ToggleRow({
   disabled?: boolean
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 py-2.5 border-b border-app-border-light last:border-0">
-      <span className="text-[14px] text-app-2">{label}</span>
-      <Toggle checked={checked} onChange={onChange} disabled={disabled} />
+    <div className="flex items-center justify-between gap-3 py-2.5 border-b border-app-border-light last:border-0 min-w-0">
+      <span className="flex-1 min-w-0 text-[13px] text-app-2 leading-snug pr-2">{label}</span>
+      <Toggle checked={checked} onChange={onChange} disabled={disabled} className="shrink-0" />
     </div>
   )
 }
@@ -227,7 +227,7 @@ function SegmentationPanel({
   onToggle: () => void
 }) {
   return (
-    <SettingsCard className="justify-between">
+    <SettingsCard className="justify-between min-h-0">
       <div>
         <p className={cn(appSectionTitle, "mb-2")}>Optional: Segmentation Config</p>
         <p className="text-[13px] text-app-3 leading-relaxed">
@@ -327,7 +327,10 @@ export function CreateCollectionModal({ open, onClose, onCreated }: CreateCollec
       })
       const data = await response.json()
       if (!response.ok) throw new Error(data.error || "Failed to create collection")
-      onCreated()
+      onCreated({
+        name: data.data.name,
+        collectionType: data.data.collectionType ?? form.collectionType,
+      })
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create collection")
@@ -398,9 +401,10 @@ export function CreateCollectionModal({ open, onClose, onCreated }: CreateCollec
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 min-w-0">
           <SettingsCard>
             <p className={cn(appSectionTitle, "mb-3")}>Settings</p>
+            <div className="min-w-0">
             {form.collectionType === "media_descriptions" && (
               <MediaDescriptionsSettingsPanel
                 settings={form.settings as MediaDescriptionsSettings}
@@ -419,6 +423,7 @@ export function CreateCollectionModal({ open, onClose, onCreated }: CreateCollec
                 onChange={(settings) => setForm((prev) => ({ ...prev, settings }))}
               />
             )}
+            </div>
           </SettingsCard>
 
           <SegmentationPanel
