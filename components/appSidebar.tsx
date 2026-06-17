@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Search,
@@ -12,7 +13,6 @@ import {
   CreditCard,
   User,
   Shield,
-  ChevronsUpDown,
   Bell,
 } from "lucide-react";
 import {
@@ -23,12 +23,17 @@ import {
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { AppAvatar } from "@/components/app/AppAvatar";
+import { SidebarAccountMenu } from "@/components/app/SidebarAccountMenu";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState, useCallback } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
-import { appNavItem, appNavItemActive, appNavSectionLabel } from "@/lib/app-classes";
+import {
+  appInteractiveRow,
+  appNavItem,
+  appNavItemActive,
+  appNavSectionLabel,
+} from "@/lib/app-classes";
 import { APP_ROUTES, appPath, type AppView } from "@/lib/app-nav";
 
 interface JobCounts {
@@ -109,9 +114,9 @@ export function AppSidebar() {
   const [jobCounts, setJobCounts] = useState<JobCounts | null>(null);
 
   const activeView =
-    Object.entries(APP_ROUTES).find(([, path]) => pathname === path || pathname.startsWith(`${path}/`))?.[0] as
-      | AppView
-      | undefined ?? null;
+    Object.entries(APP_ROUTES).find(
+      ([, path]) => pathname === path || pathname.startsWith(`${path}/`)
+    )?.[0] as AppView | undefined ?? null;
 
   const fetchJobCounts = useCallback(async () => {
     try {
@@ -168,6 +173,11 @@ export function AppSidebar() {
     { label: "Settings", items: settingsItems },
   ].filter((s) => s.items.length > 0);
 
+  const handleSignOut = async () => {
+    await signOut();
+    router.push("/");
+  };
+
   return (
     <Sidebar className="border-r border-app-border bg-white font-sans" collapsible="icon">
       <SidebarRail />
@@ -176,17 +186,28 @@ export function AppSidebar() {
           <Link
             href={appPath("search")}
             onClick={closeMobile}
-            className="flex items-center gap-2.5 min-w-0 hover:bg-app-hover rounded-app-sm px-1.5 py-1 transition-colors duration-150 group-data-[collapsible=icon]:p-0"
+            className={cn(
+              appInteractiveRow,
+              "min-w-0 px-1.5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-1.5"
+            )}
+            aria-label="Snoolink home"
           >
-            <AppAvatar name={displayName} email={user?.email} />
+            <div className="size-8 rounded-app-sm border border-app-border bg-white flex items-center justify-center shrink-0 overflow-hidden">
+              <Image
+                src="/logo.png"
+                alt=""
+                width={24}
+                height={24}
+                className="size-6 object-contain"
+              />
+            </div>
             <span className="text-[14px] font-medium text-app-1 truncate group-data-[collapsible=icon]:hidden">
-              {displayName}
+              Snoolink
             </span>
-            <ChevronsUpDown className="w-4 h-4 text-app-4 shrink-0 group-data-[collapsible=icon]:hidden" />
           </Link>
           <button
             type="button"
-            className="p-1.5 rounded-app-sm hover:bg-app-hover transition-colors duration-150 group-data-[collapsible=icon]:hidden"
+            className="p-1.5 rounded-app-sm cursor-pointer hover:bg-app-hover transition-colors duration-150 group-data-[collapsible=icon]:hidden"
             aria-label="Notifications"
           >
             <Bell className="w-5 h-5 text-app-3" />
@@ -218,29 +239,12 @@ export function AppSidebar() {
       </SidebarContent>
 
       <SidebarFooter className="border-t border-app-border-light px-3 py-3">
-        <Link
-          href={appPath("profile")}
-          onClick={closeMobile}
-          className="flex items-center gap-2.5 w-full hover:bg-app-hover rounded-app-sm px-2 py-1.5 transition-colors duration-150 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
-        >
-          <AppAvatar name={displayName} email={user?.email} />
-          <div className="flex flex-col items-start min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-            <span className="text-[14px] font-medium text-app-1 truncate w-full text-left">
-              {displayName}
-            </span>
-            <span className="text-[12px] text-app-3 truncate w-full text-left">
-              {user?.email}
-            </span>
-          </div>
-          <ChevronsUpDown className="w-4 h-4 text-app-4 shrink-0 group-data-[collapsible=icon]:hidden" />
-        </Link>
-        <button
-          type="button"
-          onClick={() => signOut().then(() => router.push("/"))}
-          className="mt-2 w-full text-left text-[13px] text-app-3 hover:text-app-2 px-2 transition-colors duration-150 group-data-[collapsible=icon]:text-center group-data-[collapsible=icon]:px-0"
-        >
-          Sign out
-        </button>
+        <SidebarAccountMenu
+          displayName={displayName}
+          email={user?.email}
+          onNavigate={closeMobile}
+          onSignOut={handleSignOut}
+        />
       </SidebarFooter>
     </Sidebar>
   );

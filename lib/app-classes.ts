@@ -61,13 +61,39 @@ export const appLabel = "text-[13px] font-medium text-app-2"
 export const appNavItem = [
   "flex items-center gap-2.5 w-full px-2.5 py-2 rounded-app-sm",
   "text-[14px] leading-[1.4] font-normal text-app-2",
-  "transition-colors duration-150",
+  "cursor-pointer transition-colors duration-150",
   "hover:bg-app-hover hover:text-app-1",
   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-border",
 ].join(" ")
 
 export const appNavItemActive =
-  "bg-app-active text-app-1 font-medium"
+  "bg-app-active text-app-1 font-medium hover:bg-app-active"
+
+export const appInteractiveRow = [
+  "flex items-center gap-2.5 w-full rounded-app-sm px-2 py-1.5",
+  "cursor-pointer transition-colors duration-150",
+  "hover:bg-app-hover",
+  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-border",
+].join(" ")
+
+export const appMenuPanel =
+  "absolute z-50 bg-white border border-app-border-input rounded-app-md shadow-app-dropdown overflow-hidden animate-app-fade-up"
+
+export const appMenuItem = [
+  "flex items-center gap-2.5 w-full px-3 py-2.5",
+  "text-[14px] text-app-2 text-left",
+  "cursor-pointer transition-colors duration-100",
+  "hover:bg-app-hover hover:text-app-1",
+  "focus-visible:outline-none focus-visible:bg-app-hover",
+].join(" ")
+
+export const appMenuItemDanger = [
+  "flex items-center gap-2.5 w-full px-3 py-2.5",
+  "text-[14px] text-red-600 text-left",
+  "cursor-pointer transition-colors duration-100",
+  "hover:bg-red-50 hover:text-red-700",
+  "focus-visible:outline-none focus-visible:bg-red-50",
+].join(" ")
 
 export const appNavSectionLabel =
   "text-[11px] font-medium uppercase tracking-[0.04em] text-app-4 px-2.5 py-1.5 mb-0.5"
