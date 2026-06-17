@@ -2,6 +2,7 @@ export type AppView =
   | "search"
   | "uploads"
   | "collections"
+  | "connectors"
   | "profile"
   | "history"
   | "analytics"
@@ -10,8 +11,9 @@ export type AppView =
 
 export const VIEW_LABELS: Record<AppView, string> = {
   search: "Search",
-  uploads: "Uploads",
+  uploads: "Files",
   collections: "Collections",
+  connectors: "Data Connectors",
   profile: "Profile",
   history: "History",
   analytics: "Analytics",
@@ -24,6 +26,7 @@ export const APP_ROUTES: Record<AppView, string> = {
   search: "/app/search",
   uploads: "/app/uploads",
   collections: "/app/collections",
+  connectors: "/app/connectors",
   profile: "/app/profile",
   history: "/app/history",
   analytics: "/app/analytics",
@@ -32,6 +35,10 @@ export const APP_ROUTES: Record<AppView, string> = {
 }
 
 export const DEFAULT_APP_PATH = APP_ROUTES.search
+
+export function collectionPath(name: string): string {
+  return `/app/collections/${encodeURIComponent(name)}`
+}
 
 export function appPath(
   view: AppView,

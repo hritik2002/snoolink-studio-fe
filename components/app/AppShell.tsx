@@ -5,7 +5,7 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/appSidebar"
 import { TopBar } from "@/components/app/TopBar"
 import { BottomNav } from "@/components/BottomNav"
-import { getViewBreadcrumbs, viewFromPathname } from "@/lib/app-nav"
+import { getViewBreadcrumbs, viewFromPathname, APP_ROUTES } from "@/lib/app-nav"
 import { memo } from "react"
 
 /** Sidebar + bottom nav — never depends on route content */
@@ -26,8 +26,17 @@ const AppChrome = memo(function AppChrome({
 function AppMain({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const activeView = viewFromPathname(pathname)
-  const breadcrumbs = activeView ? getViewBreadcrumbs(activeView) : [{ label: "Home" }]
-  const isCollections = activeView === "collections"
+  const collectionDetailMatch = pathname.match(/^\/app\/collections\/([^/]+)/)
+  const breadcrumbs = collectionDetailMatch
+    ? [
+        { label: "Home", href: APP_ROUTES.search },
+        { label: "Collections", href: APP_ROUTES.collections },
+        { label: decodeURIComponent(collectionDetailMatch[1]) },
+      ]
+    : activeView
+      ? getViewBreadcrumbs(activeView)
+      : [{ label: "Home" }]
+  const isCollectionDetail = !!collectionDetailMatch
 
   return (
     <>
@@ -35,7 +44,7 @@ function AppMain({ children }: { children: React.ReactNode }) {
       <div
         id="main"
         className={`flex flex-1 flex-col min-w-0 min-h-0 overflow-x-hidden pb-20 md:pb-0 bg-white ${
-          isCollections ? "overflow-y-hidden" : "overflow-y-auto"
+          isCollectionDetail ? "overflow-y-hidden" : "overflow-y-auto"
         }`}
         tabIndex={-1}
       >

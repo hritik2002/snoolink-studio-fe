@@ -7,6 +7,7 @@ export const APP_VIEW_PARAMS = new Set<string>([
   "search",
   "uploads",
   "collections",
+  "connectors",
   "profile",
   "history",
   "analytics",

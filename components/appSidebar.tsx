@@ -6,7 +6,8 @@ import { usePathname, useRouter } from "next/navigation";
 import {
   Search,
   FolderOpen,
-  Upload,
+  Files,
+  Database,
   History,
   BarChart3,
   Settings,
@@ -26,7 +27,6 @@ import {
 import { SidebarAccountMenu } from "@/components/app/SidebarAccountMenu";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState, useCallback } from "react";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import {
   appInteractiveRow,
@@ -110,7 +110,6 @@ export function AppSidebar() {
   const { user, signOut } = useAuth();
   const router = useRouter();
   const { setOpenMobile } = useSidebar();
-  const isMobile = useIsMobile();
   const [jobCounts, setJobCounts] = useState<JobCounts | null>(null);
 
   const activeView =
@@ -138,21 +137,31 @@ export function AppSidebar() {
   const displayName = user?.email?.split("@")[0] || "User";
   const inProgress = jobCounts?.total?.inProgress ?? 0;
 
-  const uploadsBadge =
+  const filesBadge =
     inProgress > 0 ? (
       <span className="ml-auto text-[11px] font-medium text-app-3 tabular-nums">
         {inProgress}
       </span>
     ) : null;
 
+  const searchItem: NavItemDef = {
+    view: "search",
+    label: "Search",
+    icon: <Search className="w-4 h-4" />,
+  };
+
   const mediaItems: NavItemDef[] = [
-    { view: "search", label: "Search", icon: <Search className="w-4 h-4" /> },
     { view: "collections", label: "Collections", icon: <FolderOpen className="w-4 h-4" /> },
     {
       view: "uploads",
-      label: "Uploads",
-      icon: <Upload className="w-4 h-4" />,
-      badge: uploadsBadge,
+      label: "Files",
+      icon: <Files className="w-4 h-4" />,
+      badge: filesBadge,
+    },
+    {
+      view: "connectors",
+      label: "Data Connectors",
+      icon: <Database className="w-4 h-4" />,
     },
   ];
 
@@ -168,10 +177,10 @@ export function AppSidebar() {
   ];
 
   const sections: NavSection[] = [
-    { label: "Media", items: isMobile ? [] : mediaItems },
+    { label: "Media", items: mediaItems },
     { label: "Activity", items: activityItems },
     { label: "Settings", items: settingsItems },
-  ].filter((s) => s.items.length > 0);
+  ];
 
   const handleSignOut = async () => {
     await signOut();
@@ -216,13 +225,19 @@ export function AppSidebar() {
       </SidebarHeader>
 
       <SidebarContent className="px-3 py-3 flex flex-col gap-1 overflow-y-auto">
-        {sections.map((section, idx) => (
+        <NavLink
+          item={searchItem}
+          isActive={activeView === "search"}
+          onNavigate={closeMobile}
+        />
+
+        {sections.map((section) => (
           <NavSectionBlock
             key={section.label}
             section={section}
             activeView={activeView}
             onNavigate={closeMobile}
-            showSeparator={idx > 0}
+            showSeparator
           />
         ))}
 

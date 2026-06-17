@@ -1,10 +1,16 @@
 import { Metadata } from "next"
-import ImageCollections from "@/components/imageCollections"
+import { Suspense } from "react"
+import Files from "@/components/files"
+import { AppPageLoader } from "@/components/app/AppSpinner"
 
 export const metadata: Metadata = {
-  title: "Uploads",
+  title: "Files",
 }
 
 export default function UploadsPage() {
-  return <ImageCollections />
+  return (
+    <Suspense fallback={<AppPageLoader />}>
+      <Files />
+    </Suspense>
+  )
 }

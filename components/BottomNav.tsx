@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Search, CloudUpload, FolderOpen, Menu } from "lucide-react";
+import { Search, Files, FolderOpen, Menu } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { APP_ROUTES } from "@/lib/app-nav";
@@ -12,7 +12,7 @@ export function BottomNav() {
   const { toggleSidebar } = useSidebar();
 
   const isSearch = pathname.startsWith(APP_ROUTES.search);
-  const isUploads = pathname.startsWith(APP_ROUTES.uploads);
+  const isFiles = pathname.startsWith(APP_ROUTES.uploads);
   const isCollections = pathname.startsWith(APP_ROUTES.collections);
 
   const base =
@@ -38,12 +38,12 @@ export function BottomNav() {
         </Link>
         <Link
           href={APP_ROUTES.uploads}
-          className={cn(base, isUploads ? active : inactive)}
-          aria-current={isUploads ? "page" : undefined}
-          aria-label="Uploads"
+          className={cn(base, isFiles ? active : inactive)}
+          aria-current={isFiles ? "page" : undefined}
+          aria-label="Files"
         >
-          <CloudUpload className="h-5 w-5" aria-hidden />
-          <span>Upload</span>
+          <Files className="h-5 w-5" aria-hidden />
+          <span>Files</span>
         </Link>
         <Link
           href={APP_ROUTES.collections}
