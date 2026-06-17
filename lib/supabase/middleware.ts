@@ -1,14 +1,16 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { ensureCallbackNextParam } from "@/lib/auth/constants";
+import {
+  ensureCallbackNextParam,
+  isAppViewParam,
+} from "@/lib/auth/constants";
+import { legacyViewToPath } from "@/lib/app-nav";
 
-const PROTECTED_PREFIXES = ["/admin"];
+const PROTECTED_PREFIXES = ["/admin", "/app"];
 
 export async function updateSession(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
-  // Supabase may redirect to Site URL with ?code= instead of /auth/callback.
-  // Forward to the callback route so the code is exchanged for a session.
   const code = request.nextUrl.searchParams.get("code");
   if (code && pathname !== "/auth/callback") {
     const callback = request.nextUrl.clone();
@@ -26,9 +28,16 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(home);
   }
 
-  let supabaseResponse = NextResponse.next({
-    request,
-  });
+  // Legacy ?view= deep links → /app/:view
+  const legacyView = request.nextUrl.searchParams.get("view");
+  if (pathname === "/" && isAppViewParam(legacyView)) {
+    const target = request.nextUrl.clone();
+    target.pathname = legacyViewToPath(legacyView)!;
+    target.searchParams.delete("view");
+    return NextResponse.redirect(target);
+  }
+
+  let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -42,9 +51,7 @@ export async function updateSession(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
-          supabaseResponse = NextResponse.next({
-            request,
-          });
+          supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           );
@@ -77,6 +84,14 @@ export async function updateSession(request: NextRequest) {
       home.searchParams.set("next", next);
     }
     return NextResponse.redirect(home);
+  }
+
+  // Signed-in users on marketing home → app dashboard
+  if (user && pathname === "/" && !legacyView && !code && !oauthError) {
+    const app = request.nextUrl.clone();
+    app.pathname = "/app/search";
+    app.search = "";
+    return NextResponse.redirect(app);
   }
 
   return supabaseResponse;

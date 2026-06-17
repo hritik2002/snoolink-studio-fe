@@ -12,6 +12,7 @@ import {
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { APP_ROUTES } from "@/lib/app-nav";
 import { cn } from "@/lib/utils";
 
 export function OnboardingChecklist() {
@@ -102,7 +103,7 @@ export function OnboardingChecklist() {
             title="Upload media"
             onClick={async () => {
               handleClose();
-              router.push("/?view=uploads");
+              router.push(APP_ROUTES.uploads);
               await refreshState();
             }}
           />
@@ -112,7 +113,7 @@ export function OnboardingChecklist() {
             title="Run a search"
             onClick={async () => {
               handleClose();
-              router.push("/?view=search");
+              router.push(APP_ROUTES.search);
               await refreshState();
             }}
           />
@@ -123,7 +124,7 @@ export function OnboardingChecklist() {
             optional
             onClick={async () => {
               handleClose();
-              router.push("/?view=collections");
+              router.push(APP_ROUTES.collections);
               await refreshState();
             }}
           />
@@ -134,7 +135,7 @@ export function OnboardingChecklist() {
             variant="beetle"
             onClick={() => {
               handleClose();
-              router.push("/?view=uploads");
+              router.push(APP_ROUTES.uploads);
             }}
             className="flex-1"
           >

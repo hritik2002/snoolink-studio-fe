@@ -20,6 +20,7 @@ import axios from "axios";
 import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { cn } from "@/lib/utils";
+import { APP_ROUTES } from "@/lib/app-nav";
 
 interface UploadedFile {
   id: string;
@@ -506,7 +507,7 @@ export default function ImageCollections() {
             title: "Partial success",
             description: `${urls.length} images uploaded. ${errors.length} failed.`,
             variant: "default",
-            action: <ToastAction altText="Try searching" onClick={() => router.push("/?view=search")}>Try searching →</ToastAction>,
+            action: <ToastAction altText="Try searching" onClick={() => router.push(APP_ROUTES.search)}>Try searching →</ToastAction>,
           });
         } else {
           triggerConfetti();
@@ -514,7 +515,7 @@ export default function ImageCollections() {
             title: "Images uploaded",
             description: "Searchable in a moment. Try searching.",
             variant: "success",
-            action: <ToastAction altText="Try searching" onClick={() => router.push("/?view=search")}>Try searching →</ToastAction>,
+            action: <ToastAction altText="Try searching" onClick={() => router.push(APP_ROUTES.search)}>Try searching →</ToastAction>,
           });
         }
       } catch (error) {
@@ -644,14 +645,14 @@ export default function ImageCollections() {
             title: "Videos queued",
             description: "Searchable in ~1 min. Try searching →",
             variant: "success",
-            action: <ToastAction altText="Try searching" onClick={() => router.push("/?view=search")}>Try searching →</ToastAction>,
+            action: <ToastAction altText="Try searching" onClick={() => router.push(APP_ROUTES.search)}>Try searching →</ToastAction>,
           });
         } else if (successfulProcesses.length > 0) {
           toast({
             title: "Partial success",
             description: `${successfulProcesses.length} video(s) queued. ${totalFailed} failed.`,
             variant: "default",
-            action: <ToastAction altText="Try searching" onClick={() => router.push("/?view=search")}>Try searching →</ToastAction>,
+            action: <ToastAction altText="Try searching" onClick={() => router.push(APP_ROUTES.search)}>Try searching →</ToastAction>,
           });
         }
 
@@ -759,7 +760,7 @@ export default function ImageCollections() {
             description: "Try searching for it in a moment. Your media will be searchable by meaning!",
             duration: 6000,
             action: (
-              <ToastAction altText="Go to search" onClick={() => router.push("/?view=search")}>
+              <ToastAction altText="Go to search" onClick={() => router.push(APP_ROUTES.search)}>
                 Search Now
               </ToastAction>
             ),
@@ -1576,7 +1577,7 @@ export default function ImageCollections() {
                     <Folder className="h-4 w-4 mr-2" />
                     Select files
                   </Button>
-                  <Link href="/?view=collections">
+                  <Link href={APP_ROUTES.collections}>
                     <Button variant="beetle-tertiary">Collections</Button>
                   </Link>
                 </div>

@@ -1,7 +1,9 @@
-/** Where authenticated users land after OAuth when no ?next= is provided */
-export const DEFAULT_POST_LOGIN_PATH = "/?view=search";
+import { APP_ROUTES, legacyViewToPath, type AppView } from "@/lib/app-nav";
 
-export const APP_VIEW_PARAMS = new Set([
+/** Where authenticated users land after OAuth when no ?next= is provided */
+export const DEFAULT_POST_LOGIN_PATH = APP_ROUTES.search;
+
+export const APP_VIEW_PARAMS = new Set<string>([
   "search",
   "uploads",
   "collections",
@@ -32,9 +34,8 @@ export function resolvePostLoginPath(options: {
   if (fromNext) {
     return sanitizePostLoginPath(fromNext);
   }
-  if (isAppViewParam(options.view)) {
-    return `/?view=${options.view}`;
-  }
+  const legacy = legacyViewToPath(options.view ?? null);
+  if (legacy) return legacy;
   return DEFAULT_POST_LOGIN_PATH;
 }
 
@@ -54,6 +55,10 @@ export function ensureCallbackNextParam(url: URL): void {
   }
 
   const view = url.searchParams.get("view");
-  url.searchParams.set("next", resolvePostLoginPath({ view }));
+  const legacy = legacyViewToPath(view);
+  url.searchParams.set(
+    "next",
+    legacy ?? resolvePostLoginPath({ view: view as AppView | null })
+  );
   url.searchParams.delete("view");
 }

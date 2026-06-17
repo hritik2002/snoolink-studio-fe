@@ -24,6 +24,7 @@ import { CollectionsPageSkeleton, CollectionsItemsSkeleton } from "@/components/
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { appBtnPrimary, appBtnSecondary, appChip, appChipActive, appPageTitle } from "@/lib/app-classes";
+import { appPath, APP_ROUTES } from "@/lib/app-nav";
 
 interface Collection {
   id: string;
@@ -510,8 +511,8 @@ export default function Collections() {
                   onClick={() =>
                     router.push(
                       selectedCollection
-                        ? `/?view=uploads&collection=${encodeURIComponent(selectedCollection)}`
-                        : "/?view=uploads"
+                        ? appPath("uploads", { collection: selectedCollection })
+                        : APP_ROUTES.uploads
                     )
                   }
                 >
@@ -683,7 +684,7 @@ export default function Collections() {
                 <Button
                   size="sm"
                   variant="beetle"
-                  onClick={() => router.push(`/?view=uploads&collection=${encodeURIComponent(selectedCollection)}`)}
+                  onClick={() => router.push(appPath("uploads", { collection: selectedCollection }))}
                 >
                   <CloudUpload className="h-4 w-4 mr-2" />
                   Upload

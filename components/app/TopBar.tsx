@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Link from "next/link"
 import { ChevronRight, PanelLeft } from "lucide-react"
 import { useSidebar } from "@/components/ui/sidebar"
 import { cn } from "@/lib/utils"
@@ -41,12 +42,12 @@ export function TopBar({ breadcrumbs, className }: TopBarProps) {
               <ChevronRight className="w-3 h-3 text-app-4 shrink-0" aria-hidden />
             )}
             {crumb.href && idx < breadcrumbs.length - 1 ? (
-              <a
+              <Link
                 href={crumb.href}
                 className="text-[13px] text-app-3 hover:text-app-2 transition-colors duration-150 no-underline"
               >
                 {crumb.label}
-              </a>
+              </Link>
             ) : (
               <span className="text-[13px] text-app-2">{crumb.label}</span>
             )}

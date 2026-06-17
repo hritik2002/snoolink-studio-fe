@@ -1,23 +1,19 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Search, CloudUpload, FolderOpen, Menu } from "lucide-react";
 import { useSidebar } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
+import { APP_ROUTES } from "@/lib/app-nav";
 
 export function BottomNav() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const { toggleSidebar } = useSidebar();
-  const view = searchParams.get("view") ?? "search";
 
-  const toSearch = () => router.push("/?view=search");
-  const toUploads = () => router.push("/?view=uploads");
-  const toCollections = () => router.push("/?view=collections");
-
-  const isSearch = view === "search";
-  const isUploads = view === "uploads";
-  const isCollections = view === "collections";
+  const isSearch = pathname.startsWith(APP_ROUTES.search);
+  const isUploads = pathname.startsWith(APP_ROUTES.uploads);
+  const isCollections = pathname.startsWith(APP_ROUTES.collections);
 
   const base =
     "flex flex-col items-center justify-center gap-0.5 flex-1 py-2 text-xs font-medium transition-colors min-h-[44px] touch-manipulation focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-app-border focus-visible:ring-inset rounded-app-sm";
@@ -31,36 +27,33 @@ export function BottomNav() {
       aria-label="Primary"
     >
       <div className="flex">
-        <button
-          type="button"
-          onClick={toSearch}
+        <Link
+          href={APP_ROUTES.search}
           className={cn(base, isSearch ? active : inactive)}
           aria-current={isSearch ? "page" : undefined}
           aria-label="Search"
         >
           <Search className="h-5 w-5" aria-hidden />
           <span>Search</span>
-        </button>
-        <button
-          type="button"
-          onClick={toUploads}
+        </Link>
+        <Link
+          href={APP_ROUTES.uploads}
           className={cn(base, isUploads ? active : inactive)}
           aria-current={isUploads ? "page" : undefined}
           aria-label="Uploads"
         >
           <CloudUpload className="h-5 w-5" aria-hidden />
           <span>Upload</span>
-        </button>
-        <button
-          type="button"
-          onClick={toCollections}
+        </Link>
+        <Link
+          href={APP_ROUTES.collections}
           className={cn(base, isCollections ? active : inactive)}
           aria-current={isCollections ? "page" : undefined}
           aria-label="Collections"
         >
           <FolderOpen className="h-5 w-5" aria-hidden />
           <span>Collections</span>
-        </button>
+        </Link>
         <button
           type="button"
           onClick={toggleSidebar}

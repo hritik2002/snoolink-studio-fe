@@ -1,9 +1,9 @@
-import { redirect } from "next/navigation";
+import { redirect } from "next/navigation"
+import { APP_ROUTES } from "@/lib/app-nav"
 
 /**
- * /upload is deprecated. All uploads go through Uploads (/?view=uploads)
- * which has collection selection and unified image/video flow.
+ * /upload is deprecated. All uploads go through /app/uploads.
  */
-export default function UploadPage() {
-  redirect("/?view=uploads");
+export default function UploadRedirectPage() {
+  redirect(APP_ROUTES.uploads)
 }

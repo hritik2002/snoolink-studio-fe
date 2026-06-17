@@ -2,10 +2,10 @@
   "name": "Snoolink - AI-Powered Semantic Video & Image Search",
   "short_name": "Snoolink",
   "description": "Transform how you find content with AI-powered semantic search. Upload videos and images, search by meaning instantly.",
-  "start_url": "/",
+  "start_url": "/app/search",
   "display": "standalone",
-  "background_color": "#010010",
-  "theme_color": "#2BC8B7",
+  "background_color": "#ffffff",
+  "theme_color": "#f97316",
   "orientation": "portrait-primary",
   "icons": [
     {
@@ -32,7 +32,7 @@
       "name": "Search",
       "short_name": "Search",
       "description": "Search your media library",
-      "url": "/?view=search",
+      "url": "/app/search",
       "icons": [
         {
           "src": "/icon-192.png",
@@ -44,7 +44,7 @@
       "name": "Upload",
       "short_name": "Upload",
       "description": "Upload new media",
-      "url": "/?view=uploads",
+      "url": "/app/uploads",
       "icons": [
         {
           "src": "/icon-192.png",
@@ -56,7 +56,7 @@
       "name": "Collections",
       "short_name": "Collections",
       "description": "Browse your collections",
-      "url": "/?view=collections",
+      "url": "/app/collections",
       "icons": [
         {
           "src": "/icon-192.png",

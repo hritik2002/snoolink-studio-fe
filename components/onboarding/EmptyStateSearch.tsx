@@ -1,14 +1,10 @@
 "use client";
 
-import { CloudUpload, Search, ArrowUpRight, Sparkles } from "lucide-react";
+import { CloudUpload, Search, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { APP_ROUTES } from "@/lib/app-nav";
+import { appBtnPrimary, appChip } from "@/lib/app-classes";
 import { cn } from "@/lib/utils";
-import {
-  badgeSection,
-  btnLight,
-  headingH3,
-  bodyLg,
-} from "@/lib/cg-classes";
 
 interface EmptyStateSearchProps {
   hasContent: boolean;
@@ -27,103 +23,63 @@ export function EmptyStateSearch({
 
   if (!hasContent) {
     return (
-      <div className="flex flex-col items-center justify-center flex-1 px-4 py-16 md:py-24">
-        <div className="relative max-w-md w-full">
-          <div className="glue-card-accent" aria-hidden />
-          <div className="glue-card p-1">
-            <div className="glue-card-inner p-8 md:p-10 text-center space-y-6">
-              <div
-                className="mx-auto size-14 rounded-icon flex items-center justify-center bg-cg-surface border border-cg-line-2 shadow-btn-light"
-                aria-hidden
-              >
-                <CloudUpload className="size-6 text-cg-orange stroke-[1.75]" />
-              </div>
-              <div className="space-y-2">
-                <h3 className={headingH3}>No media yet</h3>
-                <p className={cn(bodyLg, "text-cg-ink-4 max-w-[28ch] mx-auto")}>
-                  Upload files to index them. Then search by meaning, not
-                  keywords.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => router.push("/?view=uploads")}
-                className={cn(btnLight, "w-full group text-body")}
-              >
-                Upload media
-                <ArrowUpRight
-                  className="size-4 transition-transform duration-200 ease-cg group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-                  aria-hidden
-                />
-              </button>
-            </div>
-          </div>
+      <div className="flex flex-col items-center justify-center flex-1 px-6 py-20 animate-app-fade-up">
+        <div className="w-14 h-14 rounded-[10px] bg-app-active flex items-center justify-center mb-5">
+          <CloudUpload className="w-6 h-6 text-app-4" />
         </div>
+        <div className="text-center max-w-[360px] space-y-2 mb-6">
+          <p className="text-[16px] font-semibold text-app-1">No media yet</p>
+          <p className="text-[14px] text-app-3 leading-relaxed">
+            Upload files to index them, then search by meaning — not keywords.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => router.push(APP_ROUTES.uploads)}
+          className={appBtnPrimary}
+        >
+          <CloudUpload className="w-4 h-4" />
+          Upload media
+        </button>
       </div>
     );
   }
 
-  if (searchQuery) {
+  if (!searchQuery?.trim()) {
     return (
-      <div className="flex flex-col items-center justify-center flex-1 px-4 py-20 text-center">
-        <div
-          className="mb-5 size-12 rounded-icon flex items-center justify-center bg-cg-bg-warm border border-cg-line"
-          aria-hidden
-        >
-          <Search className="size-5 text-cg-ink-4 stroke-[1.75]" />
+      <div className="flex flex-col items-center justify-center flex-1 px-6 py-16 animate-app-fade-up">
+        <div className="w-14 h-14 rounded-[10px] bg-app-active flex items-center justify-center mb-5">
+          <Search className="w-6 h-6 text-app-4" />
         </div>
-        <p className="font-body text-body text-cg-ink mb-1">
-          No results for &ldquo;{searchQuery}&rdquo;
+        <p className="text-[16px] font-semibold text-app-1 mb-2">Search your library</p>
+        <p className="text-[14px] text-app-3 text-center max-w-md mb-8">
+          Describe what you&apos;re looking for in plain language.
         </p>
-        <p className="font-body text-sm text-cg-ink-4">
-          Try broader terms or a different query.
-        </p>
+        {exampleQueries.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-2 max-w-lg">
+            {exampleQueries.map((q) => (
+              <button
+                key={q}
+                type="button"
+                onClick={() => onExampleClick?.(q)}
+                className={cn(appChip, "hover:border-app-3")}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-app-4" />
+                {q}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col items-center justify-center flex-1 px-4 py-12 md:py-20 text-center">
-      <span className={cn(badgeSection, "mb-6 md:mb-8")}>
-        <Sparkles className="size-4 text-cg-orange" aria-hidden />
-        Semantic search
-      </span>
-
-      <h2
-        className={cn(
-          headingH3,
-          "text-[clamp(1.5rem,4vw,2rem)] max-w-[18ch] mb-4 tracking-tight"
-        )}
-      >
-        Find any moment by meaning
-      </h2>
-
-      <p className={cn(bodyLg, "max-w-prose mb-8 md:mb-10 text-cg-ink-4")}>
-        Describe what you&apos;re looking for. We match by meaning, not
-        keywords.
+    <div className="flex flex-col items-center justify-center flex-1 px-6 py-16 animate-app-fade-up">
+      <p className="text-[16px] font-semibold text-app-1 mb-2">No results</p>
+      <p className="text-[14px] text-app-3 text-center max-w-md">
+        Try broader terms or upload more media to expand your library.
       </p>
-
-      {exampleQueries.length > 0 && (
-        <div className="flex flex-wrap justify-center gap-2 max-w-lg">
-          {exampleQueries.slice(0, 4).map((q) => (
-            <button
-              key={q}
-              type="button"
-              onClick={() => onExampleClick?.(q)}
-              className={cn(
-                btnLight,
-                "px-4 py-2.5 text-sm h-auto group"
-              )}
-            >
-              {q}
-              <ArrowUpRight
-                className="size-3.5 opacity-50 transition-transform duration-200 ease-cg group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:opacity-100"
-                aria-hidden
-              />
-            </button>
-          ))}
-        </div>
-      )}
     </div>
   );
 }

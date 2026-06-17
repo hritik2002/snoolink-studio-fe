@@ -27,6 +27,7 @@ import {
   appSegmentControl,
   appSegmentInactive,
 } from "@/lib/app-classes";
+import { appPath, APP_ROUTES } from "@/lib/app-nav";
 
 type SearchMode = "image" | "video";
 type ViewMode = "grid" | "list";
@@ -719,7 +720,7 @@ export default function ImageSearch() {
             </div>
             <button
               type="button"
-              onClick={() => router.push("/?view=uploads")}
+              onClick={() => router.push(APP_ROUTES.uploads)}
               className={cn(appBtnSecondary, "hidden sm:inline-flex shrink-0 h-11")}
             >
               <CloudUpload className="h-4 w-4" aria-hidden />
@@ -828,7 +829,7 @@ export default function ImageSearch() {
 
             <button
               type="button"
-              onClick={() => router.push("/?view=uploads")}
+              onClick={() => router.push(APP_ROUTES.uploads)}
               className={cn(appBtnSecondary, "sm:hidden shrink-0 h-9 w-9 p-0 justify-center")}
               aria-label="Upload"
             >
@@ -1276,7 +1277,7 @@ export default function ImageSearch() {
                     onClick={(e) => {
                       e.stopPropagation();
                       resetSidebarTimer();
-                      router.push("/?view=collections");
+                      router.push(APP_ROUTES.collections);
                     }}
                     className="text-[13px] text-primary hover:text-primary/80"
                   >

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useOnboarding } from "@/contexts/OnboardingContext";
 import { useRouter } from "next/navigation";
+import { APP_ROUTES } from "@/lib/app-nav";
 
 export function WelcomeModal() {
   const { onboardingState, dismissOnboarding } = useOnboarding();
@@ -25,7 +26,7 @@ export function WelcomeModal() {
 
   const handleGetStarted = () => {
     handleDismiss();
-    router.push("/?view=uploads");
+    router.push(APP_ROUTES.uploads);
   };
 
   const completedCount =
@@ -103,7 +104,7 @@ export function WelcomeModal() {
               time="30 sec"
               onClick={() => {
                 handleDismiss();
-                router.push("/?view=search");
+                router.push(APP_ROUTES.search);
               }}
             />
             <ChecklistItem
@@ -115,7 +116,7 @@ export function WelcomeModal() {
               optional
               onClick={() => {
                 handleDismiss();
-                router.push("/?view=collections");
+                router.push(APP_ROUTES.collections);
               }}
             />
           </div>

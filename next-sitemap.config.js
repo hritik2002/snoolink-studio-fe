@@ -11,10 +11,9 @@ module.exports = {
     // Custom priority for specific pages
     const customPriorities = {
       '/': 1.0,
-      '/login': 0.8,
-      '/?view=search': 0.9,
-      '/?view=collections': 0.8,
-      '/?view=uploads': 0.7,
+      '/app/search': 0.9,
+      '/app/collections': 0.8,
+      '/app/uploads': 0.7,
     }
 
     return {

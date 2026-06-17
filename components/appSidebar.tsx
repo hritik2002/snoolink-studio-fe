@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Search,
   FolderOpen,
@@ -23,17 +25,11 @@ import {
 } from "@/components/ui/sidebar";
 import { AppAvatar } from "@/components/app/AppAvatar";
 import { useAuth } from "@/contexts/AuthContext";
-import { useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { appNavItem, appNavItemActive, appNavSectionLabel } from "@/lib/app-classes";
-import type { AppView } from "@/lib/app-nav";
-
-interface AppSidebarProps {
-  activeView: AppView;
-  onViewChange: (view: AppView) => void;
-}
+import { APP_ROUTES, appPath, type AppView } from "@/lib/app-nav";
 
 interface JobCounts {
   total: { inProgress: number };
@@ -51,19 +47,19 @@ interface NavSection {
   items: NavItemDef[];
 }
 
-function NavButton({
+function NavLink({
   item,
   isActive,
-  onClick,
+  onNavigate,
 }: {
   item: NavItemDef;
   isActive: boolean;
-  onClick: () => void;
+  onNavigate: () => void;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
+    <Link
+      href={appPath(item.view)}
+      onClick={onNavigate}
       aria-label={item.label}
       aria-current={isActive ? "page" : undefined}
       className={cn(appNavItem, isActive && appNavItemActive)}
@@ -71,39 +67,32 @@ function NavButton({
       <span className="w-4 h-4 shrink-0">{item.icon}</span>
       <span className="truncate">{item.label}</span>
       {item.badge}
-    </button>
+    </Link>
   );
 }
 
 function NavSectionBlock({
   section,
   activeView,
-  onViewChange,
+  onNavigate,
   showSeparator,
 }: {
   section: NavSection;
-  activeView: AppView;
-  onViewChange: (view: AppView) => void;
+  activeView: AppView | null;
+  onNavigate: () => void;
   showSeparator: boolean;
 }) {
-  const { setOpenMobile } = useSidebar();
-
-  const handleClick = (view: AppView) => {
-    onViewChange(view);
-    setOpenMobile(false);
-  };
-
   return (
     <div>
       {showSeparator && <div className="h-px bg-app-border-light my-2 -mx-3" />}
       <p className={appNavSectionLabel}>{section.label}</p>
       <div className="flex flex-col gap-0.5">
         {section.items.map((item) => (
-          <NavButton
+          <NavLink
             key={item.view}
             item={item}
             isActive={activeView === item.view}
-            onClick={() => handleClick(item.view)}
+            onNavigate={onNavigate}
           />
         ))}
       </div>
@@ -111,12 +100,18 @@ function NavSectionBlock({
   );
 }
 
-export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
+export function AppSidebar() {
+  const pathname = usePathname();
   const { user, signOut } = useAuth();
   const router = useRouter();
   const { setOpenMobile } = useSidebar();
   const isMobile = useIsMobile();
   const [jobCounts, setJobCounts] = useState<JobCounts | null>(null);
+
+  const activeView =
+    Object.entries(APP_ROUTES).find(([, path]) => pathname === path || pathname.startsWith(`${path}/`))?.[0] as
+      | AppView
+      | undefined ?? null;
 
   const fetchJobCounts = useCallback(async () => {
     try {
@@ -134,6 +129,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
     else setJobCounts(null);
   }, [user, fetchJobCounts]);
 
+  const closeMobile = () => setOpenMobile(false);
   const displayName = user?.email?.split("@")[0] || "User";
   const inProgress = jobCounts?.total?.inProgress ?? 0;
 
@@ -173,24 +169,21 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
   ].filter((s) => s.items.length > 0);
 
   return (
-    <Sidebar
-      className="border-r border-app-border bg-white font-sans"
-      collapsible="icon"
-    >
+    <Sidebar className="border-r border-app-border bg-white font-sans" collapsible="icon">
       <SidebarRail />
       <SidebarHeader className="px-3 py-3.5 border-b border-app-border-light group-data-[collapsible=icon]:px-2">
         <div className="flex items-center justify-between gap-2 group-data-[collapsible=icon]:justify-center">
-          <button
-            type="button"
+          <Link
+            href={appPath("search")}
+            onClick={closeMobile}
             className="flex items-center gap-2.5 min-w-0 hover:bg-app-hover rounded-app-sm px-1.5 py-1 transition-colors duration-150 group-data-[collapsible=icon]:p-0"
-            aria-label="Account"
           >
             <AppAvatar name={displayName} email={user?.email} />
             <span className="text-[14px] font-medium text-app-1 truncate group-data-[collapsible=icon]:hidden">
               {displayName}
             </span>
             <ChevronsUpDown className="w-4 h-4 text-app-4 shrink-0 group-data-[collapsible=icon]:hidden" />
-          </button>
+          </Link>
           <button
             type="button"
             className="p-1.5 rounded-app-sm hover:bg-app-hover transition-colors duration-150 group-data-[collapsible=icon]:hidden"
@@ -207,30 +200,27 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
             key={section.label}
             section={section}
             activeView={activeView}
-            onViewChange={onViewChange}
+            onNavigate={closeMobile}
             showSeparator={idx > 0}
           />
         ))}
 
         <div className="h-px bg-app-border-light my-2 -mx-3" />
-        <button
-          type="button"
-          onClick={() => {
-            setOpenMobile(false);
-            router.push("/admin");
-          }}
+        <Link
+          href="/admin"
+          onClick={closeMobile}
           className={cn(appNavItem, "text-app-3")}
           aria-label="Admin"
         >
           <Shield className="w-4 h-4 shrink-0" />
           <span>Admin</span>
-        </button>
+        </Link>
       </SidebarContent>
 
       <SidebarFooter className="border-t border-app-border-light px-3 py-3">
-        <button
-          type="button"
-          onClick={() => onViewChange("profile")}
+        <Link
+          href={appPath("profile")}
+          onClick={closeMobile}
           className="flex items-center gap-2.5 w-full hover:bg-app-hover rounded-app-sm px-2 py-1.5 transition-colors duration-150 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
         >
           <AppAvatar name={displayName} email={user?.email} />
@@ -243,7 +233,7 @@ export function AppSidebar({ activeView, onViewChange }: AppSidebarProps) {
             </span>
           </div>
           <ChevronsUpDown className="w-4 h-4 text-app-4 shrink-0 group-data-[collapsible=icon]:hidden" />
-        </button>
+        </Link>
         <button
           type="button"
           onClick={() => signOut().then(() => router.push("/"))}

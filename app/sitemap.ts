@@ -1,49 +1,34 @@
-import { MetadataRoute } from 'next'
+import { MetadataRoute } from "next"
+import { APP_ROUTES } from "@/lib/app-nav"
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = 'https://app.snoolink.com'
+  const baseUrl = "https://app.snoolink.com"
   const currentDate = new Date()
 
-  // Static pages
-  const staticPages: MetadataRoute.Sitemap = [
+  return [
     {
       url: baseUrl,
       lastModified: currentDate,
-      changeFrequency: 'daily',
+      changeFrequency: "daily",
       priority: 1,
     },
-  ]
-
-  // Dynamic view pages
-  const viewPages: MetadataRoute.Sitemap = [
     {
-      url: `${baseUrl}/?view=search`,
+      url: `${baseUrl}${APP_ROUTES.search}`,
       lastModified: currentDate,
-      changeFrequency: 'daily',
+      changeFrequency: "daily",
       priority: 0.9,
     },
     {
-      url: `${baseUrl}/?view=collections`,
+      url: `${baseUrl}${APP_ROUTES.collections}`,
       lastModified: currentDate,
-      changeFrequency: 'daily',
+      changeFrequency: "daily",
       priority: 0.8,
     },
     {
-      url: `${baseUrl}/?view=uploads`,
+      url: `${baseUrl}${APP_ROUTES.uploads}`,
       lastModified: currentDate,
-      changeFrequency: 'daily',
+      changeFrequency: "daily",
       priority: 0.7,
     },
   ]
-
-  // TODO: Add dynamic collection pages if they become public
-  // const collections = await getPublicCollections()
-  // const collectionPages = collections.map(collection => ({
-  //   url: `${baseUrl}/collections/${collection.slug}`,
-  //   lastModified: collection.updatedAt,
-  //   changeFrequency: 'weekly' as const,
-  //   priority: 0.7,
-  // }))
-
-  return [...staticPages, ...viewPages]
 }

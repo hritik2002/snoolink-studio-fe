@@ -17,7 +17,7 @@ export async function generatePageMetadata(
       openGraph: {
         title: 'AI-Powered Semantic Search | Snoolink',
         description: 'Search your media library by meaning with AI.',
-        url: 'https://app.snoolink.com/?view=search',
+        url: 'https://app.snoolink.com/app/search',
       },
       twitter: {
         card: 'summary_large_image',
@@ -25,7 +25,7 @@ export async function generatePageMetadata(
         description: 'Search your media library by meaning with AI.',
       },
       alternates: {
-        canonical: 'https://app.snoolink.com/?view=search',
+        canonical: 'https://app.snoolink.com/app/search',
       },
     },
     collections: {
@@ -34,7 +34,7 @@ export async function generatePageMetadata(
       openGraph: {
         title: 'Media Collections | Snoolink',
         description: 'Organize your media into collections.',
-        url: 'https://app.snoolink.com/?view=collections',
+        url: 'https://app.snoolink.com/app/collections',
       },
       twitter: {
         card: 'summary_large_image',
@@ -42,7 +42,7 @@ export async function generatePageMetadata(
         description: 'Organize your media into collections.',
       },
       alternates: {
-        canonical: 'https://app.snoolink.com/?view=collections',
+        canonical: 'https://app.snoolink.com/app/collections',
       },
     },
     uploads: {
@@ -51,7 +51,7 @@ export async function generatePageMetadata(
       openGraph: {
         title: 'Upload Media | Snoolink',
         description: 'Upload and index your media with AI.',
-        url: 'https://app.snoolink.com/?view=uploads',
+        url: 'https://app.snoolink.com/app/uploads',
       },
       twitter: {
         card: 'summary_large_image',
@@ -59,7 +59,7 @@ export async function generatePageMetadata(
         description: 'Upload and index your media with AI.',
       },
       alternates: {
-        canonical: 'https://app.snoolink.com/?view=uploads',
+        canonical: 'https://app.snoolink.com/app/uploads',
       },
     },
   }
